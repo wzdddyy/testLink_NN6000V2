@@ -65,6 +65,8 @@ if [[ "$Dev" == *"12m"* ]] || [[ "$Dev" == *"12M"* ]]; then
     if [ -f "$BASE_PATH/../patches/ipq6000-nn6000-v2-12m.dts" ]; then
         cp "$BASE_PATH/../patches/ipq6000-nn6000-v2-12m.dts" "$BUILD_DIR/target/linux/qualcommax/dts/"
         echo "✓ DTS 文件已复制到 $BUILD_DIR/target/linux/qualcommax/dts/"
+        # 验证文件是否存在
+        ls -lh "$BUILD_DIR/target/linux/qualcommax/dts/"
     else
         echo "✗ DTS 文件不存在"
         exit 1
