@@ -57,8 +57,6 @@ apply_config() {
 
     cat "$BASE_PATH/deconfig/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 
-    cat "$BASE_PATH/deconfig/compile_base.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
-
     cat "$BASE_PATH/deconfig/proxy.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 }
 
@@ -74,8 +72,6 @@ if [[ -d action_build ]]; then
 fi
 
 "$BASE_PATH/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
-
-# 12M patches 已在 pre_clone_action.sh 中处理
 
 apply_config
 remove_uhttpd_dependency

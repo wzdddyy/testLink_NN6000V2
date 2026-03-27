@@ -11,7 +11,6 @@ on:
         default: link_nn6000v2_immwrt
         options:
           - link_nn6000v2_immwrt
-          - link_nn6000v2_12m_immwrt
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -84,26 +83,6 @@ jobs:
           # 获取内核版本
           echo "KVER=$(grep -oP "^kernel.*" ./firmware/*.manifest | grep -oP "[4-6]\.[0-9]{1,3}\.[0-9]{1,3}")" >> $GITHUB_ENV
 
-      - name: Rename Firmware Files
-        run: |
-          cd ./firmware
-          # 为每个文件添加版本后缀
-          for file in *; do
-            if [ -f "$file" ]; then
-              # 在扩展名前添加版本标识
-              filename="${file%.*}"
-              extension="${file##*.}"
-              if [ "$filename" != "$extension" ]; then
-                mv "$file" "${filename}_${{ inputs.model }}.${extension}"
-              else
-                mv "$file" "${file}_${{ inputs.model }}"
-              fi
-            fi
-          done
-          # 显示重命名后的文件
-          echo "=== Renamed firmware files ==="
-          ls -lh
-
       - name: Delete Old Cache
         run: |
           # 获取缓存列表并删除
@@ -126,7 +105,11 @@ jobs:
 
       - name: Prepare Release Body
         run: |
-          echo "自己测试用的" > release_body.txt
+          echo "云编译发布" > release_body.txt
+          echo "源码：${{ env.BUILD_SRC }}" >> release_body.txt
+          echo "Kernel: ${{ env.KVER }}" >> release_body.txt
+          echo "WIFI密码: 147258369" >> release_body.txt
+          echo "LAN地址: 10.0.0.1" >> release_body.txt
 
       - name: Release Firmware
         uses: softprops/action-gh-release@v2.6.1
