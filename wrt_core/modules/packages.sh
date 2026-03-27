@@ -16,7 +16,10 @@ remove_unwanted_packages() {
     )
     local small8_packages=(
         "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist"
-        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier"
+        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier" "trojan-plus"
+    )
+    local problematic_packages=(
+        "fwupd" "fwupd-libs"
     )
 
     for pkg in "${luci_packages[@]}"; do
@@ -37,6 +40,19 @@ remove_unwanted_packages() {
     for pkg in "${small8_packages[@]}"; do
         if [[ -d ./feeds/small8/$pkg ]]; then
             \rm -rf ./feeds/small8/$pkg
+        fi
+    done
+
+    # 移除有问题的包（依赖问题、递归依赖）
+    for pkg in "${problematic_packages[@]}"; do
+        if [[ -d ./feeds/packages/utils/$pkg ]]; then
+            \rm -rf ./feeds/packages/utils/$pkg
+        fi
+        if [[ -d ./feeds/small8/utils/$pkg ]]; then
+            \rm -rf ./feeds/small8/utils/$pkg
+        fi
+        if [[ -d ./package/utils/$pkg ]]; then
+            \rm -rf ./package/utils/$pkg
         fi
     done
 
