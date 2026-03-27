@@ -123,7 +123,8 @@ update_ath11k_fw() {
 }
 
 fix_mkpkg_format_invalid() {
-    if [[ $BUILD_DIR =~ "imm-nss" ]]; then
+    # 检查是否使用 VIKINGYFY/immortalwrt 源码
+    if [ -f "$BUILD_DIR/feeds/small8/v2ray-geodata/Makefile" ]; then
         if [ -f $BUILD_DIR/feeds/small8/v2ray-geodata/Makefile ]; then
             sed -i 's/VER)-\$(PKG_RELEASE)/VER)-r\$(PKG_RELEASE)/g' $BUILD_DIR/feeds/small8/v2ray-geodata/Makefile
         fi
