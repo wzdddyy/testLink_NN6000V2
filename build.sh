@@ -55,9 +55,9 @@ apply_config() {
         cat "$BASE_PATH/deconfig/nss.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
     fi
 
-    cat "$BASE_PATH/deconfig/compile_base.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
-
     cat "$BASE_PATH/deconfig/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
+
+    cat "$BASE_PATH/deconfig/compile_base.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 
     cat "$BASE_PATH/deconfig/proxy.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 }
@@ -74,6 +74,18 @@ if [[ -d action_build ]]; then
 fi
 
 "$BASE_PATH/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
+
+# 检查是否需要应用 12M patches
+if [[ "$Dev" == *"12m"* ]] || [[ "$Dev" == *"12M"* ]]; then
+    echo "检测到 12M 设备配置，应用 12M patches..."
+    cd "$BASE_PATH/.."
+    if [ -f "patches/apply-12m-patches.sh" ]; then
+        bash patches/apply-12m-patches.sh
+    else
+        echo "警告：12M patches 脚本不存在！"
+    fi
+    cd "$BASE_PATH/../$BUILD_DIR"
+fi
 
 apply_config
 remove_uhttpd_dependency
