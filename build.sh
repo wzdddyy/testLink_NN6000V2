@@ -75,41 +75,7 @@ fi
 
 "$BASE_PATH/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
 
-# 检查是否需要应用 12M patches
-if [[ "$Dev" == *"12m"* ]] || [[ "$Dev" == *"12M"* ]]; then
-    echo "检测到 12M 设备配置，应用 12M patches..."
-    cd "$BASE_PATH/.."
-    
-    # 检查源码目录是否存在
-    if [ ! -d "$BUILD_DIR/target/linux/qualcommax" ]; then
-        echo "错误：target/linux/qualcommax 目录不存在！"
-        exit 1
-    fi
-    
-    # 创建 dts 目录
-    mkdir -p "$BUILD_DIR/target/linux/qualcommax/dts"
-    
-    # 复制 DTS 文件到源码目录
-    if [ -f "patches/ipq6000-nn6000-v2-12m.dts" ]; then
-        cp patches/ipq6000-nn6000-v2-12m.dts "$BUILD_DIR/target/linux/qualcommax/dts/"
-        echo "✓ DTS 文件已复制到 $BUILD_DIR/target/linux/qualcommax/dts/"
-    else
-        echo "✗ DTS 文件不存在"
-        exit 1
-    fi
-    
-    # 应用 Makefile patch
-    if [ -f "patches/ipq60xx-12m-device.patch" ]; then
-        cd "$BUILD_DIR/target/linux/qualcommax/"
-        patch -p1 < ../../../patches/ipq60xx-12m-device.patch
-        echo "✓ Makefile patch 已应用"
-    else
-        echo "✗ Makefile patch 不存在"
-        exit 1
-    fi
-    
-    cd "$BASE_PATH/../$BUILD_DIR"
-fi
+# 12M patches 已在 pre_clone_action.sh 中处理
 
 apply_config
 remove_uhttpd_dependency

@@ -47,3 +47,38 @@ PROJECT_MIRRORS_FILE="$BUILD_DIR/scripts/projectsmirrors.json"
 if [ -f "$PROJECT_MIRRORS_FILE" ]; then
     sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
 fi
+
+# 如果是 12M 设备，克隆完成后立即复制 patches
+if [[ "$Dev" == *"12m"* ]] || [[ "$Dev" == *"12M"* ]]; then
+    echo "检测到 12M 设备配置，复制 12M patches..."
+    
+    # 检查源码目录是否存在
+    if [ ! -d "$BUILD_DIR/target/linux/qualcommax" ]; then
+        echo "错误：target/linux/qualcommax 目录不存在！"
+        exit 1
+    fi
+    
+    # 创建 dts 目录
+    mkdir -p "$BUILD_DIR/target/linux/qualcommax/dts"
+    
+    # 复制 DTS 文件到源码目录
+    if [ -f "$BASE_PATH/../patches/ipq6000-nn6000-v2-12m.dts" ]; then
+        cp "$BASE_PATH/../patches/ipq6000-nn6000-v2-12m.dts" "$BUILD_DIR/target/linux/qualcommax/dts/"
+        echo "✓ DTS 文件已复制到 $BUILD_DIR/target/linux/qualcommax/dts/"
+    else
+        echo "✗ DTS 文件不存在"
+        exit 1
+    fi
+    
+    # 应用 Makefile patch
+    if [ -f "$BASE_PATH/../patches/ipq60xx-12m-device.patch" ]; then
+        cd "$BUILD_DIR/target/linux/qualcommax/"
+        patch -p1 < ../../../../patches/ipq60xx-12m-device.patch
+        echo "✓ Makefile patch 已应用"
+    else
+        echo "✗ Makefile patch 不存在"
+        exit 1
+    fi
+    
+    echo "=== 12M 设备定义 patches 应用完成 ==="
+fi
