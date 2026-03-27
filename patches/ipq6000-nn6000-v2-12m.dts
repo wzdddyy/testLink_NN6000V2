@@ -5,8 +5,8 @@
 #include "ipq6000-link.dtsi"
 
 / {
-	model = "Link NN6000 v2 12M";
-	compatible = "link,nn6000-v2-12m", "qcom,ipq6018";
+	model = "Link NN6000 v2";
+	compatible = "link,nn6000-v2", "qcom,ipq6018";
 
 	aliases {
 		ethernet0 = &dp1;
