@@ -245,7 +245,7 @@ update_smartdns() {
     # 删除可能存在的旧版本
     rm -rf "$SMARTDNS_DIR" "$LUCI_APP_SMARTDNS_DIR"
     
-    # 官方懒人脚本下载 smartdns
+    # 下载 smartdns
     echo "正在下载 smartdns..."
     mkdir -p "$SMARTDNS_DIR"
     cd "$BUILD_DIR"
