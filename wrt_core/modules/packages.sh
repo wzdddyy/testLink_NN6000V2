@@ -1,7 +1,49 @@
 #!/usr/bin/env bash
 
 remove_unwanted_packages() {
-    # 清理 uci-defaults 中的 99* 脚本，避免冲突
+    local luci_packages=(
+        "luci-app-passwall" "luci-app-ddns-go" "luci-app-rclone" "luci-app-ssr-plus"
+        "luci-app-vssr" "luci-app-daed" "luci-app-dae" "luci-app-alist" "luci-app-homeproxy"
+        "luci-app-haproxy-tcp" "luci-app-openclash" "luci-app-mihomo" "luci-app-appfilter"
+        "luci-app-msd_lite" "luci-app-unblockneteasemusic"
+    )
+    local packages_net=(
+        "haproxy" "xray-core" "xray-plugin" "dns2socks" "alist" "hysteria"
+        "ddns-go" "naiveproxy" "shadowsocks-rust"
+        "sing-box" "v2ray-core" "v2ray-geodata" "v2ray-plugin" "tuic-client"
+        "chinadns-ng" "ipt2socks" "tcping" "trojan-plus" "simple-obfs" "shadowsocksr-libev"
+        "dae" "daed" "mihomo" "geoview" "tailscale" "open-app-filter" "msd_lite"
+    )
+    local small8_packages=(
+        "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist"
+        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier"
+    )
+
+    for pkg in "${luci_packages[@]}"; do
+        if [[ -d ./feeds/luci/applications/$pkg ]]; then
+            \rm -rf ./feeds/luci/applications/$pkg
+        fi
+        if [[ -d ./feeds/luci/themes/$pkg ]]; then
+            \rm -rf ./feeds/luci/themes/$pkg
+        fi
+    done
+
+    for pkg in "${packages_net[@]}"; do
+        if [[ -d ./feeds/packages/net/$pkg ]]; then
+            \rm -rf ./feeds/packages/net/$pkg
+        fi
+    done
+
+    for pkg in "${small8_packages[@]}"; do
+        if [[ -d ./feeds/small8/$pkg ]]; then
+            \rm -rf ./feeds/small8/$pkg
+        fi
+    done
+
+    if [[ -d ./package/istore ]]; then
+        \rm -rf ./package/istore
+    fi
+
     if [ -d "$BUILD_DIR/target/linux/qualcommax/base-files/etc/uci-defaults" ]; then
         find "$BUILD_DIR/target/linux/qualcommax/base-files/etc/uci-defaults/" -type f -name "99*.sh" -exec rm -f {} +
     fi
@@ -18,8 +60,8 @@ update_golang() {
     fi
 }
 
-install_luna() {
-    ./scripts/feeds install -p luna xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
+install_small8() {
+    ./scripts/feeds install -p small8 -f xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
         naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata geoview v2ray-plugin \
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
         v2dat \
@@ -28,6 +70,7 @@ install_luna() {
         lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic nikki luci-app-nikki \
         tailscale luci-app-tailscale oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
         msd_lite luci-app-msd_lite
+    
 }
 
 install_passwall() {
@@ -37,10 +80,10 @@ install_passwall() {
 
 install_fullconenat() {
     if [ ! -d $BUILD_DIR/package/network/utils/fullconenat-nft ]; then
-        ./scripts/feeds install -p luna -f fullconenat-nft
+        ./scripts/feeds install -p small8 -f fullconenat-nft
     fi
     if [ ! -d $BUILD_DIR/package/network/utils/fullconenat ]; then
-        ./scripts/feeds install -p luna -f fullconenat
+        ./scripts/feeds install -p small8 -f fullconenat
     fi
 }
 
@@ -68,7 +111,7 @@ check_default_settings() {
 
 update_homeproxy() {
     local repo_url="https://github.com/immortalwrt/homeproxy.git"
-    local target_dir="$BUILD_DIR/feeds/luna/luci-app-homeproxy"
+    local target_dir="$BUILD_DIR/feeds/small8/luci-app-homeproxy"
 
     if [ -d "$target_dir" ]; then
         echo "正在更新 homeproxy..."
@@ -77,8 +120,6 @@ update_homeproxy() {
             echo "错误：从 $repo_url 克隆 homeproxy 仓库失败" >&2
             exit 1
         fi
-    else
-        echo "警告：$target_dir 不存在，跳过 homeproxy 更新" >&2
     fi
 }
 
@@ -96,9 +137,9 @@ add_timecontrol() {
 
 update_lucky() {
     local lucky_repo_url="https://github.com/gdy666/luci-app-lucky.git"
-    local target_luna_dir="$BUILD_DIR/feeds/luna"
-    local lucky_dir="$target_luna_dir/lucky"
-    local luci_app_lucky_dir="$target_luna_dir/luci-app-lucky"
+    local target_small8_dir="$BUILD_DIR/feeds/small8"
+    local lucky_dir="$target_small8_dir/lucky"
+    local luci_app_lucky_dir="$target_small8_dir/luci-app-lucky"
 
     if [ ! -d "$lucky_dir" ] || [ ! -d "$luci_app_lucky_dir" ]; then
         echo "Warning: $lucky_dir 或 $luci_app_lucky_dir 不存在，跳过 lucky 源代码更新。" >&2
@@ -132,7 +173,7 @@ update_lucky() {
         echo "luci-app-lucky 和 lucky 源代码更新完成。"
     fi
 
-    local lucky_conf="$BUILD_DIR/feeds/luna/lucky/files/luckyuci"
+    local lucky_conf="$BUILD_DIR/feeds/small8/lucky/files/luckyuci"
     if [ -f "$lucky_conf" ]; then
         sed -i "s/option enabled '1'/option enabled '0'/g" "$lucky_conf"
         sed -i "s/option logger '1'/option logger '0'/g" "$lucky_conf"
@@ -145,7 +186,7 @@ update_lucky() {
         return 0
     fi
 
-    local makefile_path="$BUILD_DIR/feeds/luna/lucky/Makefile"
+    local makefile_path="$BUILD_DIR/feeds/small8/lucky/Makefile"
     if [ ! -f "$makefile_path" ]; then
         echo "Warning: lucky Makefile not found. Skipping." >&2
         return 0
@@ -164,75 +205,27 @@ update_lucky() {
 }
 
 update_smartdns() {
+    local SMARTDNS_REPO="https://github.com/ZqinKing/openwrt-smartdns.git"
     local SMARTDNS_DIR="$BUILD_DIR/feeds/packages/net/smartdns"
+    local LUCI_APP_SMARTDNS_REPO="https://github.com/pymumu/luci-app-smartdns.git"
     local LUCI_APP_SMARTDNS_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-smartdns"
-    local LUCIBRANCH="master"
 
-    echo "正在安装 smartdns..."
-    
-    # 删除可能存在的旧版本
-    rm -rf "$SMARTDNS_DIR" "$LUCI_APP_SMARTDNS_DIR"
-    
-    # 下载 smartdns
-    echo "正在下载 smartdns..."
-    mkdir -p "$SMARTDNS_DIR"
-    cd "$BUILD_DIR"
-    wget --no-check-certificate "https://github.com/pymumu/openwrt-smartdns/archive/master.zip" -O "$SMARTDNS_DIR/master.zip"
-    unzip "$SMARTDNS_DIR/master.zip" -d "$SMARTDNS_DIR"
-    mv "$SMARTDNS_DIR/openwrt-smartdns-master"/* "$SMARTDNS_DIR/"
-    rmdir "$SMARTDNS_DIR/openwrt-smartdns-master"
-    rm "$SMARTDNS_DIR/master.zip"
-    cd - > /dev/null
-    echo "smartdns 下载完成"
-
-    # 下载 luci-app-smartdns
-    echo "正在下载 luci-app-smartdns..."
-    mkdir -p "$LUCI_APP_SMARTDNS_DIR"
-    cd "$BUILD_DIR"
-    wget --no-check-certificate "https://github.com/pymumu/luci-app-smartdns/archive/${LUCIBRANCH}.zip" -O "$LUCI_APP_SMARTDNS_DIR/${LUCIBRANCH}.zip"
-    unzip "$LUCI_APP_SMARTDNS_DIR/${LUCIBRANCH}.zip" -d "$LUCI_APP_SMARTDNS_DIR"
-    mv "$LUCI_APP_SMARTDNS_DIR/luci-app-smartdns-${LUCIBRANCH}"/* "$LUCI_APP_SMARTDNS_DIR/"
-    rmdir "$LUCI_APP_SMARTDNS_DIR/luci-app-smartdns-${LUCIBRANCH}"
-    rm "$LUCI_APP_SMARTDNS_DIR/${LUCIBRANCH}.zip"
-    cd - > /dev/null
-    echo "luci-app-smartdns 下载完成"
-    
-    # 验证下载结果
-    if [ ! -f "$SMARTDNS_DIR/Makefile" ]; then
-        echo "错误：smartdns Makefile 不存在于 $SMARTDNS_DIR" >&2
+    echo "正在更新 smartdns..."
+    rm -rf "$SMARTDNS_DIR"
+    if ! git clone --depth=1 "$SMARTDNS_REPO" "$SMARTDNS_DIR"; then
+        echo "错误：从 $SMARTDNS_REPO 克隆 smartdns 仓库失败" >&2
         exit 1
     fi
-    
-    if [ ! -f "$LUCI_APP_SMARTDNS_DIR/Makefile" ]; then
-        echo "错误：luci-app-smartdns Makefile 不存在于 $LUCI_APP_SMARTDNS_DIR" >&2
+
+    install -Dm644 "$BASE_PATH/patches/100-smartdns-optimize.patch" "$SMARTDNS_DIR/patches/100-smartdns-optimize.patch"
+    sed -i '/define Build\/Compile\/smartdns-ui/,/endef/s/CC=\$(TARGET_CC)/CC="\$(TARGET_CC_NOCACHE)"/' "$SMARTDNS_DIR/Makefile"
+
+    echo "正在更新 luci-app-smartdns..."
+    rm -rf "$LUCI_APP_SMARTDNS_DIR"
+    if ! git clone --depth=1 "$LUCI_APP_SMARTDNS_REPO" "$LUCI_APP_SMARTDNS_DIR"; then
+        echo "错误：从 $LUCI_APP_SMARTDNS_REPO 克隆 luci-app-smartdns 仓库失败" >&2
         exit 1
     fi
-    
-    echo "正在修改 smartdns Makefile..."
-    sed -i '/^PKG_BUILD_DEPENDS:=PACKAGE_smartdns-ui:rust\/host/d' "$SMARTDNS_DIR/Makefile"
-    sed -i '/^include ..\/..\/lang\/rust\/rust-package\.mk/d' "$SMARTDNS_DIR/Makefile"
-    sed -i '/^SMARTDNS_WEBUI_VERSION/d' "$SMARTDNS_DIR/Makefile"
-    sed -i '/^SMARTDNS_WEBUI_SOURCE/d' "$SMARTDNS_DIR/Makefile"
-    sed -i '/^SMARTDNS_WEBUI_FILE/d' "$SMARTDNS_DIR/Makefile"
-    sed -i '/^define Package\/smartdns-ui/,/^endef/d' "$SMARTDNS_DIR/Makefile"
-    sed -i '/^define Build\/Compile\/smartdns-webui/,/^endef/d' "$SMARTDNS_DIR/Makefile"
-    echo "smartdns Makefile 修改完成"
-    
-    # 修改 luci-app-smartdns Makefile，移除 smartdns-ui 依赖
-    echo "正在修改 luci-app-smartdns Makefile..."
-    sed -i 's/DEPENDS:=.*smartdns-ui/DEPENDS:=+smartdns/' "$LUCI_APP_SMARTDNS_DIR/Makefile"
-    sed -i 's/+smartdns +smartdns-ui/+smartdns/' "$LUCI_APP_SMARTDNS_DIR/Makefile"
-    echo "luci-app-smartdns Makefile 修改完成"
-    
-    # 安装 smartdns 包到 feeds 系统
-    echo "正在安装 smartdns 包..."
-    cd "$BUILD_DIR"
-    ./scripts/feeds install -a -p packages
-    ./scripts/feeds install -a -p luci
-    cd - > /dev/null
-    echo "smartdns 包安装完成"
-    
-    echo "smartdns 安装完成，已验证 Makefile 存在"
 }
 
 install_adguardhome_wzdddyy() {

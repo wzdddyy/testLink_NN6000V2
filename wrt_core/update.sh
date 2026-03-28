@@ -69,6 +69,7 @@ main() {
     add_quickfile
     update_lucky
     fix_rust_compile_error
+    update_smartdns
     update_diskman
     update_dockerman
     install_adguardhome_wzdddyy
@@ -82,7 +83,6 @@ main() {
     remove_attendedsysupgrade
     fix_kconfig_recursive_dependency
     install_feeds
-    update_smartdns
     fix_easytier_lua
     update_script_priority
     update_geoip

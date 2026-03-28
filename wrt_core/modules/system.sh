@@ -19,7 +19,7 @@ fix_default_set() {
 
 fix_miniupnpd() {
     local miniupnpd_dir="$BUILD_DIR/feeds/packages/net/miniupnpd"
-    local patch_file="999-change-default-leaseduration.patch"
+    local patch_file="999-chanage-default-leaseduration.patch"
 
     if [ -d "$miniupnpd_dir" ] && [ -f "$BASE_PATH/patches/$patch_file" ]; then
         install -Dm644 "$BASE_PATH/patches/$patch_file" "$miniupnpd_dir/patches/$patch_file"
@@ -105,40 +105,41 @@ fix_hash_value() {
 
 update_ath11k_fw() {
     local makefile="$BUILD_DIR/package/firmware/ath11k-firmware/Makefile"
+    local new_mk="$BASE_PATH/patches/ath11k_fw.mk"
     local url="https://raw.githubusercontent.com/VIKINGYFY/immortalwrt/refs/heads/main/package/firmware/ath11k-firmware/Makefile"
 
     if [ -d "$(dirname "$makefile")" ]; then
         echo "正在更新 ath11k-firmware Makefile..."
-        if ! curl -fsSL -o "$makefile" "$url"; then
+        if ! curl -fsSL -o "$new_mk" "$url"; then
             echo "错误：从 $url 下载 ath11k-firmware Makefile 失败" >&2
             exit 1
         fi
-        if [ ! -s "$makefile" ]; then
+        if [ ! -s "$new_mk" ]; then
             echo "错误：下载的 ath11k-firmware Makefile 为空文件" >&2
             exit 1
         fi
-        echo "ath11k-firmware Makefile 更新完成"
+        mv -f "$new_mk" "$makefile"
     fi
 }
 
 fix_mkpkg_format_invalid() {
     if [[ $BUILD_DIR =~ "imm-nss" ]]; then
-        if [ -f $BUILD_DIR/feeds/luna/v2ray-geodata/Makefile ]; then
-            sed -i 's/VER)-\$(PKG_RELEASE)/VER)-r\$(PKG_RELEASE)/g' $BUILD_DIR/feeds/luna/v2ray-geodata/Makefile
+        if [ -f $BUILD_DIR/feeds/small8/v2ray-geodata/Makefile ]; then
+            sed -i 's/VER)-\$(PKG_RELEASE)/VER)-r\$(PKG_RELEASE)/g' $BUILD_DIR/feeds/small8/v2ray-geodata/Makefile
         fi
-        if [ -f $BUILD_DIR/feeds/luna/luci-lib-taskd/Makefile ]; then
-            sed -i 's/>=1\.0\.3-1/>=1\.0\.3-r1/g' $BUILD_DIR/feeds/luna/luci-lib-taskd/Makefile
+        if [ -f $BUILD_DIR/feeds/small8/luci-lib-taskd/Makefile ]; then
+            sed -i 's/>=1\.0\.3-1/>=1\.0\.3-r1/g' $BUILD_DIR/feeds/small8/luci-lib-taskd/Makefile
         fi
-        if [ -f $BUILD_DIR/feeds/luna/luci-app-openclash/Makefile ]; then
-            sed -i 's/PKG_RELEASE:=beta/PKG_RELEASE:=1/g' $BUILD_DIR/feeds/luna/luci-app-openclash/Makefile
+        if [ -f $BUILD_DIR/feeds/small8/luci-app-openclash/Makefile ]; then
+            sed -i 's/PKG_RELEASE:=beta/PKG_RELEASE:=1/g' $BUILD_DIR/feeds/small8/luci-app-openclash/Makefile
         fi
-        if [ -f $BUILD_DIR/feeds/luna/luci-app-quickstart/Makefile ]; then
-            sed -i 's/PKG_VERSION:=0\.8\.16-1/PKG_VERSION:=0\.8\.16/g' $BUILD_DIR/feeds/luna/luci-app-quickstart/Makefile
-            sed -i 's/PKG_RELEASE:=$/PKG_RELEASE:=1/g' $BUILD_DIR/feeds/luna/luci-app-quickstart/Makefile
+        if [ -f $BUILD_DIR/feeds/small8/luci-app-quickstart/Makefile ]; then
+            sed -i 's/PKG_VERSION:=0\.8\.16-1/PKG_VERSION:=0\.8\.16/g' $BUILD_DIR/feeds/small8/luci-app-quickstart/Makefile
+            sed -i 's/PKG_RELEASE:=$/PKG_RELEASE:=1/g' $BUILD_DIR/feeds/small8/luci-app-quickstart/Makefile
         fi
-        if [ -f $BUILD_DIR/feeds/luna/luci-app-store/Makefile ]; then
-            sed -i 's/PKG_VERSION:=0\.1\.27-1/PKG_VERSION:=0\.1\.27/g' $BUILD_DIR/feeds/luna/luci-app-store/Makefile
-            sed -i 's/PKG_RELEASE:=$/PKG_RELEASE:=1/g' $BUILD_DIR/feeds/luna/luci-app-store/Makefile
+        if [ -f $BUILD_DIR/feeds/small8/luci-app-store/Makefile ]; then
+            sed -i 's/PKG_VERSION:=0\.1\.27-1/PKG_VERSION:=0\.1\.27/g' $BUILD_DIR/feeds/small8/luci-app-store/Makefile
+            sed -i 's/PKG_RELEASE:=$/PKG_RELEASE:=1/g' $BUILD_DIR/feeds/small8/luci-app-store/Makefile
         fi
     fi
 }
@@ -167,7 +168,7 @@ change_cpuusage() {
 }
 
 update_tcping() {
-    local tcping_path="$BUILD_DIR/feeds/luna/tcping/Makefile"
+    local tcping_path="$BUILD_DIR/feeds/small8/tcping/Makefile"
     local url="https://raw.githubusercontent.com/Openwrt-Passwall/openwrt-passwall-packages/refs/heads/main/tcping/Makefile"
 
     if [ -d "$(dirname "$tcping_path")" ]; then
@@ -222,8 +223,6 @@ apply_passwall_tweaks() {
 install_opkg_distfeeds() {
     local emortal_def_dir="$BUILD_DIR/package/emortal/default-settings"
     local distfeeds_conf="$emortal_def_dir/files/99-distfeeds.conf"
-    local makefile_path="$emortal_def_dir/Makefile"
-    local default_settings_file="$emortal_def_dir/files/99-default-settings"
 
     if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_conf" ]; then
         cat <<'EOF' >"$distfeeds_conf"
@@ -233,22 +232,14 @@ src/gz openwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHO
 src/gz openwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/routing/
 src/gz openwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/telephony/
 EOF
-    fi
 
-    if [ -d "$emortal_def_dir" ] && [ -f "$makefile_path" ]; then
-        if ! grep -q "99-distfeeds.conf" "$makefile_path"; then
-            sed -i "/define Package\/default-settings\/install/a\\
+        sed -i "/define Package\/default-settings\/install/a\\
 \\t\$(INSTALL_DIR) \$(1)/etc\\n\
-\t\$(INSTALL_DATA) ./files/99-distfeeds.conf \$(1)/etc/99-distfeeds.conf\n" "$makefile_path"
-        fi
-    fi
+\t\$(INSTALL_DATA) ./files/99-distfeeds.conf \$(1)/etc/99-distfeeds.conf\n" $emortal_def_dir/Makefile
 
-    if [ -d "$emortal_def_dir" ] && [ -f "$default_settings_file" ]; then
-        if ! grep -q "99-distfeeds.conf" "$default_settings_file"; then
-            sed -i "/exit 0/i\\
-[ -f \'/etc/99-distfeeds.conf\' ] && mv \'/etc/99-distfeeds.conf\' \'/etc/opkg/distfeeds.conf\'\\n\
-sed -ri \'/check_signature/s@^[^#]@#&@\' /etc/opkg.conf\n" "$default_settings_file"
-        fi
+        sed -i "/exit 0/i\\
+[ -f \'/etc/99-distfeeds.conf\' ] && mv \'/etc/99-distfeeds.conf\' \'/etc/opkg/distfeeds.conf\'\n\
+sed -ri \'/check_signature/s@^[^#]@#&@\' /etc/opkg.conf\n" $emortal_def_dir/files/99-default-settings
     fi
 }
 
@@ -281,7 +272,7 @@ update_menu_location() {
         sed -i 's/nas/services/g' "$samba4_path"
     fi
 
-    local tailscale_path="$BUILD_DIR/feeds/luna/luci-app-tailscale/root/usr/share/luci/menu.d/luci-app-tailscale.json"
+    local tailscale_path="$BUILD_DIR/feeds/small8/luci-app-tailscale/root/usr/share/luci/menu.d/luci-app-tailscale.json"
     if [ -d "$(dirname "$tailscale_path")" ] && [ -f "$tailscale_path" ]; then
         sed -i 's/services/vpn/g' "$tailscale_path"
     fi
@@ -323,11 +314,16 @@ update_script_priority() {
     if [ -d "${pbuf_path%/*}" ] && [ -f "$pbuf_path" ]; then
         sed -i 's/START=.*/START=89/g' "$pbuf_path"
     fi
+
+    local mosdns_path="$BUILD_DIR/package/feeds/small8/luci-app-mosdns/root/etc/init.d/mosdns"
+    if [ -d "${mosdns_path%/*}" ] && [ -f "$mosdns_path" ]; then
+        sed -i 's/START=.*/START=94/g' "$mosdns_path"
+    fi
 }
 
 
 fix_quickstart() {
-    local file_path="$BUILD_DIR/feeds/luna/luci-app-quickstart/luasrc/controller/istore_backend.lua"
+    local file_path="$BUILD_DIR/feeds/small8/luci-app-quickstart/luasrc/controller/istore_backend.lua"
     local url="https://gist.githubusercontent.com/puteulanus/1c180fae6bccd25e57eb6d30b7aa28aa/raw/istore_backend.lua"
     if [ -f "$file_path" ]; then
         echo "正在修复 quickstart..."
@@ -339,9 +335,9 @@ fix_quickstart() {
 }
 
 update_oaf_deconfig() {
-    local conf_path="$BUILD_DIR/feeds/luna/open-app-filter/files/appfilter.config"
-    local uci_def="$BUILD_DIR/feeds/luna/luci-app-oaf/root/etc/uci-defaults/94_feature_3.0"
-    local disable_path="$BUILD_DIR/feeds/luna/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
+    local conf_path="$BUILD_DIR/feeds/small8/open-app-filter/files/appfilter.config"
+    local uci_def="$BUILD_DIR/feeds/small8/luci-app-oaf/root/etc/uci-defaults/94_feature_3.0"
+    local disable_path="$BUILD_DIR/feeds/small8/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
 
     if [ -d "${conf_path%/*}" ] && [ -f "$conf_path" ]; then
         sed -i \
@@ -366,7 +362,7 @@ EOF
 }
 
 update_geoip() {
-    local geodata_path="$BUILD_DIR/package/feeds/luna/v2ray-geodata/Makefile"
+    local geodata_path="$BUILD_DIR/package/feeds/small8/v2ray-geodata/Makefile"
     if [ -d "${geodata_path%/*}" ] && [ -f "$geodata_path" ]; then
         local GEOIP_VER=$(awk -F"=" '/GEOIP_VER:=/ {print $NF}' $geodata_path | grep -oE "[0-9]{1,}")
         if [ -n "$GEOIP_VER" ]; then
@@ -398,14 +394,14 @@ fix_rust_compile_error() {
 }
 
 fix_easytier_lua() {
-    local file_path="$BUILD_DIR/package/feeds/luna/luci-app-easytier/luasrc/model/cbi/easytier.lua"
+    local file_path="$BUILD_DIR/package/feeds/small8/luci-app-easytier/luasrc/model/cbi/easytier.lua"
     if [ -f "$file_path" ]; then
         sed -i 's/util.pcdata/xml.pcdata/g' "$file_path"
     fi
 }
 
 fix_easytier_mk() {
-    local mk_path="$BUILD_DIR/feeds/luna/luci-app-easytier/easytier/Makefile"
+    local mk_path="$BUILD_DIR/feeds/small8/luci-app-easytier/easytier/Makefile"
     if [ -f "$mk_path" ]; then
         sed -i 's/!@(mips||mipsel)/!TARGET_mips \&\& !TARGET_mipsel/g' "$mk_path"
     fi
