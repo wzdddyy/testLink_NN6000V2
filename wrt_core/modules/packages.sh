@@ -16,7 +16,7 @@ remove_unwanted_packages() {
     )
     local small8_packages=(
         "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist"
-        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier" "trojan-plus"
+        "alist" "opkg" "easytier" "trojan-plus"
     )
     local problematic_packages=(
         "fwupd" "fwupd-libs"
@@ -226,19 +226,29 @@ update_smartdns() {
     local LUCI_APP_SMARTDNS_REPO="https://github.com/pymumu/luci-app-smartdns.git"
     local LUCI_APP_SMARTDNS_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-smartdns"
 
-    echo "正在更新 smartdns..."
-    rm -rf "$SMARTDNS_DIR"
+    echo "正在安装 smartdns..."
+    
+    # 安装 smartdns 核心
+    if [ -d "$SMARTDNS_DIR" ]; then
+        rm -rf "$SMARTDNS_DIR"
+    fi
+    mkdir -p "$(dirname "$SMARTDNS_DIR")"
     if ! git clone --depth=1 --branch master "$SMARTDNS_REPO" "$SMARTDNS_DIR"; then
         echo "错误：从 $SMARTDNS_REPO 克隆 smartdns 仓库失败" >&2
         exit 1
     fi
+    echo "smartdns 核心安装完成"
 
-    echo "正在更新 luci-app-smartdns..."
-    rm -rf "$LUCI_APP_SMARTDNS_DIR"
+    # 安装 luci-app-smartdns
+    if [ -d "$LUCI_APP_SMARTDNS_DIR" ]; then
+        rm -rf "$LUCI_APP_SMARTDNS_DIR"
+    fi
+    mkdir -p "$(dirname "$LUCI_APP_SMARTDNS_DIR")"
     if ! git clone --depth=1 --branch master "$LUCI_APP_SMARTDNS_REPO" "$LUCI_APP_SMARTDNS_DIR"; then
         echo "错误：从 $LUCI_APP_SMARTDNS_REPO 克隆 luci-app-smartdns 仓库失败" >&2
         exit 1
     fi
+    echo "luci-app-smartdns 安装完成"
 }
 
 install_adguardhome_wzdddyy() {

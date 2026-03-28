@@ -19,7 +19,7 @@ fix_default_set() {
 
 fix_miniupnpd() {
     local miniupnpd_dir="$BUILD_DIR/feeds/packages/net/miniupnpd"
-    local patch_file="999-chanage-default-leaseduration.patch"
+    local patch_file="999-change-default-leaseduration.patch"
 
     if [ -d "$miniupnpd_dir" ] && [ -f "$BASE_PATH/patches/$patch_file" ]; then
         install -Dm644 "$BASE_PATH/patches/$patch_file" "$miniupnpd_dir/patches/$patch_file"
@@ -105,20 +105,19 @@ fix_hash_value() {
 
 update_ath11k_fw() {
     local makefile="$BUILD_DIR/package/firmware/ath11k-firmware/Makefile"
-    local new_mk="$BASE_PATH/patches/ath11k_fw.mk"
     local url="https://raw.githubusercontent.com/VIKINGYFY/immortalwrt/refs/heads/main/package/firmware/ath11k-firmware/Makefile"
 
     if [ -d "$(dirname "$makefile")" ]; then
         echo "正在更新 ath11k-firmware Makefile..."
-        if ! curl -fsSL -o "$new_mk" "$url"; then
+        if ! curl -fsSL -o "$makefile" "$url"; then
             echo "错误：从 $url 下载 ath11k-firmware Makefile 失败" >&2
             exit 1
         fi
-        if [ ! -s "$new_mk" ]; then
+        if [ ! -s "$makefile" ]; then
             echo "错误：下载的 ath11k-firmware Makefile 为空文件" >&2
             exit 1
         fi
-        mv -f "$new_mk" "$makefile"
+        echo "ath11k-firmware Makefile 更新完成"
     fi
 }
 
@@ -223,6 +222,8 @@ apply_passwall_tweaks() {
 install_opkg_distfeeds() {
     local emortal_def_dir="$BUILD_DIR/package/emortal/default-settings"
     local distfeeds_conf="$emortal_def_dir/files/99-distfeeds.conf"
+    local makefile_path="$emortal_def_dir/Makefile"
+    local default_settings_file="$emortal_def_dir/files/99-default-settings"
 
     if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_conf" ]; then
         cat <<'EOF' >"$distfeeds_conf"
@@ -232,14 +233,22 @@ src/gz openwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHO
 src/gz openwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/routing/
 src/gz openwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/telephony/
 EOF
+    fi
 
-        sed -i "/define Package\/default-settings\/install/a\\
+    if [ -d "$emortal_def_dir" ] && [ -f "$makefile_path" ]; then
+        if ! grep -q "99-distfeeds.conf" "$makefile_path"; then
+            sed -i "/define Package\/default-settings\/install/a\\
 \\t\$(INSTALL_DIR) \$(1)/etc\\n\
-\t\$(INSTALL_DATA) ./files/99-distfeeds.conf \$(1)/etc/99-distfeeds.conf\n" $emortal_def_dir/Makefile
+\t\$(INSTALL_DATA) ./files/99-distfeeds.conf \$(1)/etc/99-distfeeds.conf\n" "$makefile_path"
+        fi
+    fi
 
-        sed -i "/exit 0/i\\
-[ -f \'/etc/99-distfeeds.conf\' ] && mv \'/etc/99-distfeeds.conf\' \'/etc/opkg/distfeeds.conf\'\n\
-sed -ri \'/check_signature/s@^[^#]@#&@\' /etc/opkg.conf\n" $emortal_def_dir/files/99-default-settings
+    if [ -d "$emortal_def_dir" ] && [ -f "$default_settings_file" ]; then
+        if ! grep -q "99-distfeeds.conf" "$default_settings_file"; then
+            sed -i "/exit 0/i\\
+[ -f \'/etc/99-distfeeds.conf\' ] && mv \'/etc/99-distfeeds.conf\' \'/etc/opkg/distfeeds.conf\'\\n\
+sed -ri \'/check_signature/s@^[^#]@#&@\' /etc/opkg.conf\n" "$default_settings_file"
+        fi
     fi
 }
 
@@ -313,11 +322,6 @@ update_script_priority() {
     local pbuf_path="$BUILD_DIR/package/kernel/mac80211/files/qca-nss-pbuf.init"
     if [ -d "${pbuf_path%/*}" ] && [ -f "$pbuf_path" ]; then
         sed -i 's/START=.*/START=89/g' "$pbuf_path"
-    fi
-
-    local mosdns_path="$BUILD_DIR/package/feeds/small8/luci-app-mosdns/root/etc/init.d/mosdns"
-    if [ -d "${mosdns_path%/*}" ] && [ -f "$mosdns_path" ]; then
-        sed -i 's/START=.*/START=94/g' "$mosdns_path"
     fi
 }
 

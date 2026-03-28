@@ -40,13 +40,16 @@ install_feeds() {
     for dir in $BUILD_DIR/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
             if [[ $(basename "$dir") == "small8" ]]; then
+                # Skip small8 packages that are already installed/updated individually
                 install_small8
                 install_fullconenat
             elif [[ $(basename "$dir") == "passwall" ]]; then
+                # Skip passwall if already installed individually
                 install_passwall
             else
                 ./scripts/feeds install -f -ap $(basename "$dir")
             fi
         fi
     done
+    echo "Feeds installation completed"
 }
