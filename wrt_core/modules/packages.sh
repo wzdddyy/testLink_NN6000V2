@@ -102,6 +102,10 @@ install_small8() {
         tailscale luci-app-tailscale oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
         msd_lite luci-app-msd_lite
     
+    # 删除有 Makefile 错误的包
+    rm -rf "$BUILD_DIR/feeds/small8/webd"
+    rm -rf "$BUILD_DIR/feeds/small8/luci-app-natmap"
+    rm -rf "$BUILD_DIR/feeds/luci/applications/luci-app-natmap"
 }
 
 install_passwall() {
