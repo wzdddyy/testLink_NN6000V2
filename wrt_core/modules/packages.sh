@@ -236,26 +236,24 @@ update_lucky() {
 }
 
 update_smartdns() {
+    local SMARTDNS_REPO="https://github.com/pymumu/openwrt-smartdns.git"
     local SMARTDNS_DIR="$BUILD_DIR/feeds/packages/net/smartdns"
     local LUCI_APP_SMARTDNS_REPO="https://github.com/pymumu/luci-app-smartdns.git"
     local LUCI_APP_SMARTDNS_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-smartdns"
-    local LOCAL_SMARTDNS_REPO="$BASE_PATH/../openwrt-smartdns"
 
     echo "正在安装 smartdns..."
     
     # 删除可能存在的旧版本
     rm -rf "$SMARTDNS_DIR" "$LUCI_APP_SMARTDNS_DIR"
     
-    # 使用本地已克隆的 openwrt-smartdns 仓库
-    if [ -d "$LOCAL_SMARTDNS_REPO" ]; then
-        echo "正在从本地仓库复制 smartdns..."
-        mkdir -p "$(dirname "$SMARTDNS_DIR")"
-        cp -r "$LOCAL_SMARTDNS_REPO"/* "$SMARTDNS_DIR/"
-        echo "smartdns 核心复制完成"
-    else
-        echo "错误：本地 smartdns 仓库不存在于 $LOCAL_SMARTDNS_REPO" >&2
+    # 创建目录并克隆 smartdns 核心
+    mkdir -p "$(dirname "$SMARTDNS_DIR")"
+    echo "正在从 pymumu 官方克隆 smartdns 核心仓库..."
+    if ! git clone --depth=1 --branch master "$SMARTDNS_REPO" "$SMARTDNS_DIR"; then
+        echo "错误：从 $SMARTDNS_REPO 克隆 smartdns 仓库失败" >&2
         exit 1
     fi
+    echo "smartdns 核心仓库克隆完成"
 
     # 克隆 luci-app-smartdns
     mkdir -p "$(dirname "$LUCI_APP_SMARTDNS_DIR")"
