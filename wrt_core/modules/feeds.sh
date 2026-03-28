@@ -36,7 +36,6 @@ update_feeds() {
 }
 
 install_feeds() {
-    ./scripts/feeds update -i
     for dir in $BUILD_DIR/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
             if [[ $(basename "$dir") == "small8" ]]; then

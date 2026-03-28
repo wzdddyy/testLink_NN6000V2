@@ -275,12 +275,6 @@ update_smartdns() {
         exit 1
     fi
     
-    # 重新扫描 packages 和 luci feed 以更新索引
-    echo "正在更新 packages 和 luci feed 的索引..."
-    ./scripts/feeds update -p packages
-    ./scripts/feeds update -p luci
-    echo "索引更新完成"
-    
     echo "smartdns 安装完成，已验证 Makefile 存在"
 }
 
