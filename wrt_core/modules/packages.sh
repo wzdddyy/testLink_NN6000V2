@@ -77,6 +77,8 @@ update_homeproxy() {
             echo "错误：从 $repo_url 克隆 homeproxy 仓库失败" >&2
             exit 1
         fi
+    else
+        echo "警告：$target_dir 不存在，跳过 homeproxy 更新" >&2
     fi
 }
 
