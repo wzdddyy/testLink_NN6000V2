@@ -280,6 +280,16 @@ update_smartdns() {
         exit 1
     fi
     
+    echo "正在修改 smartdns Makefile..."
+    sed -i '/^PKG_BUILD_DEPENDS:=PACKAGE_smartdns-ui:rust\/host/d' "$SMARTDNS_DIR/Makefile"
+    sed -i '/^include ..\/..\/lang\/rust\/rust-package\.mk/d' "$SMARTDNS_DIR/Makefile"
+    sed -i '/^SMARTDNS_WEBUI_VERSION/d' "$SMARTDNS_DIR/Makefile"
+    sed -i '/^SMARTDNS_WEBUI_SOURCE/d' "$SMARTDNS_DIR/Makefile"
+    sed -i '/^SMARTDNS_WEBUI_FILE/d' "$SMARTDNS_DIR/Makefile"
+    sed -i '/^define Package\/smartdns-ui/,/^endef/d' "$SMARTDNS_DIR/Makefile"
+    sed -i '/^define Build\/Compile\/smartdns-webui/,/^endef/d' "$SMARTDNS_DIR/Makefile"
+    echo "smartdns Makefile 修改完成"
+    
     # 安装 smartdns 包到 feeds 系统
     echo "正在安装 smartdns 包..."
     cd "$BUILD_DIR"
