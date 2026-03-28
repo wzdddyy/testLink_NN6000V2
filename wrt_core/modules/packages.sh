@@ -236,35 +236,40 @@ update_lucky() {
 }
 
 update_smartdns() {
-    local SMARTDNS_REPO="https://github.com/pymumu/openwrt-smartdns.git"
     local SMARTDNS_DIR="$BUILD_DIR/feeds/packages/net/smartdns"
-    local LUCI_APP_SMARTDNS_REPO="https://github.com/pymumu/luci-app-smartdns.git"
     local LUCI_APP_SMARTDNS_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-smartdns"
+    local LUCIBRANCH="master"
 
     echo "正在安装 smartdns..."
     
     # 删除可能存在的旧版本
     rm -rf "$SMARTDNS_DIR" "$LUCI_APP_SMARTDNS_DIR"
     
-    # 创建目录并克隆 smartdns 核心
-    mkdir -p "$(dirname "$SMARTDNS_DIR")"
-    echo "正在从 pymumu 官方克隆 smartdns 核心仓库..."
-    if ! git clone --depth=1 --branch master "$SMARTDNS_REPO" "$SMARTDNS_DIR"; then
-        echo "错误：从 $SMARTDNS_REPO 克隆 smartdns 仓库失败" >&2
-        exit 1
-    fi
-    echo "smartdns 核心仓库克隆完成"
+    # 官方懒人脚本下载 smartdns
+    echo "正在下载 smartdns..."
+    mkdir -p "$SMARTDNS_DIR"
+    cd "$BUILD_DIR"
+    wget --no-check-certificate "https://github.com/pymumu/openwrt-smartdns/archive/master.zip" -O "$SMARTDNS_DIR/master.zip"
+    unzip "$SMARTDNS_DIR/master.zip" -d "$SMARTDNS_DIR"
+    mv "$SMARTDNS_DIR/openwrt-smartdns-master"/* "$SMARTDNS_DIR/"
+    rmdir "$SMARTDNS_DIR/openwrt-smartdns-master"
+    rm "$SMARTDNS_DIR/master.zip"
+    cd - > /dev/null
+    echo "smartdns 下载完成"
 
-    # 克隆 luci-app-smartdns
-    mkdir -p "$(dirname "$LUCI_APP_SMARTDNS_DIR")"
-    echo "正在从 pymumu 官方克隆 luci-app-smartdns 仓库..."
-    if ! git clone --depth=1 --branch master "$LUCI_APP_SMARTDNS_REPO" "$LUCI_APP_SMARTDNS_DIR"; then
-        echo "错误：从 $LUCI_APP_SMARTDNS_REPO 克隆 luci-app-smartdns 仓库失败" >&2
-        exit 1
-    fi
-    echo "luci-app-smartdns 仓库克隆完成"
+    # 下载 luci-app-smartdns
+    echo "正在下载 luci-app-smartdns..."
+    mkdir -p "$LUCI_APP_SMARTDNS_DIR"
+    cd "$BUILD_DIR"
+    wget --no-check-certificate "https://github.com/pymumu/luci-app-smartdns/archive/${LUCIBRANCH}.zip" -O "$LUCI_APP_SMARTDNS_DIR/${LUCIBRANCH}.zip"
+    unzip "$LUCI_APP_SMARTDNS_DIR/${LUCIBRANCH}.zip" -d "$LUCI_APP_SMARTDNS_DIR"
+    mv "$LUCI_APP_SMARTDNS_DIR/luci-app-smartdns-${LUCIBRANCH}"/* "$LUCI_APP_SMARTDNS_DIR/"
+    rmdir "$LUCI_APP_SMARTDNS_DIR/luci-app-smartdns-${LUCIBRANCH}"
+    rm "$LUCI_APP_SMARTDNS_DIR/${LUCIBRANCH}.zip"
+    cd - > /dev/null
+    echo "luci-app-smartdns 下载完成"
     
-    # 验证克隆结果
+    # 验证下载结果
     if [ ! -f "$SMARTDNS_DIR/Makefile" ]; then
         echo "错误：smartdns Makefile 不存在于 $SMARTDNS_DIR" >&2
         exit 1
@@ -278,7 +283,7 @@ update_smartdns() {
     # 安装 smartdns 包到 feeds 系统
     echo "正在安装 smartdns 包..."
     cd "$BUILD_DIR"
-    ./scripts/feeds install package -a
+    ./scripts/feeds install -a
     cd - > /dev/null
     echo "smartdns 包安装完成"
     
