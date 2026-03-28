@@ -45,6 +45,12 @@ install_feeds() {
             elif [[ $(basename "$dir") == "passwall" ]]; then
                 # Skip passwall if already installed individually
                 install_passwall
+            elif [[ $(basename "$dir") == "packages" ]]; then
+                # Skip packages feed (smartdns already installed individually)
+                echo "Skipping packages feed (smartdns already installed)"
+            elif [[ $(basename "$dir") == "luci" ]]; then
+                # Skip luci feed (luci-app-smartdns already installed individually)
+                echo "Skipping luci feed (luci-app-smartdns already installed)"
             else
                 ./scripts/feeds install -f -ap $(basename "$dir")
             fi
