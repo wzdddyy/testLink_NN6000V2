@@ -263,27 +263,39 @@ update_smartdns() {
         echo "已删除冲突的 small8/luci-app-smartdns 目录"
     fi
     
-    # 安装 smartdns 核心
-    if [ -d "$SMARTDNS_DIR" ]; then
-        rm -rf "$SMARTDNS_DIR"
-    fi
+    # 删除可能存在的旧版本
+    rm -rf "$SMARTDNS_DIR" "$LUCI_APP_SMARTDNS_DIR"
+    
+    # 创建目录并克隆 smartdns 核心到 feeds/packages/net 目录
     mkdir -p "$(dirname "$SMARTDNS_DIR")"
+    echo "正在克隆 smartdns 核心仓库..."
     if ! git clone --depth=1 --branch master "$SMARTDNS_REPO" "$SMARTDNS_DIR"; then
         echo "错误：从 $SMARTDNS_REPO 克隆 smartdns 仓库失败" >&2
         exit 1
     fi
-    echo "smartdns 核心安装完成"
+    echo "smartdns 核心仓库克隆完成"
 
-    # 安装 luci-app-smartdns
-    if [ -d "$LUCI_APP_SMARTDNS_DIR" ]; then
-        rm -rf "$LUCI_APP_SMARTDNS_DIR"
-    fi
+    # 克隆 luci-app-smartdns
     mkdir -p "$(dirname "$LUCI_APP_SMARTDNS_DIR")"
+    echo "正在克隆 luci-app-smartdns 仓库..."
     if ! git clone --depth=1 --branch master "$LUCI_APP_SMARTDNS_REPO" "$LUCI_APP_SMARTDNS_DIR"; then
         echo "错误：从 $LUCI_APP_SMARTDNS_REPO 克隆 luci-app-smartdns 仓库失败" >&2
         exit 1
     fi
-    echo "luci-app-smartdns 安装完成"
+    echo "luci-app-smartdns 仓库克隆完成"
+    
+    # 验证克隆结果
+    if [ ! -f "$SMARTDNS_DIR/Makefile" ]; then
+        echo "错误：smartdns Makefile 不存在于 $SMARTDNS_DIR" >&2
+        exit 1
+    fi
+    
+    if [ ! -f "$LUCI_APP_SMARTDNS_DIR/Makefile" ]; then
+        echo "错误：luci-app-smartdns Makefile 不存在于 $LUCI_APP_SMARTDNS_DIR" >&2
+        exit 1
+    fi
+    
+    echo "smartdns 安装完成，已验证 Makefile 存在"
 }
 
 install_adguardhome_wzdddyy() {
