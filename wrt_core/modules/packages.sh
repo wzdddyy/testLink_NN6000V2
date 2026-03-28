@@ -1,80 +1,7 @@
 #!/usr/bin/env bash
 
 remove_unwanted_packages() {
-    local luci_packages=(
-        "luci-app-passwall" "luci-app-ddns-go" "luci-app-rclone" "luci-app-ssr-plus"
-        "luci-app-vssr" "luci-app-daed" "luci-app-dae" "luci-app-alist" "luci-app-homeproxy"
-        "luci-app-haproxy-tcp" "luci-app-openclash" "luci-app-mihomo" "luci-app-appfilter"
-        "luci-app-msd_lite" "luci-app-unblockneteasemusic"
-    )
-    local packages_net=(
-        "haproxy" "xray-core" "xray-plugin" "dns2socks" "alist" "hysteria"
-        "ddns-go" "naiveproxy" "shadowsocks-rust"
-        "sing-box" "v2ray-core" "v2ray-geodata" "v2ray-plugin" "tuic-client"
-        "chinadns-ng" "ipt2socks" "tcping" "trojan-plus" "simple-obfs" "shadowsocksr-libev"
-        "dae" "daed" "mihomo" "geoview" "tailscale" "open-app-filter" "msd_lite"
-    )
-    local small8_packages=(
-        "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist"
-        "alist" "opkg" "easytier" "trojan-plus"
-    )
-    local problematic_packages=(
-        "fwupd" "fwupd-libs"
-    )
-
-    # 有 Makefile 错误的包
-    local broken_packages=(
-        "luci-app-natmap" "webd"
-    )
-
-    for pkg in "${luci_packages[@]}"; do
-        if [[ -d ./feeds/luci/applications/$pkg ]]; then
-            \rm -rf ./feeds/luci/applications/$pkg
-        fi
-        if [[ -d ./feeds/luci/themes/$pkg ]]; then
-            \rm -rf ./feeds/luci/themes/$pkg
-        fi
-    done
-
-    for pkg in "${packages_net[@]}"; do
-        if [[ -d ./feeds/packages/net/$pkg ]]; then
-            \rm -rf ./feeds/packages/net/$pkg
-        fi
-    done
-
-    for pkg in "${small8_packages[@]}"; do
-        if [[ -d ./feeds/small8/$pkg ]]; then
-            \rm -rf ./feeds/small8/$pkg
-        fi
-    done
-
-    # 移除有问题的包（依赖问题、递归依赖）
-    for pkg in "${problematic_packages[@]}"; do
-        if [[ -d ./feeds/packages/utils/$pkg ]]; then
-            \rm -rf ./feeds/packages/utils/$pkg
-        fi
-        if [[ -d ./feeds/small8/utils/$pkg ]]; then
-            \rm -rf ./feeds/small8/utils/$pkg
-        fi
-        if [[ -d ./package/utils/$pkg ]]; then
-            \rm -rf ./package/utils/$pkg
-        fi
-    done
-
-    # 删除有 Makefile 错误的包
-    for pkg in "${broken_packages[@]}"; do
-        if [[ -d ./feeds/small8/$pkg ]]; then
-            \rm -rf ./feeds/small8/$pkg
-        fi
-        if [[ -d ./feeds/luci/applications/$pkg ]]; then
-            \rm -rf ./feeds/luci/applications/$pkg
-        fi
-    done
-
-    if [[ -d ./package/istore ]]; then
-        \rm -rf ./package/istore
-    fi
-
+    # 清理 uci-defaults 中的 99* 脚本，避免冲突
     if [ -d "$BUILD_DIR/target/linux/qualcommax/base-files/etc/uci-defaults" ]; then
         find "$BUILD_DIR/target/linux/qualcommax/base-files/etc/uci-defaults/" -type f -name "99*.sh" -exec rm -f {} +
     fi
@@ -91,8 +18,8 @@ update_golang() {
     fi
 }
 
-install_small8() {
-    ./scripts/feeds install -p small8 -f xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
+install_luna() {
+    ./scripts/feeds install -p luna xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
         naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata geoview v2ray-plugin \
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
         v2dat \
@@ -101,11 +28,6 @@ install_small8() {
         lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic nikki luci-app-nikki \
         tailscale luci-app-tailscale oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
         msd_lite luci-app-msd_lite
-    
-    # 删除有 Makefile 错误的包
-    rm -rf "$BUILD_DIR/feeds/small8/webd"
-    rm -rf "$BUILD_DIR/feeds/small8/luci-app-natmap"
-    rm -rf "$BUILD_DIR/feeds/luci/applications/luci-app-natmap"
 }
 
 install_passwall() {

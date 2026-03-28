@@ -8,9 +8,9 @@ update_feeds() {
     sed -i '/^#/d' "$FEEDS_PATH"
     sed -i '/packages_ext/d' "$FEEDS_PATH"
 
-    if ! grep -q "small-package" "$FEEDS_PATH"; then
+    if ! grep -q "luna-action-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git small8 https://github.com/kenzok8/jell" >>"$FEEDS_PATH"
+        echo "src-git luna https://github.com/lunatickochiya/luna-action-packages.git;main" >>"$FEEDS_PATH"
     fi
 
     if ! grep -q "openwrt-passwall" "$FEEDS_PATH"; then
@@ -38,9 +38,9 @@ update_feeds() {
 install_feeds() {
     for dir in $BUILD_DIR/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
-            if [[ $(basename "$dir") == "small8" ]]; then
-                # Skip small8 packages that are already installed/updated individually
-                install_small8
+            if [[ $(basename "$dir") == "luna" ]]; then
+                # Skip luna packages that are already installed/updated individually
+                install_luna
                 install_fullconenat
             elif [[ $(basename "$dir") == "passwall" ]]; then
                 # Skip passwall if already installed individually
