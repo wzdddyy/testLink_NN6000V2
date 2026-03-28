@@ -37,10 +37,10 @@ install_passwall() {
 
 install_fullconenat() {
     if [ ! -d $BUILD_DIR/package/network/utils/fullconenat-nft ]; then
-        ./scripts/feeds install -p small8 -f fullconenat-nft
+        ./scripts/feeds install -p luna -f fullconenat-nft
     fi
     if [ ! -d $BUILD_DIR/package/network/utils/fullconenat ]; then
-        ./scripts/feeds install -p small8 -f fullconenat
+        ./scripts/feeds install -p luna -f fullconenat
     fi
 }
 
