@@ -22,7 +22,7 @@ update_feeds() {
         echo "src-git passwall https://github.com/Openwrt-Passwall/openwrt-passwall;main" >>"$FEEDS_PATH"
     fi
     
-    # 添加 bandix feeds（使用相同的 FEEDS_PATH）
+    # 添加 bandix feeds
     if ! grep -q "openwrt_bandix" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
         echo 'src-git openwrt_bandix https://github.com/timsaya/openwrt-bandix.git;main' >>"$FEEDS_PATH"
