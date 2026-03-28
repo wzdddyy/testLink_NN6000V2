@@ -303,8 +303,8 @@ update_smartdns() {
     # 安装 smartdns 包到 feeds 系统
     echo "正在安装 smartdns 包..."
     cd "$BUILD_DIR"
-    ./scripts/feeds install packages -a
-    ./scripts/feeds install luci -a
+    ./scripts/feeds install -a -p packages
+    ./scripts/feeds install -a -p luci
     cd - > /dev/null
     echo "smartdns 包安装完成"
     
