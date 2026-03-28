@@ -13,7 +13,7 @@ update_feeds() {
 
     if ! grep -q "luna-action-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git luna https://github.com/lunatickochiya/luna-action-packages.git;Action" >>"$FEEDS_PATH"
+        echo "src-git luna https://github.com/lunatickochiya/luna-action-packages.git;master" >>"$FEEDS_PATH"
     fi
     
 
