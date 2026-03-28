@@ -71,14 +71,6 @@ remove_unwanted_packages() {
         fi
     done
 
-    # 删除 small8 中的 smartdns 以避免冲突（使用官方 pymumu 版本）
-    if [[ -d ./feeds/small8/smartdns ]]; then
-        \rm -rf ./feeds/small8/smartdns
-    fi
-    if [[ -d ./feeds/small8/luci-app-smartdns ]]; then
-        \rm -rf ./feeds/small8/luci-app-smartdns
-    fi
-
     if [[ -d ./package/istore ]]; then
         \rm -rf ./package/istore
     fi
@@ -248,27 +240,15 @@ update_smartdns() {
     local SMARTDNS_DIR="$BUILD_DIR/feeds/packages/net/smartdns"
     local LUCI_APP_SMARTDNS_REPO="https://github.com/pymumu/luci-app-smartdns.git"
     local LUCI_APP_SMARTDNS_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-smartdns"
-    local SMALL8_SMARTDNS_DIR="$BUILD_DIR/feeds/small8/smartdns"
-    local SMALL8_LUCI_SMARTDNS_DIR="$BUILD_DIR/feeds/small8/luci-app-smartdns"
 
     echo "正在安装 smartdns..."
-    
-    # 删除 small8 中可能存在的 smartdns 包以避免冲突
-    if [ -d "$SMALL8_SMARTDNS_DIR" ]; then
-        rm -rf "$SMALL8_SMARTDNS_DIR"
-        echo "已删除冲突的 small8/smartdns 目录"
-    fi
-    if [ -d "$SMALL8_LUCI_SMARTDNS_DIR" ]; then
-        rm -rf "$SMALL8_LUCI_SMARTDNS_DIR"
-        echo "已删除冲突的 small8/luci-app-smartdns 目录"
-    fi
     
     # 删除可能存在的旧版本
     rm -rf "$SMARTDNS_DIR" "$LUCI_APP_SMARTDNS_DIR"
     
     # 创建目录并克隆 smartdns 核心到 feeds/packages/net 目录
     mkdir -p "$(dirname "$SMARTDNS_DIR")"
-    echo "正在克隆 smartdns 核心仓库..."
+    echo "正在从 pymumu 官方克隆 smartdns 核心仓库..."
     if ! git clone --depth=1 --branch master "$SMARTDNS_REPO" "$SMARTDNS_DIR"; then
         echo "错误：从 $SMARTDNS_REPO 克隆 smartdns 仓库失败" >&2
         exit 1
@@ -277,7 +257,7 @@ update_smartdns() {
 
     # 克隆 luci-app-smartdns
     mkdir -p "$(dirname "$LUCI_APP_SMARTDNS_DIR")"
-    echo "正在克隆 luci-app-smartdns 仓库..."
+    echo "正在从 pymumu 官方克隆 luci-app-smartdns 仓库..."
     if ! git clone --depth=1 --branch master "$LUCI_APP_SMARTDNS_REPO" "$LUCI_APP_SMARTDNS_DIR"; then
         echo "错误：从 $LUCI_APP_SMARTDNS_REPO 克隆 luci-app-smartdns 仓库失败" >&2
         exit 1
@@ -294,6 +274,12 @@ update_smartdns() {
         echo "错误：luci-app-smartdns Makefile 不存在于 $LUCI_APP_SMARTDNS_DIR" >&2
         exit 1
     fi
+    
+    # 重新扫描 packages 和 luci feed 以更新索引
+    echo "正在更新 packages 和 luci feed 的索引..."
+    ./scripts/feeds update -p packages
+    ./scripts/feeds update -p luci
+    echo "索引更新完成"
     
     echo "smartdns 安装完成，已验证 Makefile 存在"
 }
