@@ -22,6 +22,11 @@ remove_unwanted_packages() {
         "fwupd" "fwupd-libs"
     )
 
+    # 有 Makefile 错误的包
+    local broken_packages=(
+        "luci-app-natmap" "webd"
+    )
+
     for pkg in "${luci_packages[@]}"; do
         if [[ -d ./feeds/luci/applications/$pkg ]]; then
             \rm -rf ./feeds/luci/applications/$pkg
@@ -53,6 +58,16 @@ remove_unwanted_packages() {
         fi
         if [[ -d ./package/utils/$pkg ]]; then
             \rm -rf ./package/utils/$pkg
+        fi
+    done
+
+    # 删除有 Makefile 错误的包
+    for pkg in "${broken_packages[@]}"; do
+        if [[ -d ./feeds/small8/$pkg ]]; then
+            \rm -rf ./feeds/small8/$pkg
+        fi
+        if [[ -d ./feeds/luci/applications/$pkg ]]; then
+            \rm -rf ./feeds/luci/applications/$pkg
         fi
     done
 
