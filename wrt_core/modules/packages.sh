@@ -290,6 +290,12 @@ update_smartdns() {
     sed -i '/^define Build\/Compile\/smartdns-webui/,/^endef/d' "$SMARTDNS_DIR/Makefile"
     echo "smartdns Makefile 修改完成"
     
+    # 修改 luci-app-smartdns Makefile，移除 smartdns-ui 依赖
+    echo "正在修改 luci-app-smartdns Makefile..."
+    sed -i 's/DEPENDS:=.*smartdns-ui/DEPENDS:=+smartdns/' "$LUCI_APP_SMARTDNS_DIR/Makefile"
+    sed -i 's/+smartdns +smartdns-ui/+smartdns/' "$LUCI_APP_SMARTDNS_DIR/Makefile"
+    echo "luci-app-smartdns Makefile 修改完成"
+    
     # 安装 smartdns 包到 feeds 系统
     echo "正在安装 smartdns 包..."
     cd "$BUILD_DIR"
