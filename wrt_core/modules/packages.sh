@@ -56,6 +56,14 @@ remove_unwanted_packages() {
         fi
     done
 
+    # 删除 small8 中的 smartdns 以避免冲突（使用官方 pymumu 版本）
+    if [[ -d ./feeds/small8/smartdns ]]; then
+        \rm -rf ./feeds/small8/smartdns
+    fi
+    if [[ -d ./feeds/small8/luci-app-smartdns ]]; then
+        \rm -rf ./feeds/small8/luci-app-smartdns
+    fi
+
     if [[ -d ./package/istore ]]; then
         \rm -rf ./package/istore
     fi
@@ -225,8 +233,20 @@ update_smartdns() {
     local SMARTDNS_DIR="$BUILD_DIR/feeds/packages/net/smartdns"
     local LUCI_APP_SMARTDNS_REPO="https://github.com/pymumu/luci-app-smartdns.git"
     local LUCI_APP_SMARTDNS_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-smartdns"
+    local SMALL8_SMARTDNS_DIR="$BUILD_DIR/feeds/small8/smartdns"
+    local SMALL8_LUCI_SMARTDNS_DIR="$BUILD_DIR/feeds/small8/luci-app-smartdns"
 
     echo "正在安装 smartdns..."
+    
+    # 删除 small8 中可能存在的 smartdns 包以避免冲突
+    if [ -d "$SMALL8_SMARTDNS_DIR" ]; then
+        rm -rf "$SMALL8_SMARTDNS_DIR"
+        echo "已删除冲突的 small8/smartdns 目录"
+    fi
+    if [ -d "$SMALL8_LUCI_SMARTDNS_DIR" ]; then
+        rm -rf "$SMALL8_LUCI_SMARTDNS_DIR"
+        echo "已删除冲突的 small8/luci-app-smartdns 目录"
+    fi
     
     # 安装 smartdns 核心
     if [ -d "$SMARTDNS_DIR" ]; then
