@@ -60,40 +60,6 @@ update_feeds() {
         echo "错误：luna feed 更新失败" >&2
         return 1
     }
-    
-    # 修复可能的 Makefile 语法错误
-    echo "Checking and fixing Makefile syntax errors..."
-    fix_feed_makefile_errors
-}
-
-fix_feed_makefile_errors() {
-    # 修复 passwall Makefile 可能的错误
-    local passwall_mk="$BUILD_DIR/feeds/passwall/luci-app-passwall/Makefile"
-    if [ -f "$passwall_mk" ]; then
-        # 检查是否有语法错误
-        if grep -qE "^\s*\\\$" "$passwall_mk"; then
-            echo "Fixing passwall Makefile..."
-            sed -i 's/^\s*\$/\t$/g' "$passwall_mk"
-        fi
-    fi
-    
-    # 修复 openwrt_bandix Makefile
-    local bandix_mk="$BUILD_DIR/feeds/openwrt_bandix/openwrt-bandix/Makefile"
-    if [ -f "$bandix_mk" ]; then
-        if grep -qE "^\s*\\\$" "$bandix_mk"; then
-            echo "Fixing openwrt_bandix Makefile..."
-            sed -i 's/^\s*\$/\t$/g' "$bandix_mk"
-        fi
-    fi
-    
-    # 修复 luci_app_bandix Makefile
-    local luci_bandix_mk="$BUILD_DIR/feeds/luci_app_bandix/luci-app-bandix/Makefile"
-    if [ -f "$luci_bandix_mk" ]; then
-        if grep -qE "^\s*\\\$" "$bandix_mk"; then
-            echo "Fixing luci_app_bandix Makefile..."
-            sed -i 's/^\s*\$/\t$/g' "$luci_bandix_mk"
-        fi
-    fi
 }
 
 install_feeds() {
