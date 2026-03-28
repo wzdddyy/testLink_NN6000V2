@@ -278,8 +278,7 @@ update_smartdns() {
     # 安装 smartdns 包到 feeds 系统
     echo "正在安装 smartdns 包..."
     cd "$BUILD_DIR"
-    ./scripts/feeds install -p packages -f smartdns
-    ./scripts/feeds install -p luci -f luci-app-smartdns
+    ./scripts/feeds install package -a
     cd - > /dev/null
     echo "smartdns 包安装完成"
     
