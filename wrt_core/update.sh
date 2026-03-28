@@ -33,6 +33,7 @@ source "$SCRIPT_DIR/modules/general.sh"
 source "$SCRIPT_DIR/modules/feeds.sh"
 source "$SCRIPT_DIR/modules/packages.sh"
 source "$SCRIPT_DIR/modules/system.sh"
+source "$SCRIPT_DIR/modules/docker.sh"
 
 
 main() {
