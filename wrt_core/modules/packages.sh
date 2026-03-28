@@ -275,6 +275,14 @@ update_smartdns() {
         exit 1
     fi
     
+    # 安装 smartdns 包到 feeds 系统
+    echo "正在安装 smartdns 包..."
+    cd "$BUILD_DIR"
+    ./scripts/feeds install -p packages -f smartdns
+    ./scripts/feeds install -p luci -f luci-app-smartdns
+    cd - > /dev/null
+    echo "smartdns 包安装完成"
+    
     echo "smartdns 安装完成，已验证 Makefile 存在"
 }
 
