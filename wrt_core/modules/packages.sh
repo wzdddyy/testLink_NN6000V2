@@ -16,7 +16,7 @@ remove_unwanted_packages() {
     )
     local small8_packages=(
         "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist"
-        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier"
+        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier" "webd" "luci-app-natmap"
     )
 
     for pkg in "${luci_packages[@]}"; do
@@ -61,7 +61,7 @@ update_golang() {
 }
 
 install_small8() {
-    ./scripts/feeds install -p small8 -f xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
+    ./scripts/feeds install -p small8 -f dns2tcp dns2socks haproxy hysteria \
         naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata geoview v2ray-plugin \
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
         v2dat \
@@ -76,6 +76,11 @@ install_small8() {
 install_passwall() {
     echo "正在从官方仓库安装 luci-app-passwall..."
     ./scripts/feeds install -p passwall -f luci-app-passwall
+}
+
+install_xray() {
+    echo "正在从官方 packages 源安装 xray-core..."
+    ./scripts/feeds install -p packages -f xray-core xray-plugin
 }
 
 install_fullconenat() {

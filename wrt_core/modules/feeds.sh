@@ -44,6 +44,8 @@ install_feeds() {
                 install_fullconenat
             elif [[ $(basename "$dir") == "passwall" ]]; then
                 install_passwall
+            elif [[ $(basename "$dir") == "packages" ]]; then
+                install_xray
             else
                 ./scripts/feeds install -f -ap $(basename "$dir")
             fi
