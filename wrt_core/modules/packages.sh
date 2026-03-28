@@ -68,7 +68,7 @@ check_default_settings() {
 
 update_homeproxy() {
     local repo_url="https://github.com/immortalwrt/homeproxy.git"
-    local target_dir="$BUILD_DIR/feeds/small8/luci-app-homeproxy"
+    local target_dir="$BUILD_DIR/feeds/luna/luci-app-homeproxy"
 
     if [ -d "$target_dir" ]; then
         echo "正在更新 homeproxy..."
@@ -94,9 +94,9 @@ add_timecontrol() {
 
 update_lucky() {
     local lucky_repo_url="https://github.com/gdy666/luci-app-lucky.git"
-    local target_small8_dir="$BUILD_DIR/feeds/small8"
-    local lucky_dir="$target_small8_dir/lucky"
-    local luci_app_lucky_dir="$target_small8_dir/luci-app-lucky"
+    local target_luna_dir="$BUILD_DIR/feeds/luna"
+    local lucky_dir="$target_luna_dir/lucky"
+    local luci_app_lucky_dir="$target_luna_dir/luci-app-lucky"
 
     if [ ! -d "$lucky_dir" ] || [ ! -d "$luci_app_lucky_dir" ]; then
         echo "Warning: $lucky_dir 或 $luci_app_lucky_dir 不存在，跳过 lucky 源代码更新。" >&2
@@ -130,7 +130,7 @@ update_lucky() {
         echo "luci-app-lucky 和 lucky 源代码更新完成。"
     fi
 
-    local lucky_conf="$BUILD_DIR/feeds/small8/lucky/files/luckyuci"
+    local lucky_conf="$BUILD_DIR/feeds/luna/lucky/files/luckyuci"
     if [ -f "$lucky_conf" ]; then
         sed -i "s/option enabled '1'/option enabled '0'/g" "$lucky_conf"
         sed -i "s/option logger '1'/option logger '0'/g" "$lucky_conf"
@@ -143,7 +143,7 @@ update_lucky() {
         return 0
     fi
 
-    local makefile_path="$BUILD_DIR/feeds/small8/lucky/Makefile"
+    local makefile_path="$BUILD_DIR/feeds/luna/lucky/Makefile"
     if [ ! -f "$makefile_path" ]; then
         echo "Warning: lucky Makefile not found. Skipping." >&2
         return 0
