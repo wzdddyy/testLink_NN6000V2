@@ -27,7 +27,7 @@ THEME_SET="argon"
 LAN_ADDR="10.0.0.1"
 
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
-BASE_PATH=${BASE_PATH:-$SCRIPT_DIR}
+BASE_PATH=${BASE_PATH:-$(dirname "$SCRIPT_DIR")}
 
 source "$SCRIPT_DIR/general.sh"
 source "$SCRIPT_DIR/feeds.sh"
