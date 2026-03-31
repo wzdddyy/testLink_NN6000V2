@@ -511,8 +511,7 @@ config include\\
 \\
 config include\\
 	option path '/usr/share/pbr/pbr.user.unicom6'\\
-	option enabled '0'
-            }" "$pbr_conf"
+	option enabled '0'" "$pbr_conf"
         fi
     fi
 }
@@ -549,8 +548,7 @@ config include\\
 \\
 config include\\
 	option path '/usr/share/pbr/pbr.user.telecom6'\\
-	option enabled '0'
-            }" "$pbr_conf"
+	option enabled '0'" "$pbr_conf"
         fi
     fi
 }
