@@ -1,4 +1,4 @@
-name: Release_Link_NN6000V2
+name: Go_Release
 run-name: Release - ${{ inputs.model }}
 
 on:
