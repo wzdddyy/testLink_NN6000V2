@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Get CPU usage from /proc/stat (more efficient than top)
+# 从 /proc/stat 获取 CPU 使用率
 cpu_line=$(head -n1 /proc/stat 2>/dev/null) || exit 1
 cpu_values=${cpu_line#cpu }
 total=0
@@ -24,17 +24,17 @@ fi
 nss_util=""
 ecm_count=""
 
-# Get NSS hardware accelerator utilization
+# 获取 NSS 硬件加速器利用率
 if [ -r "/sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi" ]; then
     nss_util=$(awk 'NR==6 && $2 ~ /^[0-9]+$/ {printf "%.0f", $2}' /sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi 2>/dev/null)
 fi
 
-# Get ECM connection count
+# 获取 ECM 连接数
 if [ -r "/sys/kernel/debug/ecm/ecm_db/connection_count_simple" ]; then
     ecm_count=$(cat /sys/kernel/debug/ecm/ecm_db/connection_count_simple 2>/dev/null | tr -d '\n')
 fi
 
-# Build output string
+# 构建输出字符串
 output="CPU: ${cpu_usage}%"
 [ -n "$nss_util" ] && output="$output NSS: ${nss_util}%"
 [ -n "$ecm_count" ] && output="$output ECM: ${ecm_count}"

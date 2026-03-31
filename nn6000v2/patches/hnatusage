@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Get CPU usage from /proc/stat (more efficient than top)
+# 从 /proc/stat 获取 CPU 使用率
 cpu_line=$(head -n1 /proc/stat)
 cpu_values=${cpu_line#cpu }
 total=0
@@ -21,7 +21,7 @@ else
     cpu_usage=$(( (100 * (total - idle)) / total ))
 fi
 
-# Get PPE connection counts
+# 获取 PPE 连接数
 ppe0_count=""
 ppe1_count=""
 
@@ -33,7 +33,7 @@ if [ -r "/sys/kernel/debug/ppe1/entries" ]; then
     ppe1_count=$(wc -l < /sys/kernel/debug/ppe1/entries 2>/dev/null)
 fi
 
-# Build output string
+# 构建输出字符串
 output="CPU: ${cpu_usage}%"
 [ -n "$ppe0_count" ] && output="$output PPE0: ${ppe0_count}"
 [ -n "$ppe1_count" ] && output="$output PPE1: ${ppe1_count}"
