@@ -16,7 +16,7 @@ remove_unwanted_packages() {
     )
     local small8_packages=(
         "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist"
-        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier" "webd" "luci-app-natmap"
+        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier" "luci-app-natmap"
     )
 
     for pkg in "${luci_packages[@]}"; do
