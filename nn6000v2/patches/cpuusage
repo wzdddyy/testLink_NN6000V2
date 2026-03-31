@@ -1,9 +1,7 @@
 #!/bin/sh
-# Copyright (C) 2024 YumesomeZakura <1552037053@qq.com>
-# Optimized version with better error handling and performance
 
 # Get CPU usage from /proc/stat (more efficient than top)
-cpu_line=$(head -n1 /proc/stat)
+cpu_line=$(head -n1 /proc/stat 2>/dev/null) || exit 1
 cpu_values=${cpu_line#cpu }
 total=0
 idle=0
@@ -17,7 +15,7 @@ for val in $cpu_values; do
     count=$((count + 1))
 done
 
-if [ $total -eq 0 ]; then
+if [ $total -eq 0 ] || [ -z "$idle" ]; then
     cpu_usage=0
 else
     cpu_usage=$(( (100 * (total - idle)) / total ))
@@ -28,12 +26,12 @@ ecm_count=""
 
 # Get NSS hardware accelerator utilization
 if [ -r "/sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi" ]; then
-    nss_util=$(awk 'NR==6 {printf "%.0f", $2}' /sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi 2>/dev/null)
+    nss_util=$(awk 'NR==6 && $2 ~ /^[0-9]+$/ {printf "%.0f", $2}' /sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi 2>/dev/null)
 fi
 
 # Get ECM connection count
 if [ -r "/sys/kernel/debug/ecm/ecm_db/connection_count_simple" ]; then
-    ecm_count=$(cat /sys/kernel/debug/ecm/ecm_db/connection_count_simple 2>/dev/null)
+    ecm_count=$(cat /sys/kernel/debug/ecm/ecm_db/connection_count_simple 2>/dev/null | tr -d '\n')
 fi
 
 # Build output string

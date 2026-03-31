@@ -1,12 +1,41 @@
 #!/bin/sh
-# Copyright (C) 2024 ZqinKing <zqinking23@gmail.com>
 
-cpu_usage=$(top -bn1 | head -n2 | awk -F'[ %]+' 'NR==2{print $2}')
+# Get CPU usage from /proc/stat (more efficient than top)
+cpu_line=$(head -n1 /proc/stat)
+cpu_values=${cpu_line#cpu }
+total=0
+idle=0
+count=0
+
+for val in $cpu_values; do
+    if [ $count -eq 3 ]; then
+        idle=$val
+    fi
+    total=$((total + val))
+    count=$((count + 1))
+done
+
+if [ $total -eq 0 ]; then
+    cpu_usage=0
+else
+    cpu_usage=$(( (100 * (total - idle)) / total ))
+fi
+
+# Get PPE connection counts
+ppe0_count=""
+ppe1_count=""
 
 if [ -r "/sys/kernel/debug/ppe0/entries" ]; then
-    ppe0_count=$(cat /sys/kernel/debug/ppe0/entries | wc -l)
-    ppe1_count=$(cat /sys/kernel/debug/ppe1/entries | wc -l)
-    echo -n "CPU: ${cpu_usage}% PPE0: ${ppe0_count} PPE1: ${ppe1_count}"
-else
-    echo -n "CPU: ${cpu_usage}%"
+    ppe0_count=$(wc -l < /sys/kernel/debug/ppe0/entries 2>/dev/null)
 fi
+
+if [ -r "/sys/kernel/debug/ppe1/entries" ]; then
+    ppe1_count=$(wc -l < /sys/kernel/debug/ppe1/entries 2>/dev/null)
+fi
+
+# Build output string
+output="CPU: ${cpu_usage}%"
+[ -n "$ppe0_count" ] && output="$output PPE0: ${ppe0_count}"
+[ -n "$ppe1_count" ] && output="$output PPE1: ${ppe1_count}"
+
+echo -n "$output"
