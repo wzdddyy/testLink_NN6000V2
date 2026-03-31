@@ -29,11 +29,11 @@ LAN_ADDR="10.0.0.1"
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 BASE_PATH=${BASE_PATH:-$SCRIPT_DIR}
 
-source "$SCRIPT_DIR/modules/general.sh"
-source "$SCRIPT_DIR/modules/feeds.sh"
-source "$SCRIPT_DIR/modules/packages.sh"
-source "$SCRIPT_DIR/modules/system.sh"
-source "$SCRIPT_DIR/modules/docker.sh"
+source "$SCRIPT_DIR/scripts/general.sh"
+source "$SCRIPT_DIR/scripts/feeds.sh"
+source "$SCRIPT_DIR/scripts/packages.sh"
+source "$SCRIPT_DIR/scripts/system.sh"
+source "$SCRIPT_DIR/scripts/docker.sh"
 
 
 main() {
