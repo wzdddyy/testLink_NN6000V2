@@ -1,19 +1,44 @@
 #!/bin/sh
 # Copyright (C) 2024 YumesomeZakura <1552037053@qq.com>
+# Optimized version with better error handling and performance
 
-cpu_usage=$(top -bn1 | head -n2 | awk -F'[ %]+' 'NR==2{print $2}')
-combined_output=""
+# Get CPU usage from /proc/stat (more efficient than top)
+cpu_line=$(head -n1 /proc/stat)
+cpu_values=${cpu_line#cpu }
+total=0
+idle=0
+count=0
 
-if [ -e "/sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi" ]; then
-    nss_avg_utilization=$(awk 'NR==6 {print $2}' /sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi)
-    combined_output="${combined_output}${nss_avg_utilization}"
-fi
+for val in $cpu_values; do
+    if [ $count -eq 3 ]; then
+        idle=$val
+    fi
+    total=$((total + val))
+    count=$((count + 1))
+done
 
-if [ -r "/sys/kernel/debug/ecm/ecm_db/connection_count_simple" ]; then
-    connection_count=$(cat /sys/kernel/debug/ecm/ecm_db/connection_count_simple)
-    echo -n "CPU: ${cpu_usage}% HWE: ${combined_output} ECM: ${connection_count}"
-elif [ -n "$combined_output" ]; then
-    echo -n "CPU: ${cpu_usage}% HWE: ${combined_output}"
+if [ $total -eq 0 ]; then
+    cpu_usage=0
 else
-    echo -n "CPU: ${cpu_usage}%"
+    cpu_usage=$(( (100 * (total - idle)) / total ))
 fi
+
+nss_util=""
+ecm_count=""
+
+# Get NSS hardware accelerator utilization
+if [ -r "/sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi" ]; then
+    nss_util=$(awk 'NR==6 {printf "%.0f", $2}' /sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi 2>/dev/null)
+fi
+
+# Get ECM connection count
+if [ -r "/sys/kernel/debug/ecm/ecm_db/connection_count_simple" ]; then
+    ecm_count=$(cat /sys/kernel/debug/ecm/ecm_db/connection_count_simple 2>/dev/null)
+fi
+
+# Build output string
+output="CPU: ${cpu_usage}%"
+[ -n "$nss_util" ] && output="$output NSS: ${nss_util}%"
+[ -n "$ecm_count" ] && output="$output ECM: ${ecm_count}"
+
+echo -n "$output"

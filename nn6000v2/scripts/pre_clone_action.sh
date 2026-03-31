@@ -31,13 +31,13 @@ REPO_BRANCH=$(read_ini_by_key "REPO_BRANCH")
 REPO_BRANCH=${REPO_BRANCH:-main}
 # GitHub Actions usually runs in root of repo, so build dir should be relative to repo root
 # We need to construct absolute path or ensure context is correct.
-# Assuming this script is run from repo root or wrt_core.
-# Let's use relative path "action_build" next to wrt_core if possible or just use what works.
+# Assuming this script is run from repo root or nn6000v2.
+# Let's use relative path "action_build" next to nn6000v2 if possible or just use what works.
 # Original script used BASE_PATH/action_build.
 BUILD_DIR="$BASE_PATH/../action_build"
 
 echo $REPO_URL $REPO_BRANCH
-# Write flag one level up from wrt_core (repo root usually)
+# Write flag one level up from nn6000v2 (repo root usually)
 echo "$REPO_URL/$REPO_BRANCH" >"$BASE_PATH/../repo_flag"
 git clone --depth 1 -b $REPO_BRANCH $REPO_URL $BUILD_DIR
 

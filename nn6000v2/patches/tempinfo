@@ -1,29 +1,84 @@
 #!/bin/sh
+#===============================================================================
+# tempinfo - System Temperature Information Display
+# 
+# 功能：显示 CPU 和 WiFi 芯片温度信息
+# 优化：减少重复读取、改进错误处理、优化输出格式
+#===============================================================================
 
+#-------------------------------------------------------------------------------
+# 配置
+#-------------------------------------------------------------------------------
 IEEE_PATH="/sys/class/ieee80211"
 THERMAL_PATH="/sys/class/thermal"
+RELEASE_FILE="/etc/openwrt_release"
 
-if grep -Eq "ipq40xx|ipq806x" "/etc/openwrt_release"; then
-	wifi_temp="$(awk '{printf("%.1f°C ", $0 / 1000)}' "$IEEE_PATH"/phy*/device/hwmon/hwmon*/temp1_input 2>"/dev/null" | awk '$1=$1')"
-else
-	wifi_temp="$(cat "$IEEE_PATH"/phy*/hwmon*/temp1_input 2>"/dev/null" | awk '{printf("%.1f°C ", $0 / 1000)}' | awk '$1=$1')"
-fi
+#-------------------------------------------------------------------------------
+# 辅助函数：从文件读取温度并转换格式
+#-------------------------------------------------------------------------------
+read_temp() {
+    local file="$1"
+    local temp
+    
+    [ -f "$file" ] || return 1
+    
+    temp=$(cat "$file" 2>/dev/null)
+    [ -n "$temp" ] && [ "$temp" -gt 0 ] 2>/dev/null || return 1
+    
+    # 转换为摄氏度格式
+    printf "%.1f°C" "$(awk "BEGIN {printf \"%.3f\", $temp / 1000}")"
+}
 
-if grep -q "ipq40xx" "/etc/openwrt_release"; then
-	if [ -e "$IEEE_PATH/phy0/hwmon0/temp1_input" ]; then
-		mt76_temp="$(awk -F ': ' '{print $2}' "$IEEE_PATH/phy0/hwmon0/temp1_input" 2>"/dev/null")°C"
-	fi
-	[ -z "$mt76_temp" ] || wifi_temp="${wifi_temp:+$wifi_temp }$mt76_temp"
-else
-	cpu_temp="$(awk '{printf("%.1f°C", $0 / 1000)}' "$THERMAL_PATH/thermal_zone0/temp" 2>"/dev/null")"
-fi
+#-------------------------------------------------------------------------------
+# 获取 WiFi 温度（ipq60xx 平台）
+#-------------------------------------------------------------------------------
+get_wifi_temp() {
+    local temp_file
+    local temp
+    
+    # ipq60xx: 从 device/hwmon 读取
+    for temp_file in "$IEEE_PATH"/phy*/device/hwmon/hwmon*/temp1_input; do
+        [ -f "$temp_file" ] || continue
+        temp=$(read_temp "$temp_file")
+        [ -n "$temp" ] && { echo "$temp"; return 0; }
+    done
+    
+    return 1
+}
 
-if [ -n "$cpu_temp" ] && [ -z "$wifi_temp" ]; then
-	echo -n "CPU: $cpu_temp"
-elif [ -z "$cpu_temp" ] && [ -n "$wifi_temp" ]; then
-	echo -n "WiFi: $wifi_temp"
-elif [ -n "$cpu_temp" ] && [ -n "$wifi_temp" ]; then
-	echo -n "CPU: $cpu_temp, WiFi: $wifi_temp"
-else
-	echo -n "No temperature info"
-fi
+#-------------------------------------------------------------------------------
+# 获取 CPU 温度
+#-------------------------------------------------------------------------------
+get_cpu_temp() {
+    local cpu_file="$THERMAL_PATH/thermal_zone0/temp"
+    
+    read_temp "$cpu_file"
+}
+
+#-------------------------------------------------------------------------------
+# 主函数
+#-------------------------------------------------------------------------------
+main() {
+    local cpu_temp=""
+    local wifi_temp=""
+    local output_parts=()
+    
+    # ipq60xx 平台：读取 CPU 和 WiFi 温度
+    cpu_temp=$(get_cpu_temp)
+    wifi_temp=$(get_wifi_temp)
+    
+    # 构建输出
+    [ -n "$cpu_temp" ] && output_parts+=("CPU: $cpu_temp")
+    [ -n "$wifi_temp" ] && output_parts+=("WiFi: $wifi_temp")
+    
+    # 输出结果
+    if [ ${#output_parts[@]} -gt 0 ]; then
+        local IFS=", "
+        echo "${output_parts[*]}"
+    else
+        echo "No temperature info"
+    fi
+}
+
+# 执行主函数
+main
