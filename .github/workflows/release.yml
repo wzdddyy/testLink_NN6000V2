@@ -1,4 +1,4 @@
-name: Release WRT
+name: Release_Link_NN6000V2
 run-name: Release - ${{ inputs.model }}
 
 on:
