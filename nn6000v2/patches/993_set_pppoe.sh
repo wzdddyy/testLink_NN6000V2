@@ -1,7 +1,7 @@
 #!/bin/sh
 
-PPPOE_USERNAME="-"
-PPPOE_PASSWORD="-"
+PPPOE_USERNAME="087709514472"
+PPPOE_PASSWORD="514472"
 
 setup_pppoe() {
 	if [ "$PPPOE_USERNAME" = "-" ] || [ "$PPPOE_PASSWORD" = "-" ]; then
