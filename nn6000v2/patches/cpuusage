@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# 简单的CPU使用率计算（基于/proc/stat的差值方法）
-
 # 获取第一次CPU统计数据
 cpu_line=$(head -n1 /proc/stat 2>/dev/null)
 cpu_values=${cpu_line#cpu }
