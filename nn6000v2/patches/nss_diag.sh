@@ -1,6 +1,5 @@
 #!/bin/sh
 # shellcheck disable=3037,3060,2034,1091,2166
-# .
 # Color codes setup
 setup_colors() {
     if [ -t 1 ]; then

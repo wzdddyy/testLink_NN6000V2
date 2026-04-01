@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .
+
 remove_unwanted_packages() {
     local luci_packages=(
         "luci-app-passwall" "luci-app-ddns-go" "luci-app-rclone" "luci-app-ssr-plus"

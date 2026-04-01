@@ -1,5 +1,4 @@
 #!/bin/sh
-# .
 # 从 /proc/stat 获取 CPU 使用率
 cpu_line=$(head -n1 /proc/stat)
 cpu_values=${cpu_line#cpu }
