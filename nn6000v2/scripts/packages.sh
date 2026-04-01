@@ -307,7 +307,7 @@ _sync_luci_lib_docker() {
 
 update_dockerman() {
     local path="$BUILD_DIR/feeds/luci/applications/luci-app-dockerman"
-    local repo_url="https://github.com/lisaac/luci-app-dockerman.git"
+    local repo_url="https://github.com/wzdddyy/luci-app-dockerman.git"
     if [ -d "$path" ]; then
         echo "正在更新 dockerman..."
         _sync_luci_lib_docker || return
