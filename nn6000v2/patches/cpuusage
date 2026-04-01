@@ -1,42 +1,59 @@
 #!/bin/sh
 
-# 从 /proc/stat 获取 CPU 使用率
-cpu_line=$(head -n1 /proc/stat 2>/dev/null) || exit 1
+# 简单的CPU使用率计算（基于/proc/stat的差值方法）
+
+# 获取第一次CPU统计数据
+cpu_line=$(head -n1 /proc/stat 2>/dev/null)
 cpu_values=${cpu_line#cpu }
-total=0
-idle=0
+prev_total=0
+prev_idle=0
 count=0
 
 for val in $cpu_values; do
     if [ $count -eq 3 ]; then
-        idle=$val
+        prev_idle=$val
     fi
-    total=$((total + val))
+    prev_total=$((prev_total + val))
     count=$((count + 1))
 done
 
-if [ $total -eq 0 ] || [ -z "$idle" ]; then
-    cpu_usage=0
+# 等待一小段时间（使用sleep）
+sleep 0.1
+
+# 获取第二次CPU统计数据
+cpu_line=$(head -n1 /proc/stat 2>/dev/null)
+cpu_values=${cpu_line#cpu }
+curr_total=0
+curr_idle=0
+count=0
+
+for val in $cpu_values; do
+    if [ $count -eq 3 ]; then
+        curr_idle=$val
+    fi
+    curr_total=$((curr_total + val))
+    count=$((count + 1))
+done
+
+# 计算差值
+total_diff=$((curr_total - prev_total))
+idle_diff=$((curr_idle - prev_idle))
+
+# 计算CPU使用率
+if [ $total_diff -gt 0 ]; then
+    cpu_usage=$(( (100 * (total_diff - idle_diff)) / total_diff ))
 else
-    cpu_usage=$(( (100 * (total - idle)) / total ))
-fi
-
-nss_util=""
-ecm_count=""
-
-# 获取 NSS 硬件加速器利用率
-if [ -r "/sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi" ]; then
-    nss_util=$(awk 'NR==6 && $2 ~ /^[0-9]+$/ {printf "%.0f", $2}' /sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi 2>/dev/null)
+    cpu_usage=0
 fi
 
 # 获取 ECM 连接数
+ecm_count=""
 if [ -r "/sys/kernel/debug/ecm/ecm_db/connection_count_simple" ]; then
     ecm_count=$(cat /sys/kernel/debug/ecm/ecm_db/connection_count_simple 2>/dev/null | tr -d '\n')
 fi
 
 # 构建输出字符串
 output="CPU: ${cpu_usage}%"
-[ -n "$nss_util" ] && output="$output NSS: ${nss_util}%"
 [ -n "$ecm_count" ] && output="$output ECM: ${ecm_count}"
 
 echo -n "$output"
