@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# .
 # 获取第一次CPU统计数据
 cpu_line=$(head -n1 /proc/stat 2>/dev/null)
 cpu_values=${cpu_line#cpu }

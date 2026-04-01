@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# .
 board_name=$(cat /tmp/sysinfo/board_name)
 
 configure_wifi() {

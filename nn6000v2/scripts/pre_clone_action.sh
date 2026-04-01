@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# .
 # Determine nn6000v2 path
 if [ -d "nn6000v2" ]; then
     NN6000V2_PATH="nn6000v2"

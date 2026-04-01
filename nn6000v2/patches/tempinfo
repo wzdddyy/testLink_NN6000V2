@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# .
 # 获取CPU温度
 cpu_temp=$(cat /sys/devices/virtual/thermal/thermal_zone0/hwmon0/temp1_input 2>/dev/null | awk '{printf("%.1f°C", $0 / 1000)}')
 
