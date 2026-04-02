@@ -1326,8 +1326,8 @@ HELP
 #-------------------------------------------------------------------------------
 update_docker_stack() {
     local build_dir="${BUILD_DIR:-}"
-    local runc_version="${DOCKER_STACK_RUNC_VERSION:-v1.3.3}"
-    local containerd_version="${DOCKER_STACK_CONTAINERD_VERSION:-v1.7.28}"
+    local runc_version="${DOCKER_STACK_RUNC_VERSION:-v1.3.5}"
+    local containerd_version="${DOCKER_STACK_CONTAINERD_VERSION:-v1.7.30}"
     local docker_version="${DOCKER_STACK_DOCKER_VERSION:-v29.3.1}"
     local dockerd_version="${DOCKER_STACK_DOCKERD_VERSION:-$docker_version}"
     local storage_driver="${DOCKER_STACK_STORAGE_DRIVER:-overlay2}"

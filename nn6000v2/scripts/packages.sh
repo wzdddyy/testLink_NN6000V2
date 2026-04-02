@@ -346,16 +346,6 @@ add_quickfile() {
         echo "错误：从 $repo_url 克隆 luci-app-quickfile 仓库失败" >&2
         exit 1
     fi
-
-    local makefile_path="$target_dir/quickfile/Makefile"
-    if [ -f "$makefile_path" ]; then
-        sed -i '/\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-\$(ARCH_PACKAGES)/c\
-\tif [ "\$(ARCH_PACKAGES)" = "x86_64" ]; then \\\
-\t\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-x86_64 \$(1)\/usr\/bin\/quickfile; \\\
-\telse \\\
-\t\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-aarch64_generic \$(1)\/usr\/bin\/quickfile; \\\
-\tfi' "$makefile_path"
-    fi
 }
 
 update_argon() {
