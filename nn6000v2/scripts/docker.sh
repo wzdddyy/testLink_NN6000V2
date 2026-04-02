@@ -1285,7 +1285,7 @@ Docker 堆栈更新工具 - 自动更新 OpenWrt 固件中的 Docker 组件
   DOCKER_STACK_CONTAINERD_VERSION  containerd 版本 (默认：v1.7.28)
   DOCKER_STACK_DOCKER_VERSION      docker 版本 (默认：v29.3.1)
   DOCKER_STACK_DOCKERD_VERSION     dockerd 版本 (默认：同 DOCKER_STACK_DOCKER_VERSION)
-  DOCKER_STACK_STORAGE_DRIVER      存储驱动 (默认：vfs)
+  DOCKER_STACK_STORAGE_DRIVER      存储驱动 (默认：overlay2)
   DOCKER_STACK_DRY_RUN             预览模式，不修改文件 (0/1, 默认：0)
   DOCKER_STACK_LOG_LEVEL           日志级别 (debug/info/warn/error, 默认：info)
   DOCKER_STACK_QUIET               安静模式 (0/1, 默认：0)
@@ -1330,7 +1330,7 @@ update_docker_stack() {
     local containerd_version="${DOCKER_STACK_CONTAINERD_VERSION:-v1.7.28}"
     local docker_version="${DOCKER_STACK_DOCKER_VERSION:-v29.3.1}"
     local dockerd_version="${DOCKER_STACK_DOCKERD_VERSION:-$docker_version}"
-    local storage_driver="${DOCKER_STACK_STORAGE_DRIVER:-vfs}"
+    local storage_driver="${DOCKER_STACK_STORAGE_DRIVER:-overlay2}"
     local dry_run="${DOCKER_STACK_DRY_RUN:-0}"
     local runc_makefile=""
     local containerd_makefile=""
