@@ -1332,6 +1332,20 @@ update_docker_stack() {
     local dockerd_version="${DOCKER_STACK_DOCKERD_VERSION:-$docker_version}"
     local storage_driver="${DOCKER_STACK_STORAGE_DRIVER:-overlay2}"
     local dry_run="${DOCKER_STACK_DRY_RUN:-0}"
+    
+    # 默认资源限制配置
+    local default_cpu_quota="${DOCKER_STACK_DEFAULT_CPU_QUOTA:-100000}"
+    local default_cpu_period="${DOCKER_STACK_DEFAULT_CPU_PERIOD:-100000}"
+    local default_memory="${DOCKER_STACK_DEFAULT_MEMORY:-512m}"
+    local default_memory_swap="${DOCKER_STACK_DEFAULT_MEMORY_SWAP:-1g}"
+    local default_blkio_weight="${DOCKER_STACK_DEFAULT_BLKIO_WEIGHT:-500}"
+    
+    # 高效网络模式配置
+    local default_network_driver="${DOCKER_STACK_DEFAULT_NETWORK_DRIVER:-bridge}"
+    local enable_ipvlan="${DOCKER_STACK_ENABLE_IPVLAN:-0}"
+    local enable_macvlan="${DOCKER_STACK_ENABLE_MACVLAN:-0}"
+    local network_opts="${DOCKER_STACK_NETWORK_OPTS:-}"
+    
     local runc_makefile=""
     local containerd_makefile=""
     local docker_makefile=""
