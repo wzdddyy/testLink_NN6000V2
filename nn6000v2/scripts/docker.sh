@@ -1330,7 +1330,7 @@ update_docker_stack() {
     local containerd_version="${DOCKER_STACK_CONTAINERD_VERSION:-v1.7.30}"
     local docker_version="${DOCKER_STACK_DOCKER_VERSION:-v29.3.1}"
     local dockerd_version="${DOCKER_STACK_DOCKERD_VERSION:-$docker_version}"
-    local storage_driver="${DOCKER_STACK_STORAGE_DRIVER:-overlay2}"
+    local storage_driver="${DOCKER_STACK_STORAGE_DRIVER:-vfs}"
     local dry_run="${DOCKER_STACK_DRY_RUN:-0}"
     
     # 默认资源限制配置
