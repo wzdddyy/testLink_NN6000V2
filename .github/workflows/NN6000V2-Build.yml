@@ -162,6 +162,15 @@ jobs:
 
           make -j$(nproc) || make -j1 V=s
 
+      - name: Delete Old Cache
+        run: |
+          gh cache list --key ${{ runner.os }}-${{ hashFiles('**/repo_flag') }}- --json key --jq '.[] | .key' | while read -r key; do
+            gh cache delete "$key"
+          done
+          echo "========cache status========"
+          echo "ccache: $(du -sh ./wrt/.ccache | cut -f 1)"
+          echo "staging: $(du -sh ./wrt/staging_dir | cut -f 1)"
+
       - name: Machine Information
         run: |
           cd ./wrt/
@@ -196,15 +205,6 @@ jobs:
 
             make clean -j$(nproc)
           fi
-
-      - name: Delete Old Cache
-        run: |
-          gh cache list --key ${{ runner.os }}-${{ hashFiles('**/repo_flag') }}- --json key --jq '.[] | .key' | while read -r key; do
-            gh cache delete "$key"
-          done
-          echo "========cache status========"
-          echo "ccache: $(du -sh ./wrt/.ccache | cut -f 1)"
-          echo "staging: $(du -sh ./wrt/staging_dir | cut -f 1)"
 
       - name: Release Firmware
         uses: softprops/action-gh-release@master
