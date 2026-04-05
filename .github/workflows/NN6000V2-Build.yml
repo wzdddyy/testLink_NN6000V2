@@ -1,13 +1,8 @@
-# SPDX-License-Identifier: MIT
-# Copyright (C) 2026 VIKINGYFY
 
-# NN6000V2 固件编译
 name: NN6000V2-Build
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: 0 20 * * 5
 
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -15,7 +10,7 @@ env:
   WRT_THEME: argon
   WRT_NAME: Immortalwrt
   WRT_PW: password
-  WRT_REPO: https://github.com/VIKINGYFY/1
+  WRT_REPO: https://github.com/VIKINGYFY/immortalwrt
   WRT_BRANCH: main
   WRT_SOURCE: VIKINGYFY/immortalwrt
   WRT_PACKAGE: Scripts/Packages.sh
