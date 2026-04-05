@@ -124,7 +124,6 @@ CONFIG_PACKAGE_kmod-br-netfilter=y
 # 插件配置区域
 # ==========================================
 
-#科学上网
 CONFIG_PACKAGE_luci-app-passwall2=y
 CONFIG_PACKAGE_luci-app-istorex=y
 CONFIG_PACKAGE_luci-app-quickstart=y
