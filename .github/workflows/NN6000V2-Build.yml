@@ -73,8 +73,6 @@ jobs:
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
           fi
 
-      - name: Check Scripts
-        run: |
           find ./ -maxdepth 3 -type f -iregex ".*\(txt\|sh\)$" -exec dos2unix {} \; -exec chmod +x {} \;
 
       - name: Cache Dependencies
@@ -95,32 +93,30 @@ jobs:
             done
           fi
 
-      - name: Update Feeds
+      - name: Update Feeds and Custom Settings
         run: |
           cd ./wrt/
 
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Custom Packages
-        run: |
-          cd ./wrt/package/
-
+          cd package/
           export WIFI_SSID="$WIFI_SSID"
           export WIFI_PASSWORD="$WIFI_PASSWORD"
           export WIFI_DISABLED="$WIFI_DISABLED"
           export PPPOE_USERNAME="$PPPOE_USERNAME"
           export PPPOE_PASSWORD="$PPPOE_PASSWORD"
-
           $GITHUB_WORKSPACE/Scripts/Packages.sh
           $GITHUB_WORKSPACE/Scripts/Handles.sh
-
-      - name: Custom Settings
-        run: |
-          cd ./wrt/
+          cd ..
 
           export WRT_SSID=""
           export WRT_WORD=""
+          export WRT_THEME="$WRT_THEME"
+          export WRT_IP="$WRT_IP"
+          export WRT_NAME="$WRT_NAME"
+          export WRT_MARK="$WRT_MARK"
+          export WRT_DATE="$WRT_DATE"
 
           # 上传 Lucky 核心
           if [ -f "$GITHUB_WORKSPACE/lucky_2.27.2_Linux_arm64_wanji.tar.gz" ]; then
