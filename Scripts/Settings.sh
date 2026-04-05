@@ -52,22 +52,11 @@ echo "CONFIG_PACKAGE_luci-app-$WRT_THEME-config=y" >> ./.config
 #高通平台调整
 DTS_PATH="./target/linux/qualcommax/dts/"
 if [[ "${WRT_TARGET^^}" == *"QUALCOMMAX"* ]]; then
-	#启用NSS相关feed（IPQ6000需要NSS硬件加速）
-	echo "CONFIG_FEED_nss_packages=y" >> ./.config
-	echo "CONFIG_FEED_sqm_scripts_nss=y" >> ./.config
+	#取消nss相关feed（避免编译失败）
+	echo "CONFIG_FEED_nss_packages=n" >> ./.config
+	echo "CONFIG_FEED_sqm_scripts_nss=n" >> ./.config
 	#设置NSS版本
-	echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=n" >> ./.config
-	if [[ "${WRT_CONFIG,,}" == *"ipq50"* ]]; then
-		echo "CONFIG_NSS_FIRMWARE_VERSION_12_2=y" >> ./.config
-	else
-		echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> ./.config
-	fi
-	#无WIFI配置调整Q6大小
-	if [[ "${WRT_CONFIG,,}" == *"wifi"* && "${WRT_CONFIG,,}" == *"no"* ]]; then
-		echo "WRT_WIFI=wifi-no" >> $GITHUB_ENV
-		find $DTS_PATH -type f ! -iname '*nowifi*' -exec sed -i 's/ipq\(6018\|8074\).dtsi/ipq\1-nowifi.dtsi/g' {} +
-		echo "qualcommax set up nowifi successfully!"
-	fi
+	echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> ./.config
 	#其他调整
 	echo "CONFIG_PACKAGE_kmod-usb-serial-qualcomm=y" >> ./.config
 fi
