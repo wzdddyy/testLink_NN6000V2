@@ -131,11 +131,7 @@ jobs:
           fi
 
           # 更新 Docker 版本
-          cd $GITHUB_WORKSPACE/wrt/
-          export BUILD_DIR="$GITHUB_WORKSPACE/wrt"
-          source $GITHUB_WORKSPACE/Link_NN6000V2-main/nn6000v2/scripts/docker.sh
-          update_docker_stack
-          cd $GITHUB_WORKSPACE/wrt/package/
+          bash $GITHUB_WORKSPACE/Scripts/Docker-Versions.sh ./
 
           # 自定义配置
           if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then

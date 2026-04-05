@@ -25,8 +25,30 @@ update_component() {
     local makefile=$(find $BUILD_DIR/package/feeds/packages/$component $BUILD_DIR/feeds/packages/*/$component -name "Makefile" 2>/dev/null | head -1)
     
     if [ -n "$makefile" ]; then
+        # 更新版本
         sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=$version_clean/" $makefile
-        echo "✓ $component updated to $version"
+        
+        # 计算并更新 HASH
+        local pkg_source_url=$(awk -F"=" '/^PKG_SOURCE_URL:=/ {print $NF}' $makefile | grep -oE "[-_:/\$\(\)\{\}\?\.a-zA-Z0-9]{1,}")
+        local pkg_source=$(awk -F"=" '/^PKG_SOURCE:=/ {print $NF}' $makefile | grep -oE "[-_:/\$\(\)\?\.a-zA-Z0-9]{1,}")
+        local pkg_name=$(awk -F"=" '/^PKG_NAME:=/ {print $NF}' $makefile | grep -oE "[-_:/\$\(\)\?\.a-zA-Z0-9]{1,}")
+        
+        # 替换变量
+        pkg_source_url=$(echo "$pkg_source_url" | sed "s/\$(PKG_VERSION)/$version_clean/g; s/\${PKG_VERSION}/$version_clean/g; s/\$(PKG_NAME)/$pkg_name/g")
+        pkg_source=$(echo "$pkg_source" | sed "s/\$(PKG_VERSION)/$version_clean/g; s/\$(PKG_NAME)/$pkg_name/g")
+        
+        # 下载并计算 HASH
+        if [ -n "$pkg_source_url" ] && [ -n "$pkg_source" ]; then
+            local pkg_hash=$(curl -fsSL "${pkg_source_url}${pkg_source}" 2>/dev/null | sha256sum | cut -b -64)
+            if [ -n "$pkg_hash" ]; then
+                sed -i "s/PKG_HASH:=.*/PKG_HASH:=$pkg_hash/" $makefile
+                echo "✓ $component updated to $version (HASH: ${pkg_hash:0:16}...)"
+            else
+                echo "⚠ $component version updated, but HASH calculation failed"
+            fi
+        else
+            echo "✓ $component updated to $version"
+        fi
     else
         echo "✗ $component Makefile not found"
     fi
