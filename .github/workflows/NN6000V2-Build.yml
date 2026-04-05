@@ -31,6 +31,11 @@ jobs:
       - name: Checkout Projects
         uses: actions/checkout@main
 
+      - name: Set Scripts Permission
+        run: |
+          find ./Scripts/ -type f -name "*.sh" -exec chmod +x {} \;
+          find ./Patches/ -type f -exec chmod +x {} \;
+
       - name: Initialization Environment
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -93,7 +98,7 @@ jobs:
             done
           fi
 
-      - name: Update Feeds and Custom Settings
+      - name: Update Feeds and Settings
         run: |
           cd ./wrt/
 
