@@ -84,6 +84,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/repo_flag') }}-${{ env.BUILD_DATE }}
           restore-keys: |
             ${{ runner.os }}-${{ hashFiles('**/repo_flag') }}-
+            ${{ runner.os }}-
 
       - name: Refresh the cache
         run: |
