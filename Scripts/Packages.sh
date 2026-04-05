@@ -60,10 +60,7 @@ UPDATE_PACKAGE "easytier" "EasyTier/luci-app-easytier" "main"
 UPDATE_PACKAGE "lucky" "gdy666/luci-app-lucky" "main"
 UPDATE_PACKAGE "smartdns" "kenzok8/openwrt-packages" "master" "pkg"
 UPDATE_PACKAGE "adguardhome" "wzdddyy/luci-app-adguardhome" "main"
-UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox speedtest"
-UPDATE_PACKAGE "partexp" "sirpdboy/luci-app-partexp" "main"
 UPDATE_PACKAGE "quickfile" "sbwml/luci-app-quickfile" "main"
-UPDATE_PACKAGE "qmodem" "FUjr/QModem" "main"
 
 
 #更新软件包版本
