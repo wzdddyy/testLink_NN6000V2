@@ -32,7 +32,7 @@ if [ -d *"passwall2"* ] || [ -d *"luci-app-passwall2"* ]; then
 fi
 
 #移除uhttpd依赖 (默认使用nginx)
-LUCI_MAKEFILE="$(find ./feeds/luci/collections/ -type f -name "Makefile" 2>/dev/null | head -1)"
+LUCI_MAKEFILE="$(find ../../feeds/luci/collections/ -type f -name "Makefile" 2>/dev/null | head -1)"
 
 if [ -n "$LUCI_MAKEFILE" ]; then
 	sed -i '/luci-light/d' $LUCI_MAKEFILE
