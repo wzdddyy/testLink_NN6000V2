@@ -85,10 +85,10 @@ jobs:
           path: |
             ./wrt/.ccache
             ./wrt/staging_dir
-          key: ${{ runner.os }}-${{ hashFiles('**/repo_flag') }}-${{ env.BUILD_DATE }}
+          key: ubuntu-24.04-${{ hashFiles('**/repo_flag') }}-${{ env.BUILD_DATE }}
           restore-keys: |
-            ${{ runner.os }}-${{ hashFiles('**/repo_flag') }}-
-            ${{ runner.os }}-
+            ubuntu-24.04-${{ hashFiles('**/repo_flag') }}-
+            ubuntu-24.04-
 
       - name: Refresh the cache
         run: |
