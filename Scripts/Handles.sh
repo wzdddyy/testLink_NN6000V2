@@ -31,6 +31,14 @@ if [ -d *"passwall2"* ] || [ -d *"luci-app-passwall2"* ]; then
 	fi
 fi
 
+#移除uhttpd依赖 (默认使用nginx)
+LUCI_MAKEFILE="$(find ./feeds/luci/collections/ -type f -name "Makefile" 2>/dev/null | head -1)"
+
+if [ -n "$LUCI_MAKEFILE" ]; then
+	sed -i '/luci-light/d' $LUCI_MAKEFILE
+	echo "uhttpd dependency removed, using nginx as default web server!"
+fi
+
 #修改argon主题字体和颜色
 if [ -d *"luci-theme-argon"* ]; then
 	echo " "
