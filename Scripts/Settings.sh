@@ -14,15 +14,23 @@ sed -i "s/(\(luciversion || ''\))/(\1) + (' \/ $WRT_MARK-$WRT_DATE')/g" $(find .
 WIFI_SH=$(find ./target/linux/{mediatek/filogic,qualcommax}/base-files/etc/uci-defaults/ -type f -name "*set-wireless.sh" 2>/dev/null)
 WIFI_UC="./package/network/config/wifi-scripts/files/lib/wifi/mac80211.uc"
 if [ -f "$WIFI_SH" ]; then
-	#修改WIFI名称
-	sed -i "s/BASE_SSID='.*'/BASE_SSID='$WRT_SSID'/g" $WIFI_SH
-	#修改WIFI密码
-	sed -i "s/BASE_WORD='.*'/BASE_WORD='$WRT_WORD'/g" $WIFI_SH
+	#修改WIFI名称（仅当WRT_SSID非空时）
+	if [ -n "$WRT_SSID" ]; then
+		sed -i "s/BASE_SSID='.*'/BASE_SSID='$WRT_SSID'/g" $WIFI_SH
+	fi
+	#修改WIFI密码（仅当WRT_WORD非空时）
+	if [ -n "$WRT_WORD" ]; then
+		sed -i "s/BASE_WORD='.*'/BASE_WORD='$WRT_WORD'/g" $WIFI_SH
+	fi
 elif [ -f "$WIFI_UC" ]; then
-	#修改WIFI名称
-	sed -i "s/ssid='.*'/ssid='$WRT_SSID'/g" $WIFI_UC
-	#修改WIFI密码
-	sed -i "s/key='.*'/key='$WRT_WORD'/g" $WIFI_UC
+	#修改WIFI名称（仅当WRT_SSID非空时）
+	if [ -n "$WRT_SSID" ]; then
+		sed -i "s/ssid='.*'/ssid='$WRT_SSID'/g" $WIFI_UC
+	fi
+	#修改WIFI密码（仅当WRT_WORD非空时）
+	if [ -n "$WRT_WORD" ]; then
+		sed -i "s/key='.*'/key='$WRT_WORD'/g" $WIFI_UC
+	fi
 	#修改WIFI地区
 	sed -i "s/country='.*'/country='CN'/g" $WIFI_UC
 	#修改WIFI加密
@@ -44,9 +52,9 @@ echo "CONFIG_PACKAGE_luci-app-$WRT_THEME-config=y" >> ./.config
 #高通平台调整
 DTS_PATH="./target/linux/qualcommax/dts/"
 if [[ "${WRT_TARGET^^}" == *"QUALCOMMAX"* ]]; then
-	#取消nss相关feed
-	echo "CONFIG_FEED_nss_packages=n" >> ./.config
-	echo "CONFIG_FEED_sqm_scripts_nss=n" >> ./.config
+	#启用NSS相关feed（IPQ6000需要NSS硬件加速）
+	echo "CONFIG_FEED_nss_packages=y" >> ./.config
+	echo "CONFIG_FEED_sqm_scripts_nss=y" >> ./.config
 	#设置NSS版本
 	echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=n" >> ./.config
 	if [[ "${WRT_CONFIG,,}" == *"ipq50"* ]]; then

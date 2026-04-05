@@ -111,14 +111,14 @@ UPDATE_VERSION() {
 UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
 
-#更新 Golang 到 26.x 版本
+#更新 Golang 到最新版本
 UPDATE_GOLANG() {
 	if [ -d "./feeds/packages/lang/golang" ]; then
 		echo " "
-		echo "Updating Golang to 26.x..."
+		echo "Updating Golang to latest version..."
 		rm -rf ./feeds/packages/lang/golang
-		if git clone --depth 1 -b 26.x https://github.com/sbwml/packages_lang_golang ./feeds/packages/lang/golang; then
-			echo "Golang has been updated to 26.x!"
+		if git clone --depth 1 -b main https://github.com/sbwml/packages_lang_golang ./feeds/packages/lang/golang; then
+			echo "Golang has been updated to latest version!"
 		else
 			echo "Error: Failed to clone Golang repository!"
 		fi

@@ -37,8 +37,8 @@ EOF
 
 link_nn6000v2_wifi_cfg() {
 	# WiFi 6配置
-	configure_wifi 0 '5g' 36 'HE80' 24 '$WIFI_SSID' '$WIFI_PASSWORD'
-	configure_wifi 1 '2g' 1 'HT20' 22 '$WIFI_SSID' '$WIFI_PASSWORD'
+	configure_wifi 0 '5g' 36 'HE80' 24 "$WIFI_SSID" "$WIFI_PASSWORD"
+	configure_wifi 1 '2g' 1 'HT20' 22 "$WIFI_SSID" "$WIFI_PASSWORD"
 }
 
 case "${board_name}" in

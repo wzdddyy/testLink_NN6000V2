@@ -124,9 +124,9 @@ jobs:
           export WRT_DATE="$WRT_DATE"
 
           # 上传 Lucky 核心
-          if [ -f "$GITHUB_WORKSPACE/lucky_2.27.2_Linux_arm64_wanji.tar.gz" ]; then
+          if [ -f "$GITHUB_WORKSPACE/Patches/lucky_2.27.2_Linux_arm64_wanji.tar.gz" ]; then
             mkdir -p ./package/feeds/lucky/lucky/files
-            cp -f $GITHUB_WORKSPACE/lucky_2.27.2_Linux_arm64_wanji.tar.gz ./package/feeds/lucky/lucky/files/
+            cp -f $GITHUB_WORKSPACE/Patches/lucky_2.27.2_Linux_arm64_wanji.tar.gz ./package/feeds/lucky/lucky/files/
             echo "✓ Lucky core file uploaded"
           fi
 
