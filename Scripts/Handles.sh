@@ -89,12 +89,12 @@ echo " "
 echo "Adding LuCI dependencies..."
 
 # 添加 luci-app-store
-if [ ! -d "./feeds/luci/luci-app-store" ] && [ ! -d "./luci-app-store" ]; then
+if [ ! -d "../../feeds/luci/luci-app-store" ] && [ ! -d "./luci-app-store" ]; then
 	echo "Cloning luci-app-store..."
 	git clone --depth=1 --single-branch --branch main https://github.com/linkease/istore-packages.git ./istore-packages 2>/dev/null || true
 	if [ -d "./istore-packages/luci-app-store" ]; then
-		mkdir -p ./feeds/luci/
-		mv ./istore-packages/luci-app-store ./feeds/luci/
+		mkdir -p ../../feeds/luci/
+		mv ./istore-packages/luci-app-store ../../feeds/luci/
 		rm -rf ./istore-packages
 		echo "✓ luci-app-store added to feeds/luci/"
 	else
@@ -103,12 +103,12 @@ if [ ! -d "./feeds/luci/luci-app-store" ] && [ ! -d "./luci-app-store" ]; then
 fi
 
 # 添加 luci-lib-taskd
-if [ ! -d "./feeds/luci/luci-lib-taskd" ] && [ ! -d "./luci-lib-taskd" ]; then
+if [ ! -d "../../feeds/luci/luci-lib-taskd" ] && [ ! -d "./luci-lib-taskd" ]; then
 	echo "Cloning luci-lib-taskd..."
 	git clone --depth=1 --single-branch --branch main https://github.com/istorehub/luci-lib-taskd.git ./luci-lib-taskd 2>/dev/null || true
 	if [ -d "./luci-lib-taskd" ]; then
-		mkdir -p ./feeds/luci/
-		mv ./luci-lib-taskd ./feeds/luci/
+		mkdir -p ../../feeds/luci/
+		mv ./luci-lib-taskd ../../feeds/luci/
 		echo "✓ luci-lib-taskd added to feeds/luci/"
 	fi
 fi
@@ -118,12 +118,12 @@ echo " "
 echo "Adding 5G module dependencies..."
 
 # 添加 quectel-CM-5G
-if [ ! -d "./feeds/packages/quectel-CM-5G" ] && [ ! -d "./quectel-CM-5G" ]; then
+if [ ! -d "../../feeds/packages/quectel-CM-5G" ] && [ ! -d "./quectel-CM-5G" ]; then
 	echo "Cloning quectel-CM-5G..."
 	git clone --depth=1 --single-branch --branch master https://github.com/niceboygithub/quectel-CM-5G.git ./quectel-CM-5G 2>/dev/null || true
 	if [ -d "./quectel-CM-5G" ]; then
-		mkdir -p ./feeds/packages/
-		mv ./quectel-CM-5G ./feeds/packages/
+		mkdir -p ../../feeds/packages/
+		mv ./quectel-CM-5G ../../feeds/packages/
 		echo "✓ quectel-CM-5G added to feeds/packages/"
 	fi
 fi

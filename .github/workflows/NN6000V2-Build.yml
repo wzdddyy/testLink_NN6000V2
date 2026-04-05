@@ -115,6 +115,10 @@ jobs:
           $GITHUB_WORKSPACE/Scripts/Handles.sh
           cd ..
 
+          # 重新安装 feeds 以识别新添加的包
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
           export WRT_SSID=""
           export WRT_WORD=""
           export WRT_THEME="$WRT_THEME"
