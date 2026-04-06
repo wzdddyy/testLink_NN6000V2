@@ -42,7 +42,7 @@ fix_kconfig_recursive_dependency() {
     local file="$BUILD_DIR/scripts/package-metadata.pl"
     if [ -f "$file" ]; then
         sed -i 's/<PACKAGE_\$pkgname/!=y/g' "$file"
-        echo "已修复 package-metadata.pl 的 Kconfig 递归依赖生成逻辑。"
+        echo "已修改 package-metadata.pl 中 Kconfig 递归依赖判断逻辑。"
     fi
 }
 
@@ -351,10 +351,10 @@ fix_pbr_ip_forward() {
     sed -i 's/\[ -n "\$strict_enforcement" \] && \[ "\$(cat \/proc\/sys\/net\/ipv4\/ip_forward)"/\[ -n "\$enabled" \] \&\& \[ -n "\$strict_enforcement" \] \&\& \[ "\$(cat \/proc\/sys\/net\/ipv4\/ip_forward)"/' "$pbr_init_script"
     
     if grep -q '\[ -n "$enabled" \] && \[ -n "$strict_enforcement" \]' "$pbr_init_script"; then
-        echo "PBR IP Forward 修复应用成功"
+        echo "PBR IP Forward �޸�Ӧ�óɹ�"
         return 0
     else
-        echo "修复应用失败：未找到预期的修复内容"
+        echo "修复应用失败：未找到预期的修复内�?
         return 1
     fi
 }
@@ -364,7 +364,7 @@ fix_quectel_cm() {
     local cmake_patch_path="$BUILD_DIR/package/feeds/packages/quectel-cm/patches/020-cmake.patch"
 
     if [ -f "$makefile_path" ]; then
-        echo "正在修复 quectel-cm Makefile..."
+        echo "正在修复 quectel-cm Makefile �޸���ɡ�..."
 
         sed -i '/^PKG_SOURCE:=/d' "$makefile_path"
         sed -i '/^PKG_SOURCE_URL:=@IMMORTALWRT/d' "$makefile_path"
@@ -379,7 +379,7 @@ PKG_MIRROR_HASH:=skip' "$makefile_path"
 
         sed -i 's/^PKG_RELEASE:=2$/PKG_RELEASE:=3/' "$makefile_path"
 
-        echo "quectel-cm Makefile 修复完成。"
+        echo "quectel-cm Makefile �޸���ɡ� 修复完成�?
     fi
 
     if [ -f "$cmake_patch_path" ]; then
@@ -430,7 +430,7 @@ EOF
 
     if [ -f "$luci_support_script" ]; then
         if ! grep -q "client_body_in_file_only off;" "$luci_support_script"; then
-            echo "正在为 Nginx ubus location 配置应用修复..."
+            echo "����Ϊ Nginx ubus location ����Ӧ���޸�....."
             sed -i "/ubus_parallel_req 2;/a\\        client_body_in_file_only off;\\n        client_max_body_size 1M;" "$luci_support_script"
         fi
     fi
@@ -449,3 +449,20 @@ update_uwsgi_limit_as() {
     fi
 }
 
+
+disable_oaf_default() {
+    local oaf_path="$BUILD_DIR/feeds/luci/luci-app-oaf/root/etc/uci-defaults"
+    local disable_path="$oaf_path/99_disable_oaf"
+
+    if [ -d "$oaf_path" ]; then
+        cat >"$disable_path" <<-EOF
+#!/bin/sh
+[ "$(uci get appfilter.global.enable 2>/dev/null)" = "0" ] && {
+/etc/init.d/appfilter disable
+/etc/init.d/appfilter stop
+}
+EOF
+        chmod +x "$disable_path"
+        echo "OAF (AppFilter) default disabled."
+    fi
+}

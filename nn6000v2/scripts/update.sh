@@ -63,6 +63,7 @@ main() {
     install_feeds
     update_docker_stack
     fix_opkg_check
+    disable_oaf_default
     fix_quectel_cm
     install_pbr_cmcc
     install_pbr_unicom
