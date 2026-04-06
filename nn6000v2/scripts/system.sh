@@ -53,33 +53,6 @@ update_default_lan_addr() {
     fi
 }
 
-remove_something_nss_kmod() {
-    local ipq_mk_path="$BUILD_DIR/target/linux/qualcommax/Makefile"
-    local target_mks=("$BUILD_DIR/target/linux/qualcommax/ipq60xx/target.mk" "$BUILD_DIR/target/linux/qualcommax/ipq807x/target.mk")
-
-    for target_mk in "${target_mks[@]}"; do
-        if [ -f "$target_mk" ]; then
-            sed -i 's/kmod-qca-nss-crypto//g' "$target_mk"
-        fi
-    done
-
-    if [ -f "$ipq_mk_path" ]; then
-        sed -i '/kmod-qca-nss-drv-eogremgr/d' "$ipq_mk_path"
-        sed -i '/kmod-qca-nss-drv-gre/d' "$ipq_mk_path"
-        sed -i '/kmod-qca-nss-drv-map-t/d' "$ipq_mk_path"
-        sed -i '/kmod-qca-nss-drv-match/d' "$ipq_mk_path"
-        sed -i '/kmod-qca-nss-drv-mirror/d' "$ipq_mk_path"
-        sed -i '/kmod-qca-nss-drv-tun6rd/d' "$ipq_mk_path"
-        sed -i '/kmod-qca-nss-drv-tunipip6/d' "$ipq_mk_path"
-        sed -i '/kmod-qca-nss-drv-vxlanmgr/d' "$ipq_mk_path"
-        sed -i '/kmod-qca-nss-drv-wifi-meshmgr/d' "$ipq_mk_path"
-        sed -i '/kmod-qca-nss-macsec/d' "$ipq_mk_path"
-
-        sed -i 's/automount //g' "$ipq_mk_path"
-        sed -i 's/cpufreq //g' "$ipq_mk_path"
-    fi
-}
-
 update_affinity_script() {
     local affinity_script_dir="$BUILD_DIR/target/linux/qualcommax"
 
@@ -482,15 +455,6 @@ update_uwsgi_limit_as() {
 
     if [ -f "$webui_ini" ]; then
         sed -i 's/^limit-as = .*/limit-as = 8192/g' "$webui_ini"
-    fi
-}
-
-remove_tweaked_packages() {
-    local target_mk="$BUILD_DIR/include/target.mk"
-    if [ -f "$target_mk" ]; then
-        if grep -q "^DEFAULT_PACKAGES += \$(DEFAULT_PACKAGES.tweak)" "$target_mk"; then
-            sed -i 's/DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.tweak)/# DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.tweak)/g' "$target_mk"
-        fi
     fi
 }
 

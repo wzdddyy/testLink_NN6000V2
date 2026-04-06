@@ -40,14 +40,11 @@ main() {
     clean_up
     reset_feeds_conf
     update_feeds
-    remove_unwanted_packages
-    remove_tweaked_packages
     fix_default_set
     fix_miniupnpd
     change_dnsmasq2full
     fix_mk_def_depends
     update_default_lan_addr
-    remove_something_nss_kmod
     update_affinity_script
     change_cpuusage
     set_custom_task
@@ -62,8 +59,6 @@ main() {
     set_nginx_default_config
     update_uwsgi_limit_as
     update_nginx_ubus_module
-    check_default_settings
-    remove_attendedsysupgrade
     fix_kconfig_recursive_dependency
     install_feeds
     update_docker_stack
