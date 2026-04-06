@@ -42,51 +42,31 @@ main() {
     update_feeds
     remove_unwanted_packages
     remove_tweaked_packages
-    update_homeproxy
     fix_default_set
     fix_miniupnpd
-    update_golang
     change_dnsmasq2full
     fix_mk_def_depends
     update_default_lan_addr
     remove_something_nss_kmod
     update_affinity_script
-    update_ath11k_fw
     change_cpuusage
-    update_tcping
     set_custom_task
     apply_passwall_tweaks
     update_nss_pbuf_performance
     set_build_signature
     update_nss_diag
-    update_menu_location
     fix_compile_coremark
     update_dnsmasq_conf
     add_backup_info_to_sysupgrade
-    fix_quickstart
-    update_oaf_deconfig
-    add_timecontrol
-    add_quickfile
-    update_lucky
     fix_rust_compile_error
-    update_smartdns
-    update_diskman
-    update_dockerman
-    install_adguardhome_wzdddyy
     set_nginx_default_config
     update_uwsgi_limit_as
-    update_argon
     update_nginx_ubus_module
     check_default_settings
-    install_opkg_distfeeds
-    fix_easytier_mk
     remove_attendedsysupgrade
     fix_kconfig_recursive_dependency
     install_feeds
     update_docker_stack
-    fix_easytier_lua
-    update_script_priority
-    update_geoip
     fix_openssl_ktls
     fix_opkg_check
     fix_quectel_cm

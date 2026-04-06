@@ -90,59 +90,6 @@ update_affinity_script() {
     fi
 }
 
-fix_hash_value() {
-    local makefile_path="$1"
-    local old_hash="$2"
-    local new_hash="$3"
-    local package_name="$4"
-
-    if [ -f "$makefile_path" ]; then
-        sed -i "s/$old_hash/$new_hash/g" "$makefile_path"
-        echo "已修正 $package_name 的哈希值。"
-    fi
-}
-
-update_ath11k_fw() {
-    local makefile="$BUILD_DIR/package/firmware/ath11k-firmware/Makefile"
-    local new_mk="$BASE_PATH/patches/ath11k_fw.mk"
-    local url="https://raw.githubusercontent.com/VIKINGYFY/immortalwrt/refs/heads/main/package/firmware/ath11k-firmware/Makefile"
-
-    if [ -d "$(dirname "$makefile")" ]; then
-        echo "正在更新 ath11k-firmware Makefile..."
-        if ! curl -fsSL -o "$new_mk" "$url"; then
-            echo "错误：从 $url 下载 ath11k-firmware Makefile 失败" >&2
-            exit 1
-        fi
-        if [ ! -s "$new_mk" ]; then
-            echo "错误：下载的 ath11k-firmware Makefile 为空文件" >&2
-            exit 1
-        fi
-        mv -f "$new_mk" "$makefile"
-    fi
-}
-
-fix_mkpkg_format_invalid() {
-    if [[ $BUILD_DIR =~ "imm-nss" ]]; then
-        if [ -f $BUILD_DIR/feeds/small8/v2ray-geodata/Makefile ]; then
-            sed -i 's/VER)-\$(PKG_RELEASE)/VER)-r\$(PKG_RELEASE)/g' $BUILD_DIR/feeds/small8/v2ray-geodata/Makefile
-        fi
-        if [ -f $BUILD_DIR/feeds/small8/luci-lib-taskd/Makefile ]; then
-            sed -i 's/>=1\.0\.3-1/>=1\.0\.3-r1/g' $BUILD_DIR/feeds/small8/luci-lib-taskd/Makefile
-        fi
-        if [ -f $BUILD_DIR/feeds/small8/luci-app-openclash/Makefile ]; then
-            sed -i 's/PKG_RELEASE:=beta/PKG_RELEASE:=1/g' $BUILD_DIR/feeds/small8/luci-app-openclash/Makefile
-        fi
-        if [ -f $BUILD_DIR/feeds/small8/luci-app-quickstart/Makefile ]; then
-            sed -i 's/PKG_VERSION:=0\.8\.16-1/PKG_VERSION:=0\.8\.16/g' $BUILD_DIR/feeds/small8/luci-app-quickstart/Makefile
-            sed -i 's/PKG_RELEASE:=$/PKG_RELEASE:=1/g' $BUILD_DIR/feeds/small8/luci-app-quickstart/Makefile
-        fi
-        if [ -f $BUILD_DIR/feeds/small8/luci-app-store/Makefile ]; then
-            sed -i 's/PKG_VERSION:=0\.1\.27-1/PKG_VERSION:=0\.1\.27/g' $BUILD_DIR/feeds/small8/luci-app-store/Makefile
-            sed -i 's/PKG_RELEASE:=$/PKG_RELEASE:=1/g' $BUILD_DIR/feeds/small8/luci-app-store/Makefile
-        fi
-    fi
-}
-
 change_cpuusage() {
     local luci_rpc_path="$BUILD_DIR/feeds/luci/modules/luci-base/root/usr/share/rpcd/ucode/luci"
     local qualcommax_sbin_dir="$BUILD_DIR/target/linux/qualcommax/base-files/sbin"
@@ -163,19 +110,6 @@ change_cpuusage() {
     fi
     if [ -d "$BUILD_DIR/target/linux/mediatek" ]; then
         install -Dm755 "$BASE_PATH/patches/hnatusage" "$filogic_sbin_dir/cpuusage"
-    fi
-}
-
-update_tcping() {
-    local tcping_path="$BUILD_DIR/feeds/small8/tcping/Makefile"
-    local url="https://raw.githubusercontent.com/Openwrt-Passwall/openwrt-passwall-packages/refs/heads/main/tcping/Makefile"
-
-    if [ -d "$(dirname "$tcping_path")" ]; then
-        echo "正在更新 tcping Makefile..."
-        if ! curl -fsSL -o "$tcping_path" "$url"; then
-            echo "错误：从 $url 下载 tcping Makefile 失败" >&2
-            exit 1
-        fi
     fi
 }
 
@@ -207,38 +141,15 @@ EOF
 }
 
 apply_passwall_tweaks() {
-    local chnlist_path="$BUILD_DIR/feeds/passwall/luci-app-passwall/root/usr/share/passwall/rules/chnlist"
+    local chnlist_path="$BUILD_DIR/feeds/passwall2/luci-app-passwall2/root/usr/share/passwall2/rules/chnlist"
     if [ -f "$chnlist_path" ]; then
         >"$chnlist_path"
     fi
 
-    local xray_util_path="$BUILD_DIR/feeds/passwall/luci-app-passwall/luasrc/passwall/util_xray.lua"
+    local xray_util_path="$BUILD_DIR/feeds/passwall2/luci-app-passwall2/luasrc/passwall2/util_xray.lua"
     if [ -f "$xray_util_path" ]; then
         sed -i 's/maxRTT = "1s"/maxRTT = "2s"/g' "$xray_util_path"
         sed -i 's/sampling = 3/sampling = 5/g' "$xray_util_path"
-    fi
-}
-
-install_opkg_distfeeds() {
-    local emortal_def_dir="$BUILD_DIR/package/emortal/default-settings"
-    local distfeeds_conf="$emortal_def_dir/files/99-distfeeds.conf"
-
-    if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_conf" ]; then
-        cat <<'EOF' >"$distfeeds_conf"
-src/gz openwrt_base https://downloads.immortalwrt.org/releases/24.10.0/packages/aarch64_cortex-a53/base/
-src/gz openwrt_luci https://downloads.immortalwrt.org/releases/24.10.0/packages/aarch64_cortex-a53/luci/
-src/gz openwrt_packages https://downloads.immortalwrt.org/releases/24.10.0/packages/aarch64_cortex-a53/packages/
-src/gz openwrt_routing https://downloads.immortalwrt.org/releases/24.10.0/packages/aarch64_cortex-a53/routing/
-src/gz openwrt_telephony https://downloads.immortalwrt.org/releases/24.10.0/packages/aarch64_cortex-a53/telephony/
-EOF
-
-        sed -i "/define Package\/default-settings\/install/a\\
-\\t\$(INSTALL_DIR) \$(1)/etc\\n\
-\t\$(INSTALL_DATA) ./files/99-distfeeds.conf \$(1)/etc/99-distfeeds.conf\n" $emortal_def_dir/Makefile
-
-        sed -i "/exit 0/i\\
-[ -f \'/etc/99-distfeeds.conf\' ] && mv \'/etc/99-distfeeds.conf\' \'/etc/opkg/distfeeds.conf\'\n\
-sed -ri \'/check_signature/s@^[^#]@#&@\' /etc/opkg.conf\n" $emortal_def_dir/files/99-default-settings
     fi
 }
 
@@ -262,18 +173,6 @@ update_nss_diag() {
     if [ -d "$(dirname "$file")" ] && [ -f "$file" ]; then
         \rm -f "$file"
         install -Dm755 "$BASE_PATH/patches/nss_diag.sh" "$file"
-    fi
-}
-
-update_menu_location() {
-    local samba4_path="$BUILD_DIR/feeds/luci/applications/luci-app-samba4/root/usr/share/luci/menu.d/luci-app-samba4.json"
-    if [ -d "$(dirname "$samba4_path")" ] && [ -f "$samba4_path" ]; then
-        sed -i 's/nas/services/g' "$samba4_path"
-    fi
-
-    local tailscale_path="$BUILD_DIR/feeds/small8/luci-app-tailscale/root/usr/share/luci/menu.d/luci-app-tailscale.json"
-    if [ -d "$(dirname "$tailscale_path")" ] && [ -f "$tailscale_path" ]; then
-        sed -i 's/services/vpn/g' "$tailscale_path"
     fi
 }
 
@@ -303,106 +202,9 @@ EOF
     fi
 }
 
-update_script_priority() {
-    local qca_drv_path="$BUILD_DIR/package/feeds/nss_packages/qca-nss-drv/files/qca-nss-drv.init"
-    if [ -d "${qca_drv_path%/*}" ] && [ -f "$qca_drv_path" ]; then
-        sed -i 's/START=.*/START=88/g' "$qca_drv_path"
-    fi
-
-    local pbuf_path="$BUILD_DIR/package/kernel/mac80211/files/qca-nss-pbuf.init"
-    if [ -d "${pbuf_path%/*}" ] && [ -f "$pbuf_path" ]; then
-        sed -i 's/START=.*/START=89/g' "$pbuf_path"
-    fi
-
-    local mosdns_path="$BUILD_DIR/package/feeds/small8/luci-app-mosdns/root/etc/init.d/mosdns"
-    if [ -d "${mosdns_path%/*}" ] && [ -f "$mosdns_path" ]; then
-        sed -i 's/START=.*/START=94/g' "$mosdns_path"
-    fi
-}
-
-
-fix_quickstart() {
-    local file_path="$BUILD_DIR/feeds/small8/luci-app-quickstart/luasrc/controller/istore_backend.lua"
-    local url="https://gist.githubusercontent.com/puteulanus/1c180fae6bccd25e57eb6d30b7aa28aa/raw/istore_backend.lua"
-    if [ -f "$file_path" ]; then
-        echo "正在修复 quickstart..."
-        if ! curl -fsSL -o "$file_path" "$url"; then
-            echo "错误：从 $url 下载 istore_backend.lua 失败" >&2
-            exit 1
-        fi
-    fi
-}
-
-update_oaf_deconfig() {
-    local conf_path="$BUILD_DIR/feeds/small8/open-app-filter/files/appfilter.config"
-    local uci_def="$BUILD_DIR/feeds/small8/luci-app-oaf/root/etc/uci-defaults/94_feature_3.0"
-    local disable_path="$BUILD_DIR/feeds/small8/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
-
-    if [ -d "${conf_path%/*}" ] && [ -f "$conf_path" ]; then
-        sed -i \
-            -e "s/record_enable '1'/record_enable '0'/g" \
-            -e "s/disable_hnat '1'/disable_hnat '0'/g" \
-            -e "s/auto_load_engine '1'/auto_load_engine '0'/g" \
-            "$conf_path"
-    fi
-
-    if [ -d "${uci_def%/*}" ] && [ -f "$uci_def" ]; then
-        sed -i '/\(disable_hnat\|auto_load_engine\)/d' "$uci_def"
-
-        cat >"$disable_path" <<-EOF
-#!/bin/sh
-[ "\$(uci get appfilter.global.enable 2>/dev/null)" = "0" ] && {
-    /etc/init.d/appfilter disable
-    /etc/init.d/appfilter stop
-}
-EOF
-        chmod +x "$disable_path"
-    fi
-}
-
-update_geoip() {
-    local geodata_path="$BUILD_DIR/package/feeds/small8/v2ray-geodata/Makefile"
-    if [ -d "${geodata_path%/*}" ] && [ -f "$geodata_path" ]; then
-        local GEOIP_VER=$(awk -F"=" '/GEOIP_VER:=/ {print $NF}' $geodata_path | grep -oE "[0-9]{1,}")
-        if [ -n "$GEOIP_VER" ]; then
-            local base_url="https://github.com/v2fly/geoip/releases/download/${GEOIP_VER}"
-            local old_SHA256
-            if ! old_SHA256=$(wget -qO- "$base_url/geoip.dat.sha256sum" | awk '{print $1}'); then
-                echo "错误：从 $base_url/geoip.dat.sha256sum 获取旧的 geoip.dat 校验和失败" >&2
-                return 1
-            fi
-            local new_SHA256
-            if ! new_SHA256=$(wget -qO- "$base_url/geoip-only-cn-private.dat.sha256sum" | awk '{print $1}'); then
-                echo "错误：从 $base_url/geoip-only-cn-private.dat.sha256sum 获取新的 geoip-only-cn-private.dat 校验和失败" >&2
-                return 1
-            fi
-            if [ -n "$old_SHA256" ] && [ -n "$new_SHA256" ]; then
-                if grep -q "$old_SHA256" "$geodata_path"; then
-                    sed -i "s|=geoip.dat|=geoip-only-cn-private.dat|g" "$geodata_path"
-                    sed -i "s/$old_SHA256/$new_SHA256/g" "$geodata_path"
-                fi
-            fi
-        fi
-    fi
-}
-
 fix_rust_compile_error() {
     if [ -f "$BUILD_DIR/feeds/packages/lang/rust/Makefile" ]; then
         sed -i 's/download-ci-llvm=true/download-ci-llvm=false/g' "$BUILD_DIR/feeds/packages/lang/rust/Makefile"
-    fi
-}
-
-fix_easytier_lua() {
-    local file_path="$BUILD_DIR/package/feeds/small8/luci-app-easytier/luasrc/model/cbi/easytier.lua"
-    if [ -f "$file_path" ]; then
-        sed -i 's/util.pcdata/xml.pcdata/g' "$file_path"
-    fi
-}
-
-fix_easytier_mk() {
-    local mk_path="$BUILD_DIR/feeds/small8/luci-app-easytier/easytier/Makefile"
-    if [ -f "$mk_path" ]; then
-        sed -i 's/!@(mips||mipsel)/!TARGET_mips \&\& !TARGET_mipsel/g' "$mk_path"
     fi
 }
 
