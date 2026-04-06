@@ -12,6 +12,13 @@ UPDATE_PACKAGE() {
 	local REPO_NAME=${PKG_REPO#*/}
 
 	echo " "
+	echo "=== UPDATE_PACKAGE 调试信息 ==="
+	echo "PKG_NAME: $PKG_NAME"
+	echo "PKG_REPO: $PKG_REPO"
+	echo "PKG_BRANCH: $PKG_BRANCH"
+	echo "PKG_SPECIAL: $PKG_SPECIAL"
+	echo "REPO_NAME: $REPO_NAME"
+	echo "当前目录：$(pwd)"
 
 	# 删除本地可能存在的不同名称的软件包
 	for NAME in "${PKG_LIST[@]}"; do
@@ -36,16 +43,29 @@ UPDATE_PACKAGE() {
 	done
 
 	# 克隆 GitHub 仓库
+	echo "正在克隆：https://github.com/$PKG_REPO.git"
 	git clone --depth=1 --single-branch --branch $PKG_BRANCH "https://github.com/$PKG_REPO.git"
+	
+	# 显示克隆后的目录结构
+	echo "克隆完成后的目录结构:"
+	ls -la ./$REPO_NAME/ | head -30
 
 	# 处理克隆的仓库
 	if [[ "$PKG_SPECIAL" == "pkg" ]]; then
 		# 查找并复制匹配的包（支持根目录和子目录）
+		echo "正在查找包含 '$PKG_NAME' 的目录..."
+		find ./$REPO_NAME/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -print
+		echo "开始复制..."
 		find ./$REPO_NAME/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune -exec cp -rf {} ./ \;
+		echo "复制完成，检查目标目录:"
+		ls -la ./$PKG_NAME/ 2>/dev/null || echo "错误：$PKG_NAME 目录不存在!"
 		rm -rf ./$REPO_NAME/
 	elif [[ "$PKG_SPECIAL" == "name" ]]; then
 		mv -f $REPO_NAME $PKG_NAME
 	fi
+	
+	echo "=== UPDATE_PACKAGE 结束 ==="
+	echo " "
 }
 
 #更新软件包版本
