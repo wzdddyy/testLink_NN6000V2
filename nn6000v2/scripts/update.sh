@@ -54,6 +54,7 @@ main() {
     update_nss_diag
     fix_compile_coremark
     update_dnsmasq_conf
+    set_smartdns_default_config
     add_backup_info_to_sysupgrade
     fix_rust_compile_error
     set_nginx_default_config

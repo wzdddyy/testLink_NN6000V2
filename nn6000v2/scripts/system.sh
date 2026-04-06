@@ -163,6 +163,32 @@ update_dnsmasq_conf() {
     fi
 }
 
+set_smartdns_default_config() {
+    local smartdns_conf="$BUILD_DIR/package/feeds/packages/smartdns/files/etc/config/smartdns"
+    local smartdns_custom="$BUILD_DIR/package/feeds/packages/smartdns/files/etc/smartdns/custom.conf"
+    local smartdns_init="$BUILD_DIR/package/feeds/packages/smartdns/files/etc/init.d/smartdns"
+    local config_source="$BASE_PATH/patches/smartdns.config"
+    local custom_source="$BASE_PATH/patches/smartdns.custom.conf"
+    
+    # 部署 UCI 配置
+    if [ -d "$(dirname "$smartdns_conf")" ] && [ -f "$config_source" ]; then
+        cp "$config_source" "$smartdns_conf"
+        echo "已设置 SmartDNS UCI 配置"
+    fi
+    
+    # 部署自定义配置
+    if [ -d "$(dirname "$smartdns_custom")" ] && [ -f "$custom_source" ]; then
+        cp "$custom_source" "$smartdns_custom"
+        echo "已设置 SmartDNS 自定义优化配置"
+    fi
+    
+    # 调整启动顺序 (START=94，确保在网络服务前启动)
+    if [ -f "$smartdns_init" ]; then
+        sed -i 's/^START=.*/START=94/' "$smartdns_init"
+        echo "已调整 SmartDNS 启动顺序"
+    fi
+}
+
 add_backup_info_to_sysupgrade() {
     local conf_path="$BUILD_DIR/package/base-files/files/etc/sysupgrade.conf"
 
