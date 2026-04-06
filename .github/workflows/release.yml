@@ -101,7 +101,7 @@ jobs:
           echo "LAN地址: 10.0.0.1" >> release_body.txt
 
       - name: Release Firmware
-        uses: softprops/action-gh-release@v2.6.1
+        uses: softprops/action-gh-release@v2.7.0
         with:
           tag_name: ${{ env.BUILD_DATE }}_${{ inputs.model }}
           files: ${{ inputs.model == 'n1_immwrt' && env.PACKAGED_OUTPUTPATH || './firmware' }}/*.*
