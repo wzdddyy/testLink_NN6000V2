@@ -178,21 +178,21 @@ set_smartdns_default_config() {
     local smartdns_custom="$BUILD_DIR/package/smartdns/files/etc/smartdns/custom.conf"
     local config_source="$BASE_PATH/patches/smartdns.config"
     local custom_source="$BASE_PATH/patches/smartdns.custom.conf"
-    
-    # 部署 UCI 配置
-    if [ -f "$config_source" ]; then
+       
+    # 检查目录是否存在
+    if [ -d "$(dirname "$smartdns_conf")" ] && [ -f "$config_source" ]; then
         cp "$config_source" "$smartdns_conf"
         echo "已设置 SmartDNS UCI 配置"
     else
-        echo "警告：SmartDNS UCI 源配置文件不存在：$config_source"
+        echo "警告：SmartDNS UCI 配置目录或源文件不存在"
     fi
     
     # 部署自定义配置
-    if [ -f "$custom_source" ]; then
+    if [ -d "$(dirname "$smartdns_custom")" ] && [ -f "$custom_source" ]; then
         cp "$custom_source" "$smartdns_custom"
         echo "已设置 SmartDNS 自定义优化配置"
     else
-        echo "警告：SmartDNS 自定义源配置文件不存在：$custom_source"
+        echo "警告：SmartDNS 自定义配置目录或源文件不存在"
     fi
 }
 
