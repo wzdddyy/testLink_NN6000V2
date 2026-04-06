@@ -54,7 +54,6 @@ main() {
     update_nss_diag
     fix_compile_coremark
     update_dnsmasq_conf
-    set_smartdns_default_config
     add_backup_info_to_sysupgrade
     fix_rust_compile_error
     set_nginx_default_config
@@ -62,6 +61,7 @@ main() {
     update_nginx_ubus_module
     fix_kconfig_recursive_dependency
     install_feeds
+    set_smartdns_default_config
     update_docker_stack
     fix_opkg_check
     disable_oaf_default

@@ -46,11 +46,12 @@ fix_kconfig_recursive_dependency() {
     fi
     
     # 修复 Python3 包循环依赖问题
-    local python3_email_makefile="$BUILD_DIR/feeds/packages/lang/python/python3-email/Makefile"
-    local python3_urllib_makefile="$BUILD_DIR/feeds/packages/lang/python/python3-urllib/Makefile"
+    # python3-email 和 python3-urllib 在 python3-packages 包中
+    local python3_packages_makefile="$BUILD_DIR/feeds/packages/lang/python/python3-packages/Makefile"
     
-    if [ -f "$python3_email_makefile" ]; then
-        sed -i 's/PKG_DEPENDS:=.*python3-urllib/#PKG_DEPENDS:=python3-urllib/g' "$python3_email_makefile"
+    if [ -f "$python3_packages_makefile" ]; then
+        # 注释掉 python3-email 对 python3-urllib 的依赖
+        sed -i 's/\$(PYTHON3_PKG)_email.*\$(PYTHON3_PKG)_urllib/#\$(PYTHON3_PKG)_email - \$(PYTHON3_PKG)_urllib/g' "$python3_packages_makefile"
         echo "已修复 python3-email 和 python3-urllib 循环依赖问题"
     fi
 }
@@ -183,18 +184,24 @@ set_smartdns_default_config() {
     if [ -d "$(dirname "$smartdns_conf")" ] && [ -f "$config_source" ]; then
         cp "$config_source" "$smartdns_conf"
         echo "已设置 SmartDNS UCI 配置"
+    else
+        echo "警告：SmartDNS UCI 配置目录或源文件不存在"
     fi
     
     # 部署自定义配置
     if [ -d "$(dirname "$smartdns_custom")" ] && [ -f "$custom_source" ]; then
         cp "$custom_source" "$smartdns_custom"
         echo "已设置 SmartDNS 自定义优化配置"
+    else
+        echo "警告：SmartDNS 自定义配置目录或源文件不存在"
     fi
     
     # 调整启动顺序 (START=94，确保在网络服务前启动)
     if [ -f "$smartdns_init" ]; then
         sed -i 's/^START=.*/START=94/' "$smartdns_init"
         echo "已调整 SmartDNS 启动顺序"
+    else
+        echo "警告：SmartDNS init 脚本不存在"
     fi
 }
 
