@@ -174,17 +174,35 @@ update_dnsmasq_conf() {
 }
 
 set_smartdns_default_config() {
-    local smartdns_conf="$BUILD_DIR/package/smartdns/files/etc/config/smartdns"
-    local smartdns_custom="$BUILD_DIR/package/smartdns/files/etc/smartdns/custom.conf"
+    local smartdns_conf="$BUILD_DIR/smartdns/files/etc/config/smartdns"
+    local smartdns_custom="$BUILD_DIR/smartdns/files/etc/smartdns/custom.conf"
     local config_source="$BASE_PATH/patches/smartdns.config"
     local custom_source="$BASE_PATH/patches/smartdns.custom.conf"
-       
+    
+    # 先检查 smartdns 目录是否存在
+    if [ ! -d "$BUILD_DIR/smartdns" ]; then
+        echo "警告：smartdns 目录不存在，跳过配置"
+        return
+    fi
+    
+    # 显示 smartdns 目录结构用于调试
+    echo "=== smartdns 目录结构 ==="
+    find "$BUILD_DIR/smartdns" -type d | head -20
+    
+    # 创建目录（如果不存在）
+    mkdir -p "$(dirname "$smartdns_conf")"
+    mkdir -p "$(dirname "$smartdns_custom")"
+    
     # 检查目录是否存在
     if [ -d "$(dirname "$smartdns_conf")" ] && [ -f "$config_source" ]; then
         cp "$config_source" "$smartdns_conf"
         echo "已设置 SmartDNS UCI 配置"
     else
         echo "警告：SmartDNS UCI 配置目录或源文件不存在"
+        echo "  目标目录：$(dirname "$smartdns_conf")"
+        echo "  源文件：$config_source"
+        echo "  目录存在：$([ -d "$(dirname "$smartdns_conf")" ] && echo "是" || echo "否")"
+        echo "  文件存在：$([ -f "$config_source" ] && echo "是" || echo "否")"
     fi
     
     # 部署自定义配置
