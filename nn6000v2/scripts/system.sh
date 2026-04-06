@@ -174,8 +174,9 @@ update_dnsmasq_conf() {
 }
 
 set_smartdns_default_config() {
-    local smartdns_conf="$BUILD_DIR/package/kenzok8/openwrt-packages/smartdns/files/etc/config/smartdns"
-    local smartdns_custom="$BUILD_DIR/package/kenzok8/openwrt-packages/smartdns/files/etc/smartdns/custom.conf"
+    # SmartDNS 来自 kenzok8/openwrt-packages，通过 UPDATE_PACKAGE 复制到 package/ 目录
+    local smartdns_conf="$BUILD_DIR/package/smartdns/files/etc/config/smartdns"
+    local smartdns_custom="$BUILD_DIR/package/smartdns/files/etc/smartdns/custom.conf"
     local config_source="$BASE_PATH/patches/smartdns.config"
     local custom_source="$BASE_PATH/patches/smartdns.custom.conf"
     
