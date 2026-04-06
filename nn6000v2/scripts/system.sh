@@ -44,6 +44,15 @@ fix_kconfig_recursive_dependency() {
         sed -i 's/<PACKAGE_\$pkgname/!=y/g' "$file"
         echo "已修改 package-metadata.pl 中 Kconfig 递归依赖判断逻辑。"
     fi
+    
+    # 修复 Python3 包循环依赖问题
+    local python3_email_makefile="$BUILD_DIR/feeds/packages/lang/python/python3-email/Makefile"
+    local python3_urllib_makefile="$BUILD_DIR/feeds/packages/lang/python/python3-urllib/Makefile"
+    
+    if [ -f "$python3_email_makefile" ]; then
+        sed -i 's/PKG_DEPENDS:=.*python3-urllib/#PKG_DEPENDS:=python3-urllib/g' "$python3_email_makefile"
+        echo "已修复 python3-email 和 python3-urllib 循环依赖问题"
+    fi
 }
 
 update_default_lan_addr() {
