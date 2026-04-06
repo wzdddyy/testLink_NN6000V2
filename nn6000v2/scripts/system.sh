@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 fix_default_set() {
     if [ -d "$BUILD_DIR/feeds/luci/collections/" ]; then
         find "$BUILD_DIR/feeds/luci/collections/" -type f -name "Makefile" -exec sed -i "s/luci-theme-bootstrap/luci-theme-$THEME_SET/g" {} \;
@@ -351,10 +351,10 @@ fix_pbr_ip_forward() {
     sed -i 's/\[ -n "\$strict_enforcement" \] && \[ "\$(cat \/proc\/sys\/net\/ipv4\/ip_forward)"/\[ -n "\$enabled" \] \&\& \[ -n "\$strict_enforcement" \] \&\& \[ "\$(cat \/proc\/sys\/net\/ipv4\/ip_forward)"/' "$pbr_init_script"
     
     if grep -q '\[ -n "$enabled" \] && \[ -n "$strict_enforcement" \]' "$pbr_init_script"; then
-        echo "PBR IP Forward �޸�Ӧ�óɹ�"
+        echo "PBR IP Forward 修复应用成功"
         return 0
     else
-        echo "修复应用失败：未找到预期的修复内�?
+        echo "修复应用失败：未找到预期的修复内容"
         return 1
     fi
 }
@@ -364,7 +364,7 @@ fix_quectel_cm() {
     local cmake_patch_path="$BUILD_DIR/package/feeds/packages/quectel-cm/patches/020-cmake.patch"
 
     if [ -f "$makefile_path" ]; then
-        echo "正在修复 quectel-cm Makefile �޸���ɡ�..."
+        echo "正在修复 quectel-cm Makefile 修改源码..."
 
         sed -i '/^PKG_SOURCE:=/d' "$makefile_path"
         sed -i '/^PKG_SOURCE_URL:=@IMMORTALWRT/d' "$makefile_path"
@@ -379,7 +379,7 @@ PKG_MIRROR_HASH:=skip' "$makefile_path"
 
         sed -i 's/^PKG_RELEASE:=2$/PKG_RELEASE:=3/' "$makefile_path"
 
-        echo "quectel-cm Makefile �޸���ɡ� 修复完成�?
+        echo "quectel-cm Makefile 修改源码 修复完成。"
     fi
 
     if [ -f "$cmake_patch_path" ]; then
@@ -430,7 +430,7 @@ EOF
 
     if [ -f "$luci_support_script" ]; then
         if ! grep -q "client_body_in_file_only off;" "$luci_support_script"; then
-            echo "����Ϊ Nginx ubus location ����Ӧ���޸�....."
+            echo "正在为 Nginx ubus location 块添加修改....."
             sed -i "/ubus_parallel_req 2;/a\\        client_body_in_file_only off;\\n        client_max_body_size 1M;" "$luci_support_script"
         fi
     fi
