@@ -13,17 +13,18 @@ UPDATE_PACKAGE() {
 
 	# 删除本地可能存在的不同名称的软件包
 	for NAME in "${PKG_LIST[@]}"; do
-		# 检查目录是否存在
-		if [ ! -d "../feeds/luci/" ] && [ ! -d "../feeds/packages/" ]; then
-			continue
-		fi
-		
+		# 查找匹配的目录
+		echo "Search directory: $NAME"
 		local FOUND_DIRS=$(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$NAME*" 2>/dev/null)
 
+		# 删除找到的目录
 		if [ -n "$FOUND_DIRS" ]; then
 			while read -r DIR; do
 				rm -rf "$DIR"
+				echo "Delete directory: $DIR"
 			done <<< "$FOUND_DIRS"
+		else
+			echo "Not fonud directory: $NAME"
 		fi
 	done
 
