@@ -43,6 +43,7 @@ UPDATE_PACKAGE() {
 				[ -d "./$dir_name" ] && rm -rf "./$dir_name"
 				# 复制目录
 				cp -rf "$dir" ./
+				echo "已复制：$PKG_NAME"
 			fi
 		done
 		
@@ -59,6 +60,13 @@ UPDATE_PACKAGE() {
 					cp -rf "$dir" ./
 				fi
 			done
+		fi
+		
+		# 验证复制结果
+		if [ -d "./$PKG_NAME" ]; then
+			echo "✓ $PKG_NAME 复制成功"
+		else
+			echo "✗ $PKG_NAME 复制失败"
 		fi
 		
 		rm -rf ./$REPO_NAME/
@@ -120,7 +128,6 @@ UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 UPDATE_PACKAGE "passwall-packages" "Openwrt-Passwall/openwrt-passwall-packages" "main" "pkg"
 
 # DNS 相关
-UPDATE_PACKAGE "smartdns" "kenzok8/openwrt-packages" "master" "pkg"
 UPDATE_PACKAGE "luci-app-smartdns" "kenzok8/openwrt-packages" "master" "pkg"
 UPDATE_PACKAGE "luci-app-adguardhome" "wzdddyy/luci-app-adguardhome" "master"
 
