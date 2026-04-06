@@ -1,0 +1,25 @@
+# PBR ISP 配置示例
+# 在 /etc/config/pbr 中添加以下配置来启用三大运营商的 PBR 路由
+
+# 中国移动 (CMCC)
+config include
+	option path '/usr/share/pbr/pbr.user.isp'
+	option enabled '1'
+	option argument 'cmcc'
+
+# 中国联通 (Unicom)
+config include
+	option path '/usr/share/pbr/pbr.user.isp'
+	option enabled '1'
+	option argument 'unicom'
+
+# 中国电信 (Telecom)
+config include
+	option path '/usr/share/pbr/pbr.user.isp'
+	option enabled '1'
+	option argument 'telecom'
+
+# 注意：
+# 1. 需要配置对应的 WAN 接口：wan_cmcc, wan_cu, wan_ct
+# 2. IPv6 支持需要在 PBR 配置中启用：option ipv6_enabled '1'
+# 3. IP 地址列表会在首次运行时自动下载并缓存

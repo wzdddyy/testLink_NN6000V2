@@ -205,115 +205,36 @@ fix_opkg_check() {
     fi
 }
 
-install_pbr_cmcc() {
+install_pbr_isp() {
     local pbr_pkg_dir="$BUILD_DIR/package/feeds/packages/pbr"
     local pbr_dir="$pbr_pkg_dir/files/usr/share/pbr"
     local pbr_conf="$pbr_pkg_dir/files/etc/config/pbr"
     local pbr_makefile="$pbr_pkg_dir/Makefile"
 
     if [ -d "$pbr_pkg_dir" ]; then
-        echo "正在安装 PBR CMCC 配置文件..."
-        install -Dm644 "$BASE_PATH/patches/pbr.user.cmcc" "$pbr_dir/pbr.user.cmcc"
-        install -Dm644 "$BASE_PATH/patches/pbr.user.cmcc6" "$pbr_dir/pbr.user.cmcc6"
+        echo "正在安装 PBR ISP 配置文件 (CMCC/Unicom/Telecom)..."
+        install -Dm755 "$BASE_PATH/patches/pbr.user.isp" "$pbr_dir/pbr.user.isp"
 
         if [ -f "$pbr_makefile" ]; then
-            if ! grep -q "pbr.user.cmcc" "$pbr_makefile"; then
+            if ! grep -q "pbr.user.isp" "$pbr_makefile"; then
                 echo "正在修改 PBR Makefile 添加安装规则..."
                 sed -i '/pbr.user.netflix.*\$(1)/a\
-	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.cmcc $(1)/usr/share/pbr/pbr.user.cmcc\
-	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.cmcc6 $(1)/usr/share/pbr/pbr.user.cmcc6' "$pbr_makefile"
+	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.isp $(1)/usr/share/pbr/pbr.user.isp' "$pbr_makefile"
             fi
         fi
     fi
 
     if [ -f "$pbr_conf" ]; then
-        if ! grep -q "pbr.user.cmcc" "$pbr_conf"; then
-            echo "正在添加 PBR CMCC 配置条目..."
+        if ! grep -q "pbr.user.isp" "$pbr_conf"; then
+            echo "正在添加 PBR ISP 配置条目..."
             sed -i "/option path '\/usr\/share\/pbr\/pbr.user.netflix'/,/option enabled '0'/{
                 /option enabled '0'/a\\
 \\
 config include\\
-	option path '/usr/share/pbr/pbr.user.cmcc'\\
+	option path '/usr/share/pbr/pbr.user.isp'\\
 	option enabled '0'\\
-\\
-config include\\
-	option path '/usr/share/pbr/pbr.user.cmcc6'\\
-	option enabled '0'
+	option argument 'cmcc'
             }" "$pbr_conf"
-        fi
-    fi
-}
-
-install_pbr_unicom() {
-    local pbr_pkg_dir="$BUILD_DIR/package/feeds/packages/pbr"
-    local pbr_dir="$pbr_pkg_dir/files/usr/share/pbr"
-    local pbr_conf="$pbr_pkg_dir/files/etc/config/pbr"
-    local pbr_makefile="$pbr_pkg_dir/Makefile"
-
-    if [ -d "$pbr_pkg_dir" ]; then
-        echo "正在安装 PBR Unicom 配置文件..."
-        install -Dm644 "$BASE_PATH/patches/pbr.user.unicom" "$pbr_dir/pbr.user.unicom"
-        install -Dm644 "$BASE_PATH/patches/pbr.user.unicom6" "$pbr_dir/pbr.user.unicom6"
-
-        if [ -f "$pbr_makefile" ]; then
-            if ! grep -q "pbr.user.unicom" "$pbr_makefile"; then
-                echo "正在修改 PBR Makefile 添加安装规则..."
-                sed -i '/pbr.user.cmcc6.*\$(1)/a\
-	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.unicom $(1)/usr/share/pbr/pbr.user.unicom\
-	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.unicom6 $(1)/usr/share/pbr/pbr.user.unicom6' "$pbr_makefile"
-            fi
-        fi
-    fi
-
-    if [ -f "$pbr_conf" ]; then
-        if ! grep -q "pbr.user.unicom" "$pbr_conf"; then
-            echo "正在添加 PBR Unicom 配置条目..."
-            sed -i "/pbr.user.cmcc6/a\\
-\\
-config include\\
-	option path '/usr/share/pbr/pbr.user.unicom'\\
-	option enabled '0'\\
-\\
-config include\\
-	option path '/usr/share/pbr/pbr.user.unicom6'\\
-	option enabled '0'" "$pbr_conf"
-        fi
-    fi
-}
-
-install_pbr_telecom() {
-    local pbr_pkg_dir="$BUILD_DIR/package/feeds/packages/pbr"
-    local pbr_dir="$pbr_pkg_dir/files/usr/share/pbr"
-    local pbr_conf="$pbr_pkg_dir/files/etc/config/pbr"
-    local pbr_makefile="$pbr_pkg_dir/Makefile"
-
-    if [ -d "$pbr_pkg_dir" ]; then
-        echo "正在安装 PBR Telecom 配置文件..."
-        install -Dm644 "$BASE_PATH/patches/pbr.user.telecom" "$pbr_dir/pbr.user.telecom"
-        install -Dm644 "$BASE_PATH/patches/pbr.user.telecom6" "$pbr_dir/pbr.user.telecom6"
-
-        if [ -f "$pbr_makefile" ]; then
-            if ! grep -q "pbr.user.telecom" "$pbr_makefile"; then
-                echo "正在修改 PBR Makefile 添加安装规则..."
-                sed -i '/pbr.user.unicom6.*\$(1)/a\
-	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.telecom $(1)/usr/share/pbr/pbr.user.telecom\
-	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.telecom6 $(1)/usr/share/pbr/pbr.user.telecom6' "$pbr_makefile"
-            fi
-        fi
-    fi
-
-    if [ -f "$pbr_conf" ]; then
-        if ! grep -q "pbr.user.telecom" "$pbr_conf"; then
-            echo "正在添加 PBR Telecom 配置条目..."
-            sed -i "/pbr.user.unicom6/a\\
-\\
-config include\\
-	option path '/usr/share/pbr/pbr.user.telecom'\\
-	option enabled '0'\\
-\\
-config include\\
-	option path '/usr/share/pbr/pbr.user.telecom6'\\
-	option enabled '0'" "$pbr_conf"
         fi
     fi
 }

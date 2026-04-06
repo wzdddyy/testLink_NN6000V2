@@ -65,9 +65,7 @@ main() {
     fix_opkg_check
     disable_oaf_default
     fix_quectel_cm
-    install_pbr_cmcc
-    install_pbr_unicom
-    install_pbr_telecom
+    install_pbr_isp
     fix_pbr_ip_forward
 }
 
