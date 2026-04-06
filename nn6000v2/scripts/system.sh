@@ -18,7 +18,7 @@ fix_default_set() {
 
 fix_miniupnpd() {
     local miniupnpd_dir="$BUILD_DIR/feeds/packages/net/miniupnpd"
-    local patch_file="999-chanage-default-leaseduration.patch"
+    local patch_file="999-change-default-leaseduration.patch"
 
     if [ -d "$miniupnpd_dir" ] && [ -f "$BASE_PATH/patches/$patch_file" ]; then
         install -Dm644 "$BASE_PATH/patches/$patch_file" "$miniupnpd_dir/patches/$patch_file"
