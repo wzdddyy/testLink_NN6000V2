@@ -226,15 +226,13 @@ install_pbr_isp() {
 
     if [ -f "$pbr_conf" ]; then
         if ! grep -q "pbr.user.isp" "$pbr_conf"; then
-            echo "正在添加 PBR ISP 配置条目..."
-            sed -i "/option path '\/usr\/share\/pbr\/pbr.user.netflix'/,/option enabled '0'/{
-                /option enabled '0'/a\\
-\\
-config include\\
-	option path '/usr/share/pbr/pbr.user.isp'\\
-	option enabled '0'\\
-	option argument 'cmcc'
-            }" "$pbr_conf"
+            echo "正在添加 PBR ISP 自动识别配置..."
+            cat >> "$pbr_conf" <<'EOF'
+
+config include
+	option path '/usr/share/pbr/pbr.user.isp'
+	option enabled '1'
+EOF
         fi
     fi
 }

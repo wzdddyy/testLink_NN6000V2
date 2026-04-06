@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2026
+# Copyright (C) 2026 VIKINGYFY
 
 #安装和更新软件包
 UPDATE_PACKAGE() {
@@ -39,10 +39,6 @@ UPDATE_PACKAGE() {
 		mv -f $REPO_NAME $PKG_NAME
 	fi
 }
-
-# UPDATE_PACKAGE "包名" "项目地址" "项目分支" "pkg/name，可选，pkg 为从大杂烩中单独提取包名插件；name 为重命名为包名"
-# UPDATE_PACKAGE "homeproxy" "VIKINGYFY/homeproxy" "main"
-# UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 
 #更新软件包版本
 UPDATE_VERSION() {
@@ -85,11 +81,8 @@ UPDATE_VERSION() {
 	done
 }
 
-#UPDATE_VERSION "软件包名" "测试版，true，可选，默认为否"
-#UPDATE_VERSION "sing-box"
-
 # ============================================
-# 软件包调用示例
+# 软件包调用
 # ============================================
 
 # 主题
