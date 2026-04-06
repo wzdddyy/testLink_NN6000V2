@@ -1,0 +1,10 @@
+firmware/
+.pc/
+test/
+action_build/
+*.swp
+.vscode/settings.json
+.clineignore
+.env
+.taskmaster/
+.sisyphus/
