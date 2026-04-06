@@ -185,24 +185,12 @@ set_smartdns_default_config() {
         return
     fi
     
-    # 显示 smartdns 目录结构用于调试
-    echo "=== smartdns 目录结构 ==="
-    find "$BUILD_DIR/smartdns" -type d | head -20
-    
-    # 创建目录（如果不存在）
-    mkdir -p "$(dirname "$smartdns_conf")"
-    mkdir -p "$(dirname "$smartdns_custom")"
-    
     # 检查目录是否存在
     if [ -d "$(dirname "$smartdns_conf")" ] && [ -f "$config_source" ]; then
         cp "$config_source" "$smartdns_conf"
         echo "已设置 SmartDNS UCI 配置"
     else
         echo "警告：SmartDNS UCI 配置目录或源文件不存在"
-        echo "  目标目录：$(dirname "$smartdns_conf")"
-        echo "  源文件：$config_source"
-        echo "  目录存在：$([ -d "$(dirname "$smartdns_conf")" ] && echo "是" || echo "否")"
-        echo "  文件存在：$([ -f "$config_source" ] && echo "是" || echo "否")"
     fi
     
     # 部署自定义配置
