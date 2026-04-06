@@ -197,15 +197,6 @@ update_nginx_ubus_module() {
     fi
 }
 
-fix_openssl_ktls() {
-    local config_in="$BUILD_DIR/package/libs/openssl/Config.in"
-    if [ -f "$config_in" ]; then
-        echo "正在更新 OpenSSL kTLS 配置..."
-        sed -i 's/select PACKAGE_kmod-tls/depends on PACKAGE_kmod-tls/g' "$config_in"
-        sed -i '/depends on PACKAGE_kmod-tls/a\\tdefault y if PACKAGE_kmod-tls' "$config_in"
-    fi
-}
-
 fix_opkg_check() {
     local patch_file="$BASE_PATH/patches/001-fix-provides-version-parsing.patch"
     local opkg_dir="$BUILD_DIR/package/system/opkg"
