@@ -45,6 +45,22 @@ UPDATE_PACKAGE() {
 				cp -rf "$dir" ./
 			fi
 		done
+		
+		# 如果是 packages 类型的仓库（如 passwall-packages），复制所有子包
+		if [[ "$PKG_NAME" == *"packages"* ]] || [[ "$PKG_NAME" == *"package"* ]]; then
+			for dir in ./$REPO_NAME/*/; do
+				if [ -d "$dir" ]; then
+					dir_name=$(basename "$dir")
+					# 跳过已处理的目录
+					[[ "$dir_name" == "$PKG_NAME" ]] && continue
+					# 如果目标目录已存在，先删除
+					[ -d "./$dir_name" ] && rm -rf "./$dir_name"
+					# 复制目录
+					cp -rf "$dir" ./
+				fi
+			done
+		fi
+		
 		rm -rf ./$REPO_NAME/
 	elif [[ "$PKG_SPECIAL" == "name" ]]; then
 		mv -f $REPO_NAME $PKG_NAME
