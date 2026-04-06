@@ -16,6 +16,13 @@ UPDATE_PACKAGE() {
 	# 删除本地可能存在的不同名称的软件包
 	for NAME in "${PKG_LIST[@]}"; do
 		echo "Search directory: $NAME"
+		
+		# 检查目录是否存在
+		if [ ! -d "../feeds/luci/" ] && [ ! -d "../feeds/packages/" ]; then
+			echo "Skip: Feeds directory not found, will clone later"
+			continue
+		fi
+		
 		local FOUND_DIRS=$(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$NAME*" 2>/dev/null)
 
 		if [ -n "$FOUND_DIRS" ]; then
