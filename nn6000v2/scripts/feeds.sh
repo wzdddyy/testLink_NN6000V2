@@ -28,6 +28,7 @@ update_feeds() {
     fi
 
     echo "=== 开始执行 feeds update ==="
+    ./scripts/feeds clean
     ./scripts/feeds update -a 2>&1 | tee /tmp/feeds_update.log
     echo "=== feeds update 完成 ==="
 }
