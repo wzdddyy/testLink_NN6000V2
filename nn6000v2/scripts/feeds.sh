@@ -9,21 +9,18 @@ update_feeds() {
 
     if ! grep -q "openwrt-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git openwrt-packages https://github.com/kenzok8/openwrt-packages;master" >>"$FEEDS_PATH"
+        echo "src-git openwrt-packages https://github.com/kenzok8/openwrt-packages" >>"$FEEDS_PATH"
     fi
 
     if ! grep -q "openwrt-passwall-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages;main" >>"$FEEDS_PATH"
+        echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall" >>"$FEEDS_PATH"
     fi
 
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
         touch "$BUILD_DIR/include/bpf.mk"
     fi
 
-    cd "$BUILD_DIR" || exit 1
-    ./scripts/feeds update -a
-    cd - >/dev/null || exit 1
 }
 
 install_feeds() {
