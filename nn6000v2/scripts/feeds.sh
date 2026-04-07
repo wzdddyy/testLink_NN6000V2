@@ -7,12 +7,12 @@ update_feeds() {
 
     if ! grep -q "openwrt-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git openwrt-packages https://github.com/kenzok8/openwrt-packages" >>"$FEEDS_PATH"
+        echo "src-git openwrt-packages https://github.com/kenzok8/openwrt-packages.git" >>"$FEEDS_PATH"
     fi
 
     if ! grep -q "passwall-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >>"$FEEDS_PATH"
+        echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git" >>"$FEEDS_PATH"
     fi
 
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
