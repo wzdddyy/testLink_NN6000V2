@@ -72,6 +72,7 @@ main() {
     set_nginx_default_config
     update_uwsgi_limit_as
     update_nginx_ubus_module
+    fix_nginx_configure
     remove_attendedsysupgrade
     fix_kconfig_recursive_dependency
     update_docker_stack
