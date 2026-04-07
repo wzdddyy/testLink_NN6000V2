@@ -61,7 +61,7 @@ main() {
     add_timecontrol
     add_quickfile
     install_feeds
-    update_lucky
+    install_lucky
     fix_rust_compile_error
     update_diskman
     update_dockerman

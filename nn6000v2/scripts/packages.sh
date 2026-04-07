@@ -14,8 +14,7 @@ update_golang() {
 install_openwrt_packages() {
     ./scripts/feeds install -p openwrt-packages -f taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
-        smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
-        lucky luci-app-lucky
+        smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config
 }
 
 
@@ -57,66 +56,76 @@ add_timecontrol() {
 }
 
 
-update_lucky() {
-    local lucky_repo_url="https://github.com/gdy666/luci-app-lucky.git"
-    local target_dir="$BUILD_DIR/feeds/openwrt-packages"
-    local lucky_dir="$target_dir/lucky"
-    local luci_app_lucky_dir="$target_dir/luci-app-lucky"
+install_lucky() {
+    local LUCKY_REPO="https://github.com/gdy666/luci-app-lucky.git"
+    local LUCKY_DIR="$BUILD_DIR/feeds/luci/applications/lucky"
+    local LUCI_APP_LUCKY_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-lucky"
 
-    if [ ! -d "$lucky_dir" ] || [ ! -d "$luci_app_lucky_dir" ]; then
-        echo "Warning: $lucky_dir 或 $luci_app_lucky_dir 不存在，跳过 lucky 源代码更新。" >&2
-    else
-        local tmp_dir
-        tmp_dir=$(mktemp -d)
-
-        echo "正在从 $lucky_repo_url 稀疏检出 luci-app-lucky 和 lucky..."
-
-        if ! git clone --depth 1 --filter=blob:none --no-checkout "$lucky_repo_url" "$tmp_dir"; then
-            echo "错误：从 $lucky_repo_url 克隆仓库失败" >&2
-            rm -rf "$tmp_dir"
-            return 0
-        fi
-
-        pushd "$tmp_dir" >/dev/null
-        git sparse-checkout init --cone
-        git sparse-checkout set luci-app-lucky lucky || {
-            echo "错误：稀疏检出 luci-app-lucky 或 lucky 失败" >&2
-            popd >/dev/null
-            rm -rf "$tmp_dir"
-            return 0
-        }
-        git checkout --quiet
-
-        \cp -rf "$tmp_dir/luci-app-lucky/." "$luci_app_lucky_dir/"
-        \cp -rf "$tmp_dir/lucky/." "$lucky_dir/"
-
-        popd >/dev/null
-        rm -rf "$tmp_dir"
-        echo "luci-app-lucky 和 lucky 源代码更新完成。"
+    echo "正在从 gdy666 仓库安装 luci-app-lucky..."
+    
+    # 克隆 lucky core
+    rm -rf "$LUCKY_DIR"
+    if ! git clone --depth=1 --filter=blob:none --no-checkout "$LUCKY_REPO" "$LUCKY_DIR"; then
+        echo "错误：从 $LUCKY_REPO 克隆 lucky 仓库失败" >&2
+        exit 1
     fi
-
-    local lucky_conf="$BUILD_DIR/feeds/openwrt-packages/lucky/files/luckyuci"
+    
+    pushd "$LUCKY_DIR" >/dev/null
+    git sparse-checkout init --cone
+    git sparse-checkout set lucky || {
+        echo "错误：稀疏检出 lucky 失败" >&2
+        popd >/dev/null
+        rm -rf "$LUCKY_DIR"
+        exit 1
+    }
+    git checkout --quiet
+    popd >/dev/null
+    
+    # 克隆 luci-app-lucky
+    rm -rf "$LUCI_APP_LUCKY_DIR"
+    if ! git clone --depth=1 --filter=blob:none --no-checkout "$LUCKY_REPO" "$LUCI_APP_LUCKY_DIR"; then
+        echo "错误：从 $LUCKY_REPO 克隆 luci-app-lucky 仓库失败" >&2
+        rm -rf "$LUCKY_DIR"
+        exit 1
+    fi
+    
+    pushd "$LUCI_APP_LUCKY_DIR" >/dev/null
+    git sparse-checkout init --cone
+    git sparse-checkout set luci-app-lucky || {
+        echo "错误：稀疏检出 luci-app-lucky 失败" >&2
+        popd >/dev/null
+        rm -rf "$LUCKY_DIR"
+        rm -rf "$LUCI_APP_LUCKY_DIR"
+        exit 1
+    }
+    git checkout --quiet
+    popd >/dev/null
+    
+    # 默认禁用 lucky 服务
+    local lucky_conf="$LUCKY_DIR/files/luckyuci"
     if [ -f "$lucky_conf" ]; then
         sed -i "s/option enabled '1'/option enabled '0'/g" "$lucky_conf"
         sed -i "s/option logger '1'/option logger '0'/g" "$lucky_conf"
+        echo "lucky 已配置为默认禁用状态"
     fi
-
+    
+    # 处理补丁
     local version
     version=$(find "$BASE_PATH/patches" -name "lucky_*.tar.gz" -printf "%f\n" | head -n 1 | sed -n 's/^lucky_\(.*\)_Linux.*$/\1/p')
     if [ -z "$version" ]; then
         echo "Warning: 未找到 lucky 补丁文件，跳过更新。" >&2
         return 0
     fi
-
-    local makefile_path="$BUILD_DIR/feeds/openwrt-packages/lucky/Makefile"
+    
+    local makefile_path="$LUCKY_DIR/Makefile"
     if [ ! -f "$makefile_path" ]; then
         echo "Warning: lucky Makefile not found. Skipping." >&2
         return 0
     fi
-
+    
     echo "正在更新 lucky Makefile..."
     local patch_line="\\t[ -f \$(TOPDIR)/../nn6000v2/patches/lucky_${version}_Linux_\$(LUCKY_ARCH)_wanji.tar.gz ] && install -Dm644 \$(TOPDIR)/../nn6000v2/patches/lucky_${version}_Linux_\$(LUCKY_ARCH)_wanji.tar.gz \$(PKG_BUILD_DIR)/\$(PKG_NAME)_\$(PKG_VERSION)_Linux_\$(LUCKY_ARCH).tar.gz"
-
+    
     if grep -q "Build/Prepare" "$makefile_path"; then
         sed -i "/Build\\/Prepare/a\\$patch_line" "$makefile_path"
         sed -i '/wget/d' "$makefile_path"
@@ -124,6 +133,8 @@ update_lucky() {
     else
         echo "Warning: lucky Makefile 中未找到 'Build/Prepare'。跳过。" >&2
     fi
+    
+    echo "luci-app-lucky 安装完成"
 }
 
 install_adguardhome_wzdddyy() {
@@ -183,6 +194,9 @@ install_oaf() {
         echo "已修复 kmod-oaf 递归依赖问题"
     fi
 
+    # 安装 OAF 软件包
+    ./scripts/feeds install -p package -f kmod-oaf appfilter luci-app-oaf
+
     # 默认禁用 OAF 服务
     local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
     if [ -f "$oaf_config" ]; then
@@ -223,31 +237,21 @@ update_diskman() {
 }
 
 _sync_luci_lib_docker() {
-    local lib_path="$BUILD_DIR/feeds/luci/libs/luci-lib-docker"
     local repo_url="https://github.com/lisaac/luci-lib-docker.git"
-    
-    if [ ! -d "$lib_path" ]; then
+    if [ ! -d "$BUILD_DIR/feeds/luci/libs/luci-lib-docker" ]; then
         echo "正在同步 luci-lib-docker..."
         mkdir -p "$BUILD_DIR/feeds/luci/libs" || return
         cd "$BUILD_DIR/feeds/luci/libs" || return
         
-        if ! git clone --filter=blob:none --no-checkout "$repo_url" luci-lib-docker-tmp; then
+        if ! git clone --depth=1 "$repo_url" luci-lib-docker; then
             echo "错误：从 $repo_url 克隆 luci-lib-docker 仓库失败" >&2
             exit 1
         fi
-        cd luci-lib-docker-tmp || return
-        
-        git sparse-checkout init --cone
-        git sparse-checkout set collections/luci-lib-docker || return
-        
-        git checkout --quiet
-        
-        mv collections/luci-lib-docker ../luci-lib-docker || return
-        cd .. || return
-        \rm -rf luci-lib-docker-tmp
         cd "$BUILD_DIR"
         echo "luci-lib-docker 同步完成"
     fi
+    # 安装 luci-lib-docker
+    ./scripts/feeds install -p luci -f luci-lib-docker
 }
 
 update_dockerman() {
