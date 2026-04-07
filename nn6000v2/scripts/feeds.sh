@@ -4,7 +4,7 @@ update_feeds() {
     if [[ -f "$BUILD_DIR/feeds.conf" ]]; then
         FEEDS_PATH="$BUILD_DIR/feeds.conf"
     fi
-    sed -i '/^#/d' "$FEEDS_PATH"
+    sed -i 's/^#.*$//' "$FEEDS_PATH"
     sed -i '/packages_ext/d' "$FEEDS_PATH"
 
     if ! grep -q "openwrt-packages" "$FEEDS_PATH"; then
