@@ -65,6 +65,7 @@ main() {
     update_diskman
     update_dockerman
     install_adguardhome_wzdddyy
+    install_passwall2
     install_easytier
     install_oaf
     set_nginx_default_config

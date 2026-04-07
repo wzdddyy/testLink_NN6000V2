@@ -17,16 +17,27 @@ install_openwrt_packages() {
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config
 }
 
-install_passwall2() {
-    echo "正在从 Openwrt-Passwall 仓库安装 luci-app-passwall2..."
-    ./scripts/feeds install -p passwall2 -f luci-app-passwall2
-}
 
 install_passwall_packages() {
     echo "正在从 Openwrt-Passwall-packages 仓库安装代理相关依赖..."
     ./scripts/feeds install -p passwall-packages -f chinadns-ng dns2socks geoview hysteria ipt2socks microsocks \
         naiveproxy shadow-tls shadowsocks-libev shadowsocks-rust shadowsocksr-libev simple-obfs sing-box \
         tcping trojan-plus tuic-client v2ray-geodata v2ray-plugin xray-core xray-plugin
+}
+
+install_passwall2() {
+    local PASSWALL2_REPO="https://github.com/Openwrt-Passwall/openwrt-passwall2.git"
+    local PASSWALL2_DIR="$BUILD_DIR/feeds/passwall2"
+
+    echo "正在从 Openwrt-Passwall 仓库安装 luci-app-passwall2..."
+    
+    rm -rf "$PASSWALL2_DIR"
+    if ! git clone --depth=1 -b main "$PASSWALL2_REPO" "$PASSWALL2_DIR"; then
+        echo "错误：从 $PASSWALL2_REPO 克隆 luci-app-passwall2 仓库失败" >&2
+        exit 1
+    fi
+
+    echo "luci-app-passwall2 安装完成"
 }
 
 install_fullconenat() {

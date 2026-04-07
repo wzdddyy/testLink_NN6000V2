@@ -12,24 +12,9 @@ update_feeds() {
         echo "src-git openwrt-packages https://github.com/kenzok8/openwrt-packages;master" >>"$FEEDS_PATH"
     fi
 
-    if ! grep -q "openwrt-passwall2" "$FEEDS_PATH"; then
-        [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git passwall2 https://github.com/Openwrt-Passwall/openwrt-passwall2;main" >>"$FEEDS_PATH"
-    fi
-
     if ! grep -q "openwrt-passwall-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
         echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages;main" >>"$FEEDS_PATH"
-    fi
-
-    if ! grep -q "openwrt_bandix" "$FEEDS_PATH"; then
-        [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo 'src-git openwrt_bandix https://github.com/timsaya/openwrt-bandix.git;main' >>"$FEEDS_PATH"
-    fi
-
-    if ! grep -q "luci_app_bandix" "$FEEDS_PATH"; then
-        [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo 'src-git luci_app_bandix https://github.com/timsaya/luci-app-bandix.git;main' >>"$FEEDS_PATH"
     fi
 
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
