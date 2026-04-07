@@ -23,6 +23,12 @@ update_feeds() {
     cat "$FEEDS_PATH"
     echo "================================"
 
+    sed -i '/^src-link/d' "$FEEDS_PATH"
+
+    echo "=== 移除 src-link 后的 feeds.conf 内容 ==="
+    cat "$FEEDS_PATH"
+    echo "================================"
+
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
         touch "$BUILD_DIR/include/bpf.mk"
     fi
