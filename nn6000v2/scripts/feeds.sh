@@ -13,12 +13,12 @@ update_feeds() {
 
     if ! grep -q "openwrt-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git openwrt-packages https://github.com/kenzok8/openwrt-packages.git" >>"$FEEDS_PATH"
+        echo "src-git openwrt_packages https://github.com/kenzok8/openwrt-packages.git" >>"$FEEDS_PATH"
     fi
 
     if ! grep -q "passwall-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git" >>"$FEEDS_PATH"
+        echo "src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git" >>"$FEEDS_PATH"
     fi
 
     echo "=== 修改后的 feeds.conf 内容 ==="
@@ -40,10 +40,10 @@ install_feeds() {
     ./scripts/feeds update -i
     for dir in "$BUILD_DIR"/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
-            if [[ $(basename "$dir") == "openwrt-packages" ]]; then
+            if [[ $(basename "$dir") == "openwrt_packages" ]]; then
                 install_openwrt_packages
                 install_fullconenat
-            elif [[ $(basename "$dir") == "passwall-packages" ]]; then
+            elif [[ $(basename "$dir") == "passwall_packages" ]]; then
                 install_passwall_packages
             else
                 ./scripts/feeds install -f -ap "$(basename "$dir")"
