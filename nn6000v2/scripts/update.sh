@@ -60,6 +60,7 @@ main() {
     add_backup_info_to_sysupgrade
     add_timecontrol
     add_quickfile
+    install_feeds
     update_lucky
     fix_rust_compile_error
     update_diskman
@@ -75,7 +76,6 @@ main() {
     fix_kconfig_recursive_dependency
     update_docker_stack
     update_script_priority
-    install_feeds
     fix_openssl_ktls
     fix_opkg_check
     fix_quectel_cm
