@@ -5,6 +5,10 @@ update_feeds() {
         FEEDS_PATH="$BUILD_DIR/feeds.conf"
     fi
 
+    echo "=== 修改前的 feeds.conf 内容 ==="
+    cat "$FEEDS_PATH"
+    echo "================================"
+
     if ! grep -q "openwrt-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
         echo "src-git openwrt-packages https://github.com/kenzok8/openwrt-packages.git" >>"$FEEDS_PATH"
@@ -14,6 +18,10 @@ update_feeds() {
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
         echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git" >>"$FEEDS_PATH"
     fi
+
+    echo "=== 修改后的 feeds.conf 内容 ==="
+    cat "$FEEDS_PATH"
+    echo "================================"
 
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
         touch "$BUILD_DIR/include/bpf.mk"
