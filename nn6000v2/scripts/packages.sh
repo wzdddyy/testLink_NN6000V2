@@ -176,6 +176,13 @@ install_oaf() {
         exit 1
     fi
 
+    # 修复 kmod-oaf 递归依赖问题
+    local kmod_oaf_makefile="$OAF_DIR/kmod-oaf/Makefile"
+    if [ -f "$kmod_oaf_makefile" ]; then
+        sed -i 's/DEPENDS:=.*kmod-oaf/DEPENDS:=/g' "$kmod_oaf_makefile"
+        echo "已修复 kmod-oaf 递归依赖问题"
+    fi
+
     # 默认禁用 OAF 服务
     local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
     if [ -f "$oaf_config" ]; then

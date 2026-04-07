@@ -32,6 +32,10 @@ install_feeds() {
     
     echo "=== 开始安装 feeds 包 ==="
     
+    # 先更新 feeds 索引
+    echo "更新 feeds 索引..."
+    ./scripts/feeds update -i
+    
     # 先安装 openwrt-packages 中的包
     echo "安装 openwrt-packages 包..."
     install_openwrt_packages
