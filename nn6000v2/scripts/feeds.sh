@@ -5,10 +5,6 @@ update_feeds() {
         FEEDS_PATH="$BUILD_DIR/feeds.conf"
     fi
 
-    echo "=== 修改前的 feeds.conf 内容 ==="
-    cat "$FEEDS_PATH"
-    echo "================================"
-
     sed -i '/^src-link/d' "$FEEDS_PATH"
 
     if ! grep -q "openwrt-packages" "$FEEDS_PATH"; then
@@ -21,17 +17,13 @@ update_feeds() {
         echo "src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git" >>"$FEEDS_PATH"
     fi
 
-    echo "=== 修改后的 feeds.conf 内容 ==="
-    cat "$FEEDS_PATH"
-    echo "================================"
-
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
         touch "$BUILD_DIR/include/bpf.mk"
     fi
 
     echo "=== 开始执行 feeds update ==="
     ./scripts/feeds clean
-    ./scripts/feeds update -a 2>&1 | tee /tmp/feeds_update.log
+    ./scripts/feeds update -a
     echo "=== feeds update 完成 ==="
 }
 

@@ -14,7 +14,8 @@ update_golang() {
 install_openwrt_packages() {
     ./scripts/feeds install -p openwrt-packages -f taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
-        smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config
+        smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
+        lucky luci-app-lucky
 }
 
 

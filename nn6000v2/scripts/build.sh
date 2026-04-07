@@ -56,8 +56,6 @@ apply_config() {
     fi
 
     cat "$BASE_PATH/configs/kernel/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
-
-    cat "$BASE_PATH/configs/kernel/proxy.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 }
 
 REPO_URL=$(read_ini_by_key "REPO_URL")
