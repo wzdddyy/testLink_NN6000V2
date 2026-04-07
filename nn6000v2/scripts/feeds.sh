@@ -31,8 +31,6 @@ install_feeds() {
             if [[ $(basename "$dir") == "openwrt-packages" ]]; then
                 install_openwrt_packages
                 install_fullconenat
-            elif [[ $(basename "$dir") == "passwall2" ]]; then
-                install_passwall2
             elif [[ $(basename "$dir") == "passwall-packages" ]]; then
                 install_passwall_packages
             else

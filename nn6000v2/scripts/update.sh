@@ -73,9 +73,9 @@ main() {
     update_nginx_ubus_module
     remove_attendedsysupgrade
     fix_kconfig_recursive_dependency
-    install_feeds
     update_docker_stack
     update_script_priority
+    install_feeds
     fix_openssl_ktls
     fix_opkg_check
     fix_quectel_cm
