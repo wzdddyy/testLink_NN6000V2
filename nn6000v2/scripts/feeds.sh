@@ -27,7 +27,9 @@ update_feeds() {
         touch "$BUILD_DIR/include/bpf.mk"
     fi
 
-    ./scripts/feeds update -a
+    echo "=== 开始执行 feeds update ==="
+    ./scripts/feeds update -a 2>&1 | tee /tmp/feeds_update.log
+    echo "=== feeds update 完成 ==="
 }
 
 install_feeds() {
