@@ -41,7 +41,8 @@ install_passwall2() {
 }
 
 install_fullconenat() {
-    ./scripts/feeds install -p packages -f fullconenat-nft fullconenat
+    # 安装 fullconenat 相关包
+    ./scripts/feeds install -p packages -f kmod-fullconenat
 }
 
 add_timecontrol() {
