@@ -21,7 +21,9 @@ update_feeds() {
         touch "$BUILD_DIR/include/bpf.mk"
     fi
 
+    cd "$BUILD_DIR" || exit 1
     ./scripts/feeds update -a
+    cd - >/dev/null || exit 1
 }
 
 install_feeds() {
