@@ -29,18 +29,28 @@ update_feeds() {
 
 install_feeds() {
     cd "$BUILD_DIR" || exit 1
-    ./scripts/feeds update -i
+    
+    echo "=== 开始安装 feeds 包 ==="
+    
+    # 先安装 openwrt-packages 中的包
+    echo "安装 openwrt-packages 包..."
+    install_openwrt_packages
+    install_fullconenat
+    
+    # 安装 passwall-packages 中的包
+    echo "安装 passwall-packages 包..."
+    install_passwall_packages
+    
+    # 安装其他 feeds 的包
     for dir in "$BUILD_DIR"/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
-            if [[ $(basename "$dir") == "openwrt_packages" ]]; then
-                install_openwrt_packages
-                install_fullconenat
-            elif [[ $(basename "$dir") == "passwall_packages" ]]; then
-                install_passwall_packages
-            else
-                ./scripts/feeds install -f -ap "$(basename "$dir")"
+            local feed_name=$(basename "$dir")
+            if [[ "$feed_name" != "openwrt_packages" ]] && [[ "$feed_name" != "passwall_packages" ]]; then
+                ./scripts/feeds install -f -ap "$feed_name"
             fi
         fi
     done
+    
+    echo "=== feeds 包安装完成 ==="
     cd - >/dev/null || exit 1
 }
