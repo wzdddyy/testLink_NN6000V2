@@ -6,7 +6,6 @@ on:
 env:
   DEVICE_MODEL: link_nn6000v2_immwrt
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   build:

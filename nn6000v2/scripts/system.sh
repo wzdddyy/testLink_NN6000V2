@@ -42,17 +42,7 @@ fix_kconfig_recursive_dependency() {
     local file="$BUILD_DIR/scripts/package-metadata.pl"
     if [ -f "$file" ]; then
         sed -i 's/<PACKAGE_\$pkgname/!=y/g' "$file"
-        echo "已修改 package-metadata.pl 中 Kconfig 递归依赖判断逻辑。"
-    fi
-    
-    # 修复 Python3 包循环依赖问题
-    # python3-email 和 python3-urllib 在 python3-packages 包中
-    local python3_packages_makefile="$BUILD_DIR/feeds/packages/lang/python/python3-packages/Makefile"
-    
-    if [ -f "$python3_packages_makefile" ]; then
-        # 注释掉 python3-email 对 python3-urllib 的依赖
-        sed -i 's/\$(PYTHON3_PKG)_email.*\$(PYTHON3_PKG)_urllib/#\$(PYTHON3_PKG)_email - \$(PYTHON3_PKG)_urllib/g' "$python3_packages_makefile"
-        echo "已修复 python3-email 和 python3-urllib 循环依赖问题"
+        echo "已修复 package-metadata.pl 的 Kconfig 递归依赖生成逻辑。"
     fi
 }
 
@@ -70,6 +60,37 @@ update_affinity_script() {
         find "$affinity_script_dir" -name "set-irq-affinity" -exec rm -f {} \;
         find "$affinity_script_dir" -name "smp_affinity" -exec rm -f {} \;
         install -Dm755 "$BASE_PATH/patches/smp_affinity" "$affinity_script_dir/base-files/etc/init.d/smp_affinity"
+    fi
+}
+
+fix_hash_value() {
+    local makefile_path="$1"
+    local old_hash="$2"
+    local new_hash="$3"
+    local package_name="$4"
+
+    if [ -f "$makefile_path" ]; then
+        sed -i "s/$old_hash/$new_hash/g" "$makefile_path"
+        echo "已修正 $package_name 的哈希值。"
+    fi
+}
+
+update_ath11k_fw() {
+    local makefile="$BUILD_DIR/package/firmware/ath11k-firmware/Makefile"
+    local new_mk="$BASE_PATH/patches/ath11k_fw.mk"
+    local url="https://raw.githubusercontent.com/VIKINGYFY/immortalwrt/refs/heads/main/package/firmware/ath11k-firmware/Makefile"
+
+    if [ -d "$(dirname "$makefile")" ]; then
+        echo "正在更新 ath11k-firmware Makefile..."
+        if ! curl -fsSL -o "$new_mk" "$url"; then
+            echo "错误：从 $url 下载 ath11k-firmware Makefile 失败" >&2
+            exit 1
+        fi
+        if [ ! -s "$new_mk" ]; then
+            echo "错误：下载的 ath11k-firmware Makefile 为空文件" >&2
+            exit 1
+        fi
+        mv -f "$new_mk" "$makefile"
     fi
 }
 
@@ -124,12 +145,12 @@ EOF
 }
 
 apply_passwall_tweaks() {
-    local chnlist_path="$BUILD_DIR/feeds/passwall2/luci-app-passwall2/root/usr/share/passwall2/rules/chnlist"
+    local chnlist_path="$BUILD_DIR/feeds/passwall/luci-app-passwall/root/usr/share/passwall/rules/chnlist"
     if [ -f "$chnlist_path" ]; then
         >"$chnlist_path"
     fi
 
-    local xray_util_path="$BUILD_DIR/feeds/passwall2/luci-app-passwall2/luasrc/passwall2/util_xray.lua"
+    local xray_util_path="$BUILD_DIR/feeds/passwall/luci-app-passwall/luasrc/passwall/util_xray.lua"
     if [ -f "$xray_util_path" ]; then
         sed -i 's/maxRTT = "1s"/maxRTT = "2s"/g' "$xray_util_path"
         sed -i 's/sampling = 3/sampling = 5/g' "$xray_util_path"
@@ -173,35 +194,6 @@ update_dnsmasq_conf() {
     fi
 }
 
-set_smartdns_default_config() {
-    local smartdns_conf="$BUILD_DIR/smartdns/files/etc/config/smartdns"
-    local smartdns_custom="$BUILD_DIR/smartdns/files/etc/smartdns/custom.conf"
-    local config_source="$BASE_PATH/patches/smartdns.config"
-    local custom_source="$BASE_PATH/patches/smartdns.custom.conf"
-    
-    # 先检查 smartdns 目录是否存在
-    if [ ! -d "$BUILD_DIR/smartdns" ]; then
-        echo "警告：smartdns 目录不存在，跳过配置"
-        return
-    fi
-    
-    # 检查目录是否存在
-    if [ -d "$(dirname "$smartdns_conf")" ] && [ -f "$config_source" ]; then
-        cp "$config_source" "$smartdns_conf"
-        echo "已设置 SmartDNS UCI 配置"
-    else
-        echo "警告：SmartDNS UCI 配置目录或源文件不存在"
-    fi
-    
-    # 部署自定义配置
-    if [ -d "$(dirname "$smartdns_custom")" ] && [ -f "$custom_source" ]; then
-        cp "$custom_source" "$smartdns_custom"
-        echo "已设置 SmartDNS 自定义优化配置"
-    else
-        echo "警告：SmartDNS 自定义配置目录或源文件不存在"
-    fi
-}
-
 add_backup_info_to_sysupgrade() {
     local conf_path="$BUILD_DIR/package/base-files/files/etc/sysupgrade.conf"
 
@@ -211,6 +203,18 @@ add_backup_info_to_sysupgrade() {
 /etc/easytier
 /etc/lucky/
 EOF
+    fi
+}
+
+update_script_priority() {
+    local qca_drv_path="$BUILD_DIR/package/feeds/nss_packages/qca-nss-drv/files/qca-nss-drv.init"
+    if [ -d "${qca_drv_path%/*}" ] && [ -f "$qca_drv_path" ]; then
+        sed -i 's/START=.*/START=88/g' "$qca_drv_path"
+    fi
+
+    local pbuf_path="$BUILD_DIR/package/kernel/mac80211/files/qca-nss-pbuf.init"
+    if [ -d "${pbuf_path%/*}" ] && [ -f "$pbuf_path" ]; then
+        sed -i 's/START=.*/START=89/g' "$pbuf_path"
     fi
 }
 
@@ -236,6 +240,15 @@ update_nginx_ubus_module() {
     fi
 }
 
+fix_openssl_ktls() {
+    local config_in="$BUILD_DIR/package/libs/openssl/Config.in"
+    if [ -f "$config_in" ]; then
+        echo "正在更新 OpenSSL kTLS 配置..."
+        sed -i 's/select PACKAGE_kmod-tls/depends on PACKAGE_kmod-tls/g' "$config_in"
+        sed -i '/depends on PACKAGE_kmod-tls/a\\tdefault y if PACKAGE_kmod-tls' "$config_in"
+    fi
+}
+
 fix_opkg_check() {
     local patch_file="$BASE_PATH/patches/001-fix-provides-version-parsing.patch"
     local opkg_dir="$BUILD_DIR/package/system/opkg"
@@ -249,9 +262,10 @@ install_pbr_isp() {
     local pbr_dir="$pbr_pkg_dir/files/usr/share/pbr"
     local pbr_conf="$pbr_pkg_dir/files/etc/config/pbr"
     local pbr_makefile="$pbr_pkg_dir/Makefile"
+    local pbr_init_script="$pbr_pkg_dir/files/etc/init.d/pbr"
 
     if [ -d "$pbr_pkg_dir" ]; then
-        echo "正在安装 PBR ISP 配置文件 (CMCC/Unicom/Telecom)..."
+        echo "正在安装 PBR 多 ISP 自动识别脚本..."
         install -Dm755 "$BASE_PATH/patches/pbr.user.isp" "$pbr_dir/pbr.user.isp"
 
         if [ -f "$pbr_makefile" ]; then
@@ -261,17 +275,32 @@ install_pbr_isp() {
 	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.isp $(1)/usr/share/pbr/pbr.user.isp' "$pbr_makefile"
             fi
         fi
+        
+        # Add auto-retry mechanism to pbr init script
+        if [ -f "$pbr_init_script" ]; then
+            echo "正在添加 PBR 自动重试机制..."
+            # Simple retry: try every 10s for up to 50s if not configured
+            cat >> "$pbr_init_script" << 'EOF'
+
+# PBR auto-retry (simple version)
+[ -f /var/run/pbr_configured ] || ( for i in 1 2 3 4 5; do
+    sleep 10
+    /usr/share/pbr/pbr.user.isp >/dev/null 2>&1 && break
+done ) &
+EOF
+        fi
     fi
 
     if [ -f "$pbr_conf" ]; then
         if ! grep -q "pbr.user.isp" "$pbr_conf"; then
-            echo "正在添加 PBR ISP 自动识别配置..."
-            cat >> "$pbr_conf" <<'EOF'
-
-config include
-	option path '/usr/share/pbr/pbr.user.isp'
+            echo "正在添加 PBR ISP 自动识别配置条目..."
+            sed -i "/option path '\/usr\/share\/pbr\/pbr.user.netflix'/,/option enabled '0'/{
+                /option enabled '0'/a\\
+\\
+config include\\
+	option path '/usr/share/pbr/pbr.user.isp'\\
 	option enabled '1'
-EOF
+            }" "$pbr_conf"
         fi
     fi
 }
@@ -322,7 +351,7 @@ fix_quectel_cm() {
     local cmake_patch_path="$BUILD_DIR/package/feeds/packages/quectel-cm/patches/020-cmake.patch"
 
     if [ -f "$makefile_path" ]; then
-        echo "正在修复 quectel-cm Makefile 修改源码..."
+        echo "正在修复 quectel-cm Makefile..."
 
         sed -i '/^PKG_SOURCE:=/d' "$makefile_path"
         sed -i '/^PKG_SOURCE_URL:=@IMMORTALWRT/d' "$makefile_path"
@@ -337,7 +366,7 @@ PKG_MIRROR_HASH:=skip' "$makefile_path"
 
         sed -i 's/^PKG_RELEASE:=2$/PKG_RELEASE:=3/' "$makefile_path"
 
-        echo "quectel-cm Makefile 修改源码 修复完成。"
+        echo "quectel-cm Makefile 修复完成。"
     fi
 
     if [ -f "$cmake_patch_path" ]; then
@@ -388,7 +417,7 @@ EOF
 
     if [ -f "$luci_support_script" ]; then
         if ! grep -q "client_body_in_file_only off;" "$luci_support_script"; then
-            echo "正在为 Nginx ubus location 块添加修改....."
+            echo "正在为 Nginx ubus location 配置应用修复..."
             sed -i "/ubus_parallel_req 2;/a\\        client_body_in_file_only off;\\n        client_max_body_size 1M;" "$luci_support_script"
         fi
     fi
@@ -407,20 +436,12 @@ update_uwsgi_limit_as() {
     fi
 }
 
-
-disable_oaf_default() {
-    local oaf_path="$BUILD_DIR/feeds/luci/luci-app-oaf/root/etc/uci-defaults"
-    local disable_path="$oaf_path/99_disable_oaf"
-
-    if [ -d "$oaf_path" ]; then
-        cat >"$disable_path" <<-EOF
-#!/bin/sh
-[ "$(uci get appfilter.global.enable 2>/dev/null)" = "0" ] && {
-/etc/init.d/appfilter disable
-/etc/init.d/appfilter stop
-}
-EOF
-        chmod +x "$disable_path"
-        echo "OAF (AppFilter) default disabled."
+remove_tweaked_packages() {
+    local target_mk="$BUILD_DIR/include/target.mk"
+    if [ -f "$target_mk" ]; then
+        if grep -q "^DEFAULT_PACKAGES += \$(DEFAULT_PACKAGES.tweak)" "$target_mk"; then
+            sed -i 's/DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.tweak)/# DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.tweak)/g' "$target_mk"
+        fi
     fi
 }
+

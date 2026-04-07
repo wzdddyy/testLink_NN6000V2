@@ -55,20 +55,8 @@ apply_config() {
     fi
 
     cat "$BASE_PATH/configs/kernel/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
-}
 
-# 安装 lucky 预编译包
-install_lucky_prebuilt() {
-    local lucky_tar="$BASE_PATH/patches/lucky_2.27.2_Linux_arm64_wanji.tar.gz"
-    local lucky_pkg="$BASE_PATH/../$BUILD_DIR/feeds/luci/luci-app-lucky"
-    
-    if [ -f "$lucky_tar" ] && [ -d "$lucky_pkg" ]; then
-        echo "Installing lucky prebuilt binary..."
-        # 解压到 lucky 包的 files 目录
-        mkdir -p "$lucky_pkg/files"
-        tar -xzf "$lucky_tar" -C "$lucky_pkg/files/"
-        echo "Lucky prebuilt binary installed."
-    fi
+    cat "$BASE_PATH/configs/kernel/proxy.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 }
 
 REPO_URL=$(read_ini_by_key "REPO_URL")
@@ -100,11 +88,15 @@ modify_kernel_size() {
 
 modify_kernel_size
 
-# 安装 lucky 预编译包
-install_lucky_prebuilt
-
 cd "$BASE_PATH/../$BUILD_DIR"
 make defconfig
+
+if grep -qE "^CONFIG_TARGET_x86_64=y" "$CONFIG_FILE"; then
+    DISTFEEDS_PATH="$BASE_PATH/../$BUILD_DIR/package/emortal/default-settings/files/99-distfeeds.conf"
+    if [ -d "${DISTFEEDS_PATH%/*}" ] && [ -f "$DISTFEEDS_PATH" ]; then
+        sed -i 's/aarch64_cortex-a53/x86_64/g' "$DISTFEEDS_PATH"
+    fi
+fi
 
 if [[ $Build_Mod == "debug" ]]; then
     exit 0

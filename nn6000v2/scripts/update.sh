@@ -40,12 +40,15 @@ main() {
     clean_up
     reset_feeds_conf
     update_feeds
+    remove_tweaked_packages
     fix_default_set
     fix_miniupnpd
+    update_golang
     change_dnsmasq2full
     fix_mk_def_depends
     update_default_lan_addr
     update_affinity_script
+    update_ath11k_fw
     change_cpuusage
     set_custom_task
     apply_passwall_tweaks
@@ -55,16 +58,25 @@ main() {
     fix_compile_coremark
     update_dnsmasq_conf
     add_backup_info_to_sysupgrade
+    add_timecontrol
+    add_quickfile
+    update_lucky
     fix_rust_compile_error
+    update_diskman
+    update_dockerman
+    install_adguardhome_wzdddyy
+    install_easytier
+    install_oaf
     set_nginx_default_config
     update_uwsgi_limit_as
     update_nginx_ubus_module
+    remove_attendedsysupgrade
     fix_kconfig_recursive_dependency
     install_feeds
-    set_smartdns_default_config
     update_docker_stack
+    update_script_priority
+    fix_openssl_ktls
     fix_opkg_check
-    disable_oaf_default
     fix_quectel_cm
     install_pbr_isp
     fix_pbr_ip_forward
