@@ -14,13 +14,14 @@ update_feeds() {
 
     if ! grep -q "openwrt-passwall-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall" >>"$FEEDS_PATH"
+        echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >>"$FEEDS_PATH"
     fi
 
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
         touch "$BUILD_DIR/include/bpf.mk"
     fi
 
+    ./scripts/feeds update -a
 }
 
 install_feeds() {
