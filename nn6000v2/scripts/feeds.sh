@@ -9,6 +9,8 @@ update_feeds() {
     cat "$FEEDS_PATH"
     echo "================================"
 
+    sed -i '/^src-link/d' "$FEEDS_PATH"
+
     if ! grep -q "openwrt-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
         echo "src-git openwrt-packages https://github.com/kenzok8/openwrt-packages.git" >>"$FEEDS_PATH"
@@ -20,12 +22,6 @@ update_feeds() {
     fi
 
     echo "=== 修改后的 feeds.conf 内容 ==="
-    cat "$FEEDS_PATH"
-    echo "================================"
-
-    sed -i '/^src-link/d' "$FEEDS_PATH"
-
-    echo "=== 移除 src-link 后的 feeds.conf 内容 ==="
     cat "$FEEDS_PATH"
     echo "================================"
 
