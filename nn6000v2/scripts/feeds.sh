@@ -4,28 +4,29 @@ update_feeds() {
     if [[ -f "$BUILD_DIR/feeds.conf" ]]; then
         FEEDS_PATH="$BUILD_DIR/feeds.conf"
     fi
-    
-    # 创建临时文件进行修改
-    local TEMP_FILE=$(mktemp)
-    
-    # 删除注释行和包含 packages_ext 的行
-    grep -v "^#" "$FEEDS_PATH" | grep -v "packages_ext" > "$TEMP_FILE"
-    
-    # 添加 openwrt-packages 源
-    if ! grep -q "openwrt-packages" "$TEMP_FILE"; then
-        echo "" >>"$TEMP_FILE"
-        echo "src-git openwrt-packages https://github.com/kenzok8/openwrt-packages" >>"$TEMP_FILE"
+
+    # 清理空行 + 确保文件干净
+    sed -i '/^[[:space:]]*$/d' "$FEEDS_PATH"
+
+    # 安全移除旧的自定义源
+    sed -i '/openwrt-packages/d' "$FEEDS_PATH"
+    sed -i '/passwall-packages/d' "$FEEDS_PATH"
+    sed -i '/packages_ext/d' "$FEEDS_PATH"
+    # ==================================================
+
+    # 追加 openwrt-packages
+    if ! grep -q "openwrt-packages" "$FEEDS_PATH"; then
+        [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
+        echo "src-git openwrt-packages https://github.com/kenzok8/openwrt-packages" >>"$FEEDS_PATH"
     fi
 
-    # 添加 passwall-packages 源
-    if ! grep -q "passwall-packages" "$TEMP_FILE"; then
-        echo "" >>"$TEMP_FILE"
-        echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >>"$TEMP_FILE"
+    # 追加 passwall-packages
+    if ! grep -q "passwall-packages" "$FEEDS_PATH"; then
+        [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
+        echo "src-git passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >>"$FEEDS_PATH"
     fi
-    
-    # 用临时文件替换原文件
-    mv "$TEMP_FILE" "$FEEDS_PATH"
 
+    # 修复缺失的 bpf.mk
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
         touch "$BUILD_DIR/include/bpf.mk"
     fi
