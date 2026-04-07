@@ -21,12 +21,15 @@ update_feeds() {
         touch "$BUILD_DIR/include/bpf.mk"
     fi
 
+    cd "$BUILD_DIR" || exit 1
     ./scripts/feeds update -a
+    cd - >/dev/null || exit 1
 }
 
 install_feeds() {
+    cd "$BUILD_DIR" || exit 1
     ./scripts/feeds update -i
-    for dir in $BUILD_DIR/feeds/*; do
+    for dir in "$BUILD_DIR"/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
             if [[ $(basename "$dir") == "openwrt-packages" ]]; then
                 install_openwrt_packages
@@ -34,8 +37,9 @@ install_feeds() {
             elif [[ $(basename "$dir") == "passwall-packages" ]]; then
                 install_passwall_packages
             else
-                ./scripts/feeds install -f -ap $(basename "$dir")
+                ./scripts/feeds install -f -ap "$(basename "$dir")"
             fi
         fi
     done
+    cd - >/dev/null || exit 1
 }
