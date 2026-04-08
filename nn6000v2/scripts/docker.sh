@@ -189,6 +189,7 @@ _docker_stack_resolve_dockerman_init() {
     local candidate
     
     for candidate in \
+        "$build_dir/feeds/openwrt_packages/luci-app-dockerman/root/etc/init.d/dockerman" \
         "$build_dir/feeds/luci/applications/luci-app-dockerman/root/etc/init.d/dockerman" \
         "$build_dir/package/feeds/luci/luci-app-dockerman/root/etc/init.d/dockerman" \
         "$build_dir/package/feeds/luci/applications/luci-app-dockerman/root/etc/init.d/dockerman"
@@ -738,6 +739,12 @@ _docker_stack_patch_process_config_nftables() {
                     print "\t\t\t;;"
                     print "\tesac"
                     print "\tif [ \"${firewall_backend}\" = \"nftables\" ]; then"
+                    print "\t\t# 清理旧的 DOCKER-MAN iptables 规则"
+                    print "\t\tif iptables -L DOCKER-MAN >/dev/null 2>&1; then"
+                    print "\t\t\tiptables -F DOCKER-MAN"
+                    print "\t\t\tiptables -X DOCKER-MAN"
+                    print "\t\t\tlogger -t \"dockerd-init\" -p notice \"Cleaned up legacy DOCKER-MAN iptables chain\""
+                    print "\t\tfi"
                     print "\t\tverify_nftables_prerequisites \"${data_root}\" || return 1"
                     print "\tfi"
                     print "\tconfig_get_bool iptables globals iptables \"1\""
