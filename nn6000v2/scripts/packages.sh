@@ -15,8 +15,8 @@ install_openwrt_packages() {
     ./scripts/feeds install -p openwrt_packages -f taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
-        luci-app-lucky luci-app-adguardhome luci-app-easytier open-app-filter \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile
+        luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier open-app-filter \
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall2
 }
 
 
