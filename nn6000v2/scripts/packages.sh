@@ -27,7 +27,7 @@ install_passwall_packages() {
 
 install_passwall2() {
     local PASSWALL2_REPO="https://github.com/Openwrt-Passwall/openwrt-passwall2.git"
-    local PASSWALL2_DIR="$BUILD_DIR/openwrt_packages/openwrt-passwall2"
+    local PASSWALL2_DIR="$BUILD_DIR/feeds/openwrt_packages/openwrt-passwall2"
 
     echo "正在从 Openwrt-Passwall 仓库安装 luci-app-passwall2..."
     
@@ -46,7 +46,7 @@ install_fullconenat() {
 }
 
 add_timecontrol() {
-    local timecontrol_dir="$BUILD_DIR/openwrt_packages/luci-app-timecontrol"
+    local timecontrol_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-timecontrol"
     local repo_url="https://github.com/sirpdboy/luci-app-timecontrol.git"
     rm -rf "$timecontrol_dir" 2>/dev/null
     echo "正在添加 luci-app-timecontrol..."
@@ -59,8 +59,8 @@ add_timecontrol() {
 
 install_lucky() {
     local LUCKY_REPO="https://github.com/gdy666/luci-app-lucky.git"
-    local LUCKY_DIR="$BUILD_DIR/openwrt_packages/lucky"
-    local LUCI_APP_LUCKY_DIR="$BUILD_DIR/openwrt_packages/luci-app-lucky"
+    local LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/lucky"
+    local LUCI_APP_LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-lucky"
 
     echo "正在从 gdy666 仓库安装 luci-app-lucky..."
     
@@ -140,7 +140,7 @@ install_lucky() {
 
 install_adguardhome_wzdddyy() {
     local ADGUARDHOME_REPO="https://github.com/wzdddyy/luci-app-adguardhome.git"
-    local ADGUARDHOME_DIR="$BUILD_DIR/openwrt_packages/luci-app-adguardhome"
+    local ADGUARDHOME_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-adguardhome"
 
     echo "正在从 wzdddyy 仓库安装 luci-app-adguardhome..."
     
@@ -155,7 +155,7 @@ install_adguardhome_wzdddyy() {
 
 install_easytier() {
     local EASYTIER_REPO="https://github.com/EasyTier/luci-app-easytier.git"
-    local EASYTIER_DIR="$BUILD_DIR/openwrt_packages/luci-app-easytier"
+    local EASYTIER_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-easytier"
 
     echo "正在从 EasyTier 官方仓库安装 luci-app-easytier..."
     
@@ -174,7 +174,7 @@ install_easytier() {
 
 install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
-    local OAF_DIR="$BUILD_DIR/openwrt_packages/OpenAppFilter"
+    local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
 
     echo "正在从 destan19 仓库安装 OpenAppFilter..."
     
@@ -188,11 +188,11 @@ install_oaf() {
         exit 1
     fi
 
-    # 修复 kmod-oaf 递归依赖问题
-    local kmod_oaf_makefile="$OAF_DIR/kmod-oaf/Makefile"
-    if [ -f "$kmod_oaf_makefile" ]; then
-        sed -i 's/DEPENDS:=.*kmod-oaf/DEPENDS:=/g' "$kmod_oaf_makefile"
-        echo "已修复 kmod-oaf 递归依赖问题"
+    # 修复 oaf 递归依赖问题
+    local oaf_makefile="$OAF_DIR/oaf/Makefile"
+    if [ -f "$oaf_makefile" ]; then
+        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=/g' "$oaf_makefile"
+        echo "已修复 oaf 递归依赖问题"
     fi
 
     # 默认禁用 OAF 服务
@@ -202,16 +202,19 @@ install_oaf() {
         echo "OAF 已配置为默认禁用状态"
     fi
 
+    # 安装 OAF 软件包
+    ./scripts/feeds install -f oaf open-app-filter luci-app-oaf
+
     echo "OpenAppFilter 安装完成"
 }
 
 update_diskman() {
-    local path="$BUILD_DIR/openwrt_packages/luci-app-diskman"
+    local path="$BUILD_DIR/feeds/openwrt_packages/luci-app-diskman"
     local repo_url="https://github.com/lisaac/luci-app-diskman.git"
     
     echo "正在更新 diskman..."
-    mkdir -p "$BUILD_DIR/openwrt_packages" || return
-    cd "$BUILD_DIR/openwrt_packages" || return
+    mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
+    cd "$BUILD_DIR/feeds/openwrt_packages" || return
     \rm -rf "luci-app-diskman"
 
     if ! git clone --filter=blob:none --no-checkout "$repo_url" diskman; then
@@ -238,10 +241,10 @@ update_diskman() {
 
 _sync_luci_lib_docker() {
     local repo_url="https://github.com/lisaac/luci-lib-docker.git"
-    local luci_lib_docker_dir="$BUILD_DIR/openwrt_packages/luci-lib-docker"
+    local luci_lib_docker_dir="$BUILD_DIR/feeds/openwrt_packages/luci-lib-docker"
     
     echo "正在同步 luci-lib-docker..."
-    mkdir -p "$BUILD_DIR/openwrt_packages" || return
+    mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
     
     rm -rf "$luci_lib_docker_dir"
     if ! git clone --depth=1 "$repo_url" "$luci_lib_docker_dir"; then
@@ -253,14 +256,14 @@ _sync_luci_lib_docker() {
 }
 
 update_dockerman() {
-    local path="$BUILD_DIR/openwrt_packages/luci-app-dockerman"
+    local path="$BUILD_DIR/feeds/openwrt_packages/luci-app-dockerman"
     local repo_url="https://github.com/wzdddyy/luci-app-dockerman.git"
     
     echo "正在更新 dockerman..."
     _sync_luci_lib_docker || return
     
-    mkdir -p "$BUILD_DIR/openwrt_packages" || return
-    cd "$BUILD_DIR/openwrt_packages" || return
+    mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
+    cd "$BUILD_DIR/feeds/openwrt_packages" || return
     \rm -rf "luci-app-dockerman"
 
     if ! git clone --filter=blob:none --no-checkout "$repo_url" dockerman; then
@@ -284,7 +287,7 @@ update_dockerman() {
 
 add_quickfile() {
     local repo_url="https://github.com/sbwml/luci-app-quickfile.git"
-    local target_dir="$BUILD_DIR/openwrt_packages/luci-app-quickfile"
+    local target_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-quickfile"
     if [ -d "$target_dir" ]; then
         rm -rf "$target_dir"
     fi
