@@ -14,7 +14,9 @@ update_golang() {
 install_openwrt_packages() {
     ./scripts/feeds install -p openwrt_packages -f taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
-        smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config
+        smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
+        luci-app-lucky luci-app-adguardhome luci-app-easytier open-app-filter \
+        luci-app-diskman luci-app-dockerman luci-app-quickfile
 }
 
 
@@ -283,8 +285,6 @@ install_quickfile() {
         echo "错误：从 $repo_url 克隆 luci-app-quickfile 仓库失败" >&2
         exit 1
     fi
-    
-
 }
 
 remove_attendedsysupgrade() {
