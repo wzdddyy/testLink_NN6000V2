@@ -36,10 +36,26 @@ source "$SCRIPT_DIR/docker.sh"
 
 
 main() {
+    # 1. 环境准备阶段
     clone_repo
     clean_up
     reset_feeds_conf
+    
+    # 2. Feeds 更新阶段
     update_feeds
+    
+    # 3. 独立包安装阶段
+    install_timecontrol
+    install_quickfile
+    install_lucky
+    install_diskman
+    install_dockerman
+    install_adguardhome
+    install_passwall2
+    install_easytier
+    install_oaf
+    
+    # 4. 系统配置阶段
     remove_tweaked_packages
     fix_default_set
     fix_miniupnpd
@@ -59,17 +75,7 @@ main() {
     update_dnsmasq_conf
     add_backup_info_to_sysupgrade
     
-    # 先克隆所有独立仓库
-    install_timecontrol
-    install_quickfile
-    install_lucky
-    install_diskman
-    install_dockerman
-    install_adguardhome
-    install_passwall2
-    install_easytier
-    install_oaf
-    
+    # 5. 构建配置阶段
     set_nginx_default_config
     update_uwsgi_limit_as
     update_nginx_ubus_module
@@ -84,7 +90,7 @@ main() {
     install_pbr_isp
     fix_pbr_ip_forward
     
-    # 最后统一更新索引并安装所有包
+    # 6. 统一安装阶段
     install_feeds
 }
 
