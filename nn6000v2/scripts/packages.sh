@@ -54,6 +54,8 @@ add_timecontrol() {
         echo "错误：从 $repo_url 克隆 luci-app-timecontrol 仓库失败" >&2
         exit 1
     fi
+    
+
 }
 
 
@@ -202,9 +204,6 @@ install_oaf() {
         echo "OAF 已配置为默认禁用状态"
     fi
 
-    # 安装 OAF 软件包
-    ./scripts/feeds install -f oaf open-app-filter luci-app-oaf
-
     echo "OpenAppFilter 安装完成"
 }
 
@@ -296,6 +295,8 @@ add_quickfile() {
         echo "错误：从 $repo_url 克隆 luci-app-quickfile 仓库失败" >&2
         exit 1
     fi
+    
+
 }
 
 remove_attendedsysupgrade() {
