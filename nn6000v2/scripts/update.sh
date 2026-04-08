@@ -40,11 +40,7 @@ main() {
     clone_repo
     clean_up
     reset_feeds_conf
-    
-    # 2. Feeds 更新阶段
     update_feeds
-    
-    # 3. 独立包安装阶段
     install_quickfile
     install_lucky
     install_diskman
@@ -53,11 +49,8 @@ main() {
     install_passwall2
     install_easytier
     install_oaf
-    
-    # 4. 统一安装阶段
+    install_nginx
     install_feeds
-    
-    # 5. 系统配置阶段
     remove_tweaked_packages
     fix_default_set
     fix_miniupnpd
