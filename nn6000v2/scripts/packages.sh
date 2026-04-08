@@ -12,7 +12,7 @@ update_golang() {
 }
 
 install_openwrt_packages() {
-    ./scripts/feeds install -p openwrt-packages -f taskd luci-lib-xterm luci-lib-taskd \
+    ./scripts/feeds install -p openwrt_packages -f taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config
 }
@@ -20,7 +20,7 @@ install_openwrt_packages() {
 
 install_passwall_packages() {
     echo "正在从 Openwrt-Passwall-packages 仓库安装代理相关依赖..."
-    ./scripts/feeds install -p passwall-packages -f chinadns-ng dns2socks geoview hysteria ipt2socks microsocks \
+    ./scripts/feeds install -p passwall_packages -f chinadns-ng dns2socks geoview hysteria ipt2socks microsocks \
         naiveproxy shadow-tls shadowsocks-libev shadowsocks-rust shadowsocksr-libev simple-obfs sing-box \
         tcping trojan-plus tuic-client v2ray-geodata v2ray-plugin xray-core xray-plugin
 }
@@ -36,6 +36,10 @@ install_passwall2() {
         echo "错误：从 $PASSWALL2_REPO 克隆 luci-app-passwall2 仓库失败" >&2
         exit 1
     fi
+
+    # 更新 feeds 索引并安装 luci-app-passwall2
+    ./scripts/feeds update -i
+    ./scripts/feeds install -f luci-app-passwall2
 
     echo "luci-app-passwall2 安装完成"
 }
@@ -54,6 +58,10 @@ add_timecontrol() {
         echo "错误：从 $repo_url 克隆 luci-app-timecontrol 仓库失败" >&2
         exit 1
     fi
+
+    # 更新 feeds 索引并安装 luci-app-timecontrol
+    ./scripts/feeds update -i
+    ./scripts/feeds install -f luci-app-timecontrol
 }
 
 
@@ -103,7 +111,7 @@ install_lucky() {
     popd >/dev/null
     
     # 默认禁用 lucky 服务
-    local lucky_conf="$LUCKY_DIR/files/luckyuci"
+    local lucky_conf="$LUCKY_DIR/lucky/files/luckyuci"
     if [ -f "$lucky_conf" ]; then
         sed -i "s/option enabled '1'/option enabled '0'/g" "$lucky_conf"
         sed -i "s/option logger '1'/option logger '0'/g" "$lucky_conf"
@@ -118,7 +126,7 @@ install_lucky() {
         return 0
     fi
     
-    local makefile_path="$LUCKY_DIR/Makefile"
+    local makefile_path="$LUCKY_DIR/lucky/Makefile"
     if [ ! -f "$makefile_path" ]; then
         echo "Warning: lucky Makefile not found. Skipping." >&2
         return 0
@@ -161,7 +169,7 @@ install_easytier() {
     
     # 安装依赖
     echo "正在安装 EasyTier 依赖..."
-    ./scripts/feeds install -p luci -f luci-lib-jsonc
+    ./scripts/feeds install -f luci-lib-jsonc
     
     rm -rf "$EASYTIER_DIR"
     if ! git clone --depth=1 "$EASYTIER_REPO" "$EASYTIER_DIR"; then
@@ -195,8 +203,9 @@ install_oaf() {
         echo "已修复 kmod-oaf 递归依赖问题"
     fi
 
-    # 安装 OAF 软件包
-    ./scripts/feeds install -p package -f kmod-oaf appfilter luci-app-oaf
+    # 更新 feeds 索引并安装 OAF 软件包
+    ./scripts/feeds update -i
+    ./scripts/feeds install -f kmod-oaf appfilter luci-app-oaf
 
     # 默认禁用 OAF 服务
     local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
@@ -251,8 +260,9 @@ _sync_luci_lib_docker() {
         cd "$BUILD_DIR"
         echo "luci-lib-docker 同步完成"
     fi
-    # 安装 luci-lib-docker
-    ./scripts/feeds install -p luci -f luci-lib-docker
+    # 更新 feeds 索引并安装 luci-lib-docker
+    ./scripts/feeds update -i
+    ./scripts/feeds install -f luci-lib-docker
 }
 
 update_dockerman() {
@@ -296,6 +306,10 @@ add_quickfile() {
         echo "错误：从 $repo_url 克隆 luci-app-quickfile 仓库失败" >&2
         exit 1
     fi
+
+    # 更新 feeds 索引并安装 luci-app-quickfile
+    ./scripts/feeds update -i
+    ./scripts/feeds install -f luci-app-quickfile
 }
 
 remove_attendedsysupgrade() {
