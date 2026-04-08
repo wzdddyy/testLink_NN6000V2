@@ -328,12 +328,12 @@ fix_pbr_ip_forward() {
 
     if [ ! -d "$pbr_pkg_dir" ]; then
         echo "PBR package directory not found: $pbr_pkg_dir"
-        return 0
+        return 1
     fi
 
     if [ ! -f "$pbr_init_script" ]; then
         echo "PBR init script not found: $pbr_init_script"
-        return 0
+        return 1
     fi
 
     # Check if fix is already applied (enabled check already present)

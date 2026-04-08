@@ -36,15 +36,15 @@ source "$SCRIPT_DIR/docker.sh"
 
 
 main() {
-    # 1. 环境准备阶段
+    # 1. 环境准备
     clone_repo
     clean_up
     reset_feeds_conf
     
-    # 2. Feeds 更新阶段
+    # 2. Feeds 更新
     update_feeds
     
-    # 3. 独立包安装阶段
+    # 3. 独立包安装
     install_timecontrol
     install_quickfile
     install_lucky
@@ -54,8 +54,9 @@ main() {
     install_passwall2
     install_easytier
     install_oaf
-    
-    # 4. 系统配置阶段
+    # 4. 统一安装
+    install_feeds
+    # 5. 系统配置
     remove_tweaked_packages
     fix_default_set
     fix_miniupnpd
@@ -73,9 +74,8 @@ main() {
     update_nss_diag
     fix_compile_coremark
     update_dnsmasq_conf
-    add_backup_info_to_sysupgrade
-    
-    # 5. 构建配置阶段
+    add_backup_info_to_sysupgrade   
+    # 6. 构建配置阶段
     set_nginx_default_config
     update_uwsgi_limit_as
     update_nginx_ubus_module
@@ -87,9 +87,6 @@ main() {
     fix_openssl_ktls
     fix_opkg_check
     fix_quectel_cm
-    
-    # 6. 统一安装阶段
-    install_feeds
     
     # 7. PBR 配置阶段
     install_pbr_isp
