@@ -75,25 +75,6 @@ fix_hash_value() {
     fi
 }
 
-update_ath11k_fw() {
-    local makefile="$BUILD_DIR/package/firmware/ath11k-firmware/Makefile"
-    local new_mk="$BASE_PATH/patches/ath11k_fw.mk"
-    local url="https://raw.githubusercontent.com/VIKINGYFY/immortalwrt/refs/heads/main/package/firmware/ath11k-firmware/Makefile"
-
-    if [ -d "$(dirname "$makefile")" ]; then
-        echo "正在更新 ath11k-firmware Makefile..."
-        if ! curl -fsSL -o "$new_mk" "$url"; then
-            echo "错误：从 $url 下载 ath11k-firmware Makefile 失败" >&2
-            exit 1
-        fi
-        if [ ! -s "$new_mk" ]; then
-            echo "错误：下载的 ath11k-firmware Makefile 为空文件" >&2
-            exit 1
-        fi
-        mv -f "$new_mk" "$makefile"
-    fi
-}
-
 change_cpuusage() {
     local luci_rpc_path="$BUILD_DIR/feeds/luci/modules/luci-base/root/usr/share/rpcd/ucode/luci"
     local qualcommax_sbin_dir="$BUILD_DIR/target/linux/qualcommax/base-files/sbin"

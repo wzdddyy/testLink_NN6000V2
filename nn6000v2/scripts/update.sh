@@ -59,7 +59,6 @@ main() {
     update_default_lan_addr
     update_affinity_script
     update_dnsmasq_conf
-    update_ath11k_fw
     change_cpuusage
     set_custom_task
     apply_passwall_tweaks
