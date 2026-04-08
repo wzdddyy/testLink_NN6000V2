@@ -58,8 +58,6 @@ main() {
     fix_compile_coremark
     update_dnsmasq_conf
     add_backup_info_to_sysupgrade
-    
-    # 先克隆所有独立仓库
     add_timecontrol
     add_quickfile
     install_lucky
@@ -69,10 +67,7 @@ main() {
     install_passwall2
     install_easytier
     install_oaf
-    
-    # 统一更新索引并安装所有包
     install_feeds
-    
     set_nginx_default_config
     update_uwsgi_limit_as
     update_nginx_ubus_module
