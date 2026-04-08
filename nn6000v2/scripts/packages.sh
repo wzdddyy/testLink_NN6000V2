@@ -20,8 +20,6 @@ install_openwrt_packages() {
 }
 
 
-
-
 install_passwall_packages() {
     echo "正在从 Openwrt-Passwall-packages 仓库安装代理相关依赖..."
     ./scripts/feeds install -p passwall_packages -f chinadns-ng dns2socks geoview hysteria ipt2socks microsocks \
