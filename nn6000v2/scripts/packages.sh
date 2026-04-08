@@ -45,17 +45,16 @@ install_fullconenat() {
     ./scripts/feeds install -p packages -f kmod-fullconenat
 }
 
-add_timecontrol() {
+install_timecontrol() {
     local timecontrol_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-timecontrol"
     local repo_url="https://github.com/sirpdboy/luci-app-timecontrol.git"
     rm -rf "$timecontrol_dir" 2>/dev/null
-    echo "正在添加 luci-app-timecontrol..."
+    echo "正在安装 luci-app-timecontrol..."
     if ! git clone --depth 1 "$repo_url" "$timecontrol_dir"; then
         echo "错误：从 $repo_url 克隆 luci-app-timecontrol 仓库失败" >&2
         exit 1
     fi
     
-
 }
 
 
@@ -140,11 +139,11 @@ install_lucky() {
     echo "luci-app-lucky 安装完成"
 }
 
-install_adguardhome_wzdddyy() {
+install_adguardhome() {
     local ADGUARDHOME_REPO="https://github.com/wzdddyy/luci-app-adguardhome.git"
     local ADGUARDHOME_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-adguardhome"
 
-    echo "正在从 wzdddyy 仓库安装 luci-app-adguardhome..."
+    echo "正在安装 luci-app-adguardhome..."
     
     rm -rf "$ADGUARDHOME_DIR"
     if ! git clone --depth=1 "$ADGUARDHOME_REPO" "$ADGUARDHOME_DIR"; then
@@ -207,11 +206,11 @@ install_oaf() {
     echo "OpenAppFilter 安装完成"
 }
 
-update_diskman() {
+install_diskman() {
     local path="$BUILD_DIR/feeds/openwrt_packages/luci-app-diskman"
     local repo_url="https://github.com/lisaac/luci-app-diskman.git"
     
-    echo "正在更新 diskman..."
+    echo "正在安装 diskman..."
     mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
     cd "$BUILD_DIR/feeds/openwrt_packages" || return
     \rm -rf "luci-app-diskman"
@@ -235,7 +234,7 @@ update_diskman() {
     sed -i 's/fs-ntfs /fs-ntfs3 /g' "$path/Makefile"
     sed -i '/ntfs-3g-utils /d' "$path/Makefile"
     
-    echo "diskman 更新完成"
+    echo "diskman 安装完成"
 }
 
 _sync_luci_lib_docker() {
@@ -254,11 +253,11 @@ _sync_luci_lib_docker() {
     echo "luci-lib-docker 同步完成"
 }
 
-update_dockerman() {
+install_dockerman() {
     local path="$BUILD_DIR/feeds/openwrt_packages/luci-app-dockerman"
     local repo_url="https://github.com/wzdddyy/luci-app-dockerman.git"
     
-    echo "正在更新 dockerman..."
+    echo "正在安装 dockerman..."
     _sync_luci_lib_docker || return
     
     mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
@@ -281,16 +280,16 @@ update_dockerman() {
     \rm -rf dockerman
     cd "$BUILD_DIR"
 
-    echo "dockerman 更新完成"
+    echo "dockerman 安装完成"
 }
 
-add_quickfile() {
+install_quickfile() {
     local repo_url="https://github.com/sbwml/luci-app-quickfile.git"
     local target_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-quickfile"
     if [ -d "$target_dir" ]; then
         rm -rf "$target_dir"
     fi
-    echo "正在添加 luci-app-quickfile..."
+    echo "正在安装 luci-app-quickfile..."
     if ! git clone --depth 1 "$repo_url" "$target_dir"; then
         echo "错误：从 $repo_url 克隆 luci-app-quickfile 仓库失败" >&2
         exit 1

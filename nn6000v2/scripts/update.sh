@@ -58,16 +58,18 @@ main() {
     fix_compile_coremark
     update_dnsmasq_conf
     add_backup_info_to_sysupgrade
-    add_timecontrol
-    add_quickfile
+    
+    # 先克隆所有独立仓库
+    install_timecontrol
+    install_quickfile
     install_lucky
-    update_diskman
-    update_dockerman
-    install_adguardhome_wzdddyy
+    install_diskman
+    install_dockerman
+    install_adguardhome
     install_passwall2
     install_easytier
     install_oaf
-    install_feeds
+    
     set_nginx_default_config
     update_uwsgi_limit_as
     update_nginx_ubus_module
@@ -81,6 +83,9 @@ main() {
     fix_quectel_cm
     install_pbr_isp
     fix_pbr_ip_forward
+    
+    # 最后统一更新索引并安装所有包
+    install_feeds
 }
 
 main "$@"
