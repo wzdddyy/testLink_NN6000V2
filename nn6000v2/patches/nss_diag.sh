@@ -57,10 +57,23 @@ ath11k_fw=${ath11k_fw:-"N/A"}
 mac80211_version=$(awk '/version/{print $NF;exit}' /lib/modules/*/compat.ko 2>/dev/null || echo "N/A")
 
 # IPQ release details
-[ -r /etc/ipq_release ] && . /etc/ipq_release
-ipq_branch=${IPQ_BRANCH:-"N/A"}
-ipq_commit=${IPQ_COMMIT:-"N/A"}
-ipq_date=${IPQ_DATE:-"N/A"}
+if [ -r /etc/ipq_release ]; then
+    . /etc/ipq_release
+    ipq_branch=${IPQ_BRANCH:-"N/A"}
+    ipq_commit=${IPQ_COMMIT:-"N/A"}
+    ipq_date=${IPQ_DATE:-"N/A"}
+else
+    # Try to get branch info from openwrt_version
+    if [ -r /etc/openwrt_version ]; then
+        ipq_branch=$(grep -o 'SNAPSHOT\|[0-9]\+\.[0-9]\+\.[0-9]\+' /etc/openwrt_version 2>/dev/null || echo "main")
+        ipq_commit=$(cat /etc/openwrt_version | cut -d '-' -f 2 | cut -d ' ' -f 1 || echo "N/A")
+        ipq_date=$(date +%Y-%m-%d)
+    else
+        ipq_branch="main"
+        ipq_commit="N/A"
+        ipq_date=$(date +%Y-%m-%d)
+    fi
+fi
 
 # Display system information
 echo -e "${bold}${red}========================================${reset}"
