@@ -36,11 +36,11 @@ source "$SCRIPT_DIR/docker.sh"
 
 
 main() {
-    # 1. 环境准备阶段
     clone_repo
     clean_up
     reset_feeds_conf
     update_feeds
+    update_golang
     install_quickfile
     install_lucky
     install_diskman
@@ -50,31 +50,30 @@ main() {
     install_easytier
     install_oaf
     install_feeds
+    update_docker_stack
     remove_tweaked_packages
     fix_default_set
     fix_miniupnpd
-    update_golang
     change_dnsmasq2full
     fix_mk_def_depends
     update_default_lan_addr
     update_affinity_script
+    update_dnsmasq_conf
     update_ath11k_fw
     change_cpuusage
     set_custom_task
     apply_passwall_tweaks
     update_nss_pbuf_performance
-    set_build_signature
     update_nss_diag
     fix_compile_coremark
-    update_dnsmasq_conf
+    set_build_signature
     add_backup_info_to_sysupgrade
-    set_nginx_default_config
-    update_uwsgi_limit_as
-    update_nginx_ubus_module
-    fix_nginx_configure
     remove_attendedsysupgrade
     fix_kconfig_recursive_dependency
-    update_docker_stack
+    set_nginx_default_config
+    update_nginx_ubus_module
+    fix_nginx_configure
+    update_uwsgi_limit_as
     update_script_priority
     fix_openssl_ktls
     fix_opkg_check
