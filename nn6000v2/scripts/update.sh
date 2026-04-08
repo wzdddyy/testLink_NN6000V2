@@ -49,6 +49,7 @@ main() {
     install_passwall2
     install_easytier
     install_oaf
+    install_feeds
     remove_tweaked_packages
     fix_default_set
     fix_miniupnpd
@@ -75,11 +76,9 @@ main() {
     fix_kconfig_recursive_dependency
     update_docker_stack
     update_script_priority
-    install_feeds
     fix_openssl_ktls
     fix_opkg_check
     fix_quectel_cm
-    install_feeds
     install_pbr_isp
     fix_pbr_ip_forward
 }
