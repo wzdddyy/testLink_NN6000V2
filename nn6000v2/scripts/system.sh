@@ -225,7 +225,7 @@ fix_rust_compile_error() {
 }
 
 update_nginx_ubus_module() {
-    local makefile_path="$BUILD_DIR/feeds/packages/net/nginx-ssl/Makefile"
+    local makefile_path="$BUILD_DIR/feeds/packages/net/nginx/Makefile"
     local source_date="2024-03-02"
     local source_version="564fa3e9c2b04ea298ea659b793480415da26415"
     local mirror_hash="92c9ab94d88a2fe8d7d1e8a15d15cfc4d529fdc357ed96d22b65d5da3dd24d7f"
