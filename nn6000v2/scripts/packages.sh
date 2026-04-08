@@ -15,7 +15,8 @@ install_openwrt_packages() {
     ./scripts/feeds install -p openwrt_packages -f taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
-        luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier open-app-filter \
+        luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
+        luci-app-oaf open-app-filter oaf \
         luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall2
 }
 
@@ -154,19 +155,16 @@ install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
     local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
 
-    # 安装依赖
-    ./scripts/feeds install -f kmod-ipt-nat
-    
     rm -rf "$OAF_DIR"
     if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
         echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
         exit 1
     fi
 
-    # 修复 oaf 递归依赖问题
+    # 修复 oaf 递归依赖问题，但保留必要依赖
     local oaf_makefile="$OAF_DIR/oaf/Makefile"
     if [ -f "$oaf_makefile" ]; then
-        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=/g' "$oaf_makefile"
+        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
     fi
 
     # 默认禁用 OAF 服务
