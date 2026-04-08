@@ -27,7 +27,7 @@ install_passwall_packages() {
 
 install_passwall2() {
     local PASSWALL2_REPO="https://github.com/Openwrt-Passwall/openwrt-passwall2.git"
-    local PASSWALL2_DIR="$BUILD_DIR/feeds/passwall2"
+    local PASSWALL2_DIR="$BUILD_DIR/openwrt_packages/openwrt-passwall2"
 
     echo "正在从 Openwrt-Passwall 仓库安装 luci-app-passwall2..."
     
@@ -36,10 +36,6 @@ install_passwall2() {
         echo "错误：从 $PASSWALL2_REPO 克隆 luci-app-passwall2 仓库失败" >&2
         exit 1
     fi
-
-    # 更新 feeds 索引并安装 luci-app-passwall2
-    ./scripts/feeds update -i
-    ./scripts/feeds install -f luci-app-passwall2
 
     echo "luci-app-passwall2 安装完成"
 }
@@ -50,7 +46,7 @@ install_fullconenat() {
 }
 
 add_timecontrol() {
-    local timecontrol_dir="$BUILD_DIR/package/luci-app-timecontrol"
+    local timecontrol_dir="$BUILD_DIR/openwrt_packages/luci-app-timecontrol"
     local repo_url="https://github.com/sirpdboy/luci-app-timecontrol.git"
     rm -rf "$timecontrol_dir" 2>/dev/null
     echo "正在添加 luci-app-timecontrol..."
@@ -58,17 +54,13 @@ add_timecontrol() {
         echo "错误：从 $repo_url 克隆 luci-app-timecontrol 仓库失败" >&2
         exit 1
     fi
-
-    # 更新 feeds 索引并安装 luci-app-timecontrol
-    ./scripts/feeds update -i
-    ./scripts/feeds install -f luci-app-timecontrol
 }
 
 
 install_lucky() {
     local LUCKY_REPO="https://github.com/gdy666/luci-app-lucky.git"
-    local LUCKY_DIR="$BUILD_DIR/feeds/luci/applications/lucky"
-    local LUCI_APP_LUCKY_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-lucky"
+    local LUCKY_DIR="$BUILD_DIR/openwrt_packages/lucky"
+    local LUCI_APP_LUCKY_DIR="$BUILD_DIR/openwrt_packages/luci-app-lucky"
 
     echo "正在从 gdy666 仓库安装 luci-app-lucky..."
     
@@ -148,7 +140,7 @@ install_lucky() {
 
 install_adguardhome_wzdddyy() {
     local ADGUARDHOME_REPO="https://github.com/wzdddyy/luci-app-adguardhome.git"
-    local ADGUARDHOME_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-adguardhome"
+    local ADGUARDHOME_DIR="$BUILD_DIR/openwrt_packages/luci-app-adguardhome"
 
     echo "正在从 wzdddyy 仓库安装 luci-app-adguardhome..."
     
@@ -163,7 +155,7 @@ install_adguardhome_wzdddyy() {
 
 install_easytier() {
     local EASYTIER_REPO="https://github.com/EasyTier/luci-app-easytier.git"
-    local EASYTIER_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-easytier"
+    local EASYTIER_DIR="$BUILD_DIR/openwrt_packages/luci-app-easytier"
 
     echo "正在从 EasyTier 官方仓库安装 luci-app-easytier..."
     
@@ -182,13 +174,13 @@ install_easytier() {
 
 install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
-    local OAF_DIR="$BUILD_DIR/package/OpenAppFilter"
+    local OAF_DIR="$BUILD_DIR/openwrt_packages/OpenAppFilter"
 
     echo "正在从 destan19 仓库安装 OpenAppFilter..."
     
     # 安装依赖
     echo "正在安装 OAF 依赖..."
-    ./scripts/feeds install -p packages -f kmod-ipt-nat
+    ./scripts/feeds install -f kmod-ipt-nat
     
     rm -rf "$OAF_DIR"
     if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
@@ -203,10 +195,6 @@ install_oaf() {
         echo "已修复 kmod-oaf 递归依赖问题"
     fi
 
-    # 更新 feeds 索引并安装 OAF 软件包
-    ./scripts/feeds update -i
-    ./scripts/feeds install -f kmod-oaf appfilter luci-app-oaf
-
     # 默认禁用 OAF 服务
     local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
     if [ -f "$oaf_config" ]; then
@@ -218,86 +206,85 @@ install_oaf() {
 }
 
 update_diskman() {
-    local path="$BUILD_DIR/feeds/luci/applications/luci-app-diskman"
+    local path="$BUILD_DIR/openwrt_packages/luci-app-diskman"
     local repo_url="https://github.com/lisaac/luci-app-diskman.git"
-    if [ -d "$path" ]; then
-        echo "正在更新 diskman..."
-        cd "$BUILD_DIR/feeds/luci/applications" || return
-        \rm -rf "luci-app-diskman"
+    
+    echo "正在更新 diskman..."
+    mkdir -p "$BUILD_DIR/openwrt_packages" || return
+    cd "$BUILD_DIR/openwrt_packages" || return
+    \rm -rf "luci-app-diskman"
 
-        if ! git clone --filter=blob:none --no-checkout "$repo_url" diskman; then
-            echo "错误：从 $repo_url 克隆 diskman 仓库失败" >&2
-            exit 1
-        fi
-        cd diskman || return
-
-        git sparse-checkout init --cone
-        git sparse-checkout set applications/luci-app-diskman || return
-
-        git checkout --quiet
-
-        mv applications/luci-app-diskman ../luci-app-diskman || return
-        cd .. || return
-        \rm -rf diskman
-        cd "$BUILD_DIR"
-
-        sed -i 's/fs-ntfs /fs-ntfs3 /g' "$path/Makefile"
-        sed -i '/ntfs-3g-utils /d' "$path/Makefile"
+    if ! git clone --filter=blob:none --no-checkout "$repo_url" diskman; then
+        echo "错误：从 $repo_url 克隆 diskman 仓库失败" >&2
+        exit 1
     fi
+    cd diskman || return
+
+    git sparse-checkout init --cone
+    git sparse-checkout set applications/luci-app-diskman || return
+
+    git checkout --quiet
+
+    mv applications/luci-app-diskman ../luci-app-diskman || return
+    cd .. || return
+    \rm -rf diskman
+    cd "$BUILD_DIR"
+
+    sed -i 's/fs-ntfs /fs-ntfs3 /g' "$path/Makefile"
+    sed -i '/ntfs-3g-utils /d' "$path/Makefile"
+    
+    echo "diskman 更新完成"
 }
 
 _sync_luci_lib_docker() {
     local repo_url="https://github.com/lisaac/luci-lib-docker.git"
-    if [ ! -d "$BUILD_DIR/feeds/luci/libs/luci-lib-docker" ]; then
-        echo "正在同步 luci-lib-docker..."
-        mkdir -p "$BUILD_DIR/feeds/luci/libs" || return
-        cd "$BUILD_DIR/feeds/luci/libs" || return
-        
-        if ! git clone --depth=1 "$repo_url" luci-lib-docker; then
-            echo "错误：从 $repo_url 克隆 luci-lib-docker 仓库失败" >&2
-            exit 1
-        fi
-        cd "$BUILD_DIR"
-        echo "luci-lib-docker 同步完成"
+    local luci_lib_docker_dir="$BUILD_DIR/openwrt_packages/luci-lib-docker"
+    
+    echo "正在同步 luci-lib-docker..."
+    mkdir -p "$BUILD_DIR/openwrt_packages" || return
+    
+    rm -rf "$luci_lib_docker_dir"
+    if ! git clone --depth=1 "$repo_url" "$luci_lib_docker_dir"; then
+        echo "错误：从 $repo_url 克隆 luci-lib-docker 仓库失败" >&2
+        exit 1
     fi
-    # 更新 feeds 索引并安装 luci-lib-docker
-    ./scripts/feeds update -i
-    ./scripts/feeds install -f luci-lib-docker
+    
+    echo "luci-lib-docker 同步完成"
 }
 
 update_dockerman() {
-    local path="$BUILD_DIR/feeds/luci/applications/luci-app-dockerman"
+    local path="$BUILD_DIR/openwrt_packages/luci-app-dockerman"
     local repo_url="https://github.com/wzdddyy/luci-app-dockerman.git"
-    if [ -d "$path" ]; then
-        echo "正在更新 dockerman..."
-        _sync_luci_lib_docker || return
-        
-        cd "$BUILD_DIR/feeds/luci/applications" || return
-        \rm -rf "luci-app-dockerman"
+    
+    echo "正在更新 dockerman..."
+    _sync_luci_lib_docker || return
+    
+    mkdir -p "$BUILD_DIR/openwrt_packages" || return
+    cd "$BUILD_DIR/openwrt_packages" || return
+    \rm -rf "luci-app-dockerman"
 
-        if ! git clone --filter=blob:none --no-checkout "$repo_url" dockerman; then
-            echo "错误：从 $repo_url 克隆 dockerman 仓库失败" >&2
-            exit 1
-        fi
-        cd dockerman || return
-
-        git sparse-checkout init --cone
-        git sparse-checkout set applications/luci-app-dockerman || return
-
-        git checkout --quiet
-
-        mv applications/luci-app-dockerman ../luci-app-dockerman || return
-        cd .. || return
-        \rm -rf dockerman
-        cd "$BUILD_DIR"
-
-        echo "dockerman 更新完成"
+    if ! git clone --filter=blob:none --no-checkout "$repo_url" dockerman; then
+        echo "错误：从 $repo_url 克隆 dockerman 仓库失败" >&2
+        exit 1
     fi
+    cd dockerman || return
+
+    git sparse-checkout init --cone
+    git sparse-checkout set applications/luci-app-dockerman || return
+
+    git checkout --quiet
+
+    mv applications/luci-app-dockerman ../luci-app-dockerman || return
+    cd .. || return
+    \rm -rf dockerman
+    cd "$BUILD_DIR"
+
+    echo "dockerman 更新完成"
 }
 
 add_quickfile() {
     local repo_url="https://github.com/sbwml/luci-app-quickfile.git"
-    local target_dir="$BUILD_DIR/package/emortal/quickfile"
+    local target_dir="$BUILD_DIR/openwrt_packages/luci-app-quickfile"
     if [ -d "$target_dir" ]; then
         rm -rf "$target_dir"
     fi
@@ -306,10 +293,6 @@ add_quickfile() {
         echo "错误：从 $repo_url 克隆 luci-app-quickfile 仓库失败" >&2
         exit 1
     fi
-
-    # 更新 feeds 索引并安装 luci-app-quickfile
-    ./scripts/feeds update -i
-    ./scripts/feeds install -f luci-app-quickfile
 }
 
 remove_attendedsysupgrade() {
