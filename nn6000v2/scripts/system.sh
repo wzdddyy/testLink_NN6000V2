@@ -173,11 +173,10 @@ set_build_signature() {
 }
 
 update_nss_diag() {
-    local file="$BUILD_DIR/package/kernel/mac80211/files/nss_diag.sh"
-    if [ -d "$(dirname "$file")" ] && [ -f "$file" ]; then
-        \rm -f "$file"
-        install -Dm755 "$BASE_PATH/patches/nss_diag.sh" "$file"
-    fi
+    local file="$BUILD_DIR/package/base-files/files/usr/bin/nss_diag.sh"
+    mkdir -p "$(dirname "$file")"
+    install -Dm755 "$BASE_PATH/patches/nss_diag.sh" "$file"
+    echo "已安装 nss_diag.sh 到 /usr/bin/"
 }
 
 fix_compile_coremark() {
