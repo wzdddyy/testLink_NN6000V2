@@ -45,19 +45,6 @@ install_fullconenat() {
     ./scripts/feeds install -p packages -f kmod-fullconenat
 }
 
-install_timecontrol() {
-    local timecontrol_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-timecontrol"
-    local repo_url="https://github.com/sirpdboy/luci-app-timecontrol.git"
-    rm -rf "$timecontrol_dir" 2>/dev/null
-    echo "正在安装 luci-app-timecontrol..."
-    if ! git clone --depth 1 "$repo_url" "$timecontrol_dir"; then
-        echo "错误：从 $repo_url 克隆 luci-app-timecontrol 仓库失败" >&2
-        exit 1
-    fi
-    
-}
-
-
 install_lucky() {
     local LUCKY_REPO="https://github.com/gdy666/luci-app-lucky.git"
     local LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/lucky"
