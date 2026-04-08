@@ -49,7 +49,6 @@ main() {
     install_passwall2
     install_easytier
     install_oaf
-    install_nginx
     install_feeds
     remove_tweaked_packages
     fix_default_set

@@ -17,10 +17,7 @@ install_openwrt_packages() {
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config
 }
 
-install_nginx() {
-    echo "正在安装nginx相关包..."
-    ./scripts/feeds install -p packages -f nginx nginx-util nginx-mod-ubus luci-app-nginx
-}
+
 
 
 install_passwall_packages() {
