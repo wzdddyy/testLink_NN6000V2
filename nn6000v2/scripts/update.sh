@@ -79,6 +79,7 @@ main() {
     fix_quectel_cm
     install_pbr_isp
     fix_pbr_ip_forward
+    remove_plugins_menu
 }
 
 main "$@"
