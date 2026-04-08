@@ -2,12 +2,12 @@
 
 update_golang() {
     if [[ -d ./feeds/packages/lang/golang ]]; then
-        echo "正在更新 golang 软件包..."
         \rm -rf ./feeds/packages/lang/golang
         if ! git clone --depth 1 -b $GOLANG_BRANCH $GOLANG_REPO ./feeds/packages/lang/golang; then
             echo "错误：克隆 golang 仓库 $GOLANG_REPO 失败" >&2
             exit 1
         fi
+        echo "✓ golang 软件包更新完成"
     fi
 }
 
@@ -21,25 +21,23 @@ install_openwrt_packages() {
 
 
 install_passwall_packages() {
-    echo "正在从 Openwrt-Passwall-packages 仓库安装代理相关依赖..."
     ./scripts/feeds install -p passwall_packages -f chinadns-ng dns2socks geoview hysteria ipt2socks microsocks \
         naiveproxy shadow-tls shadowsocks-libev shadowsocks-rust shadowsocksr-libev simple-obfs sing-box \
         tcping trojan-plus tuic-client v2ray-geodata v2ray-plugin xray-core xray-plugin
+    echo "✓ Passwall 依赖安装完成"
 }
 
 install_passwall2() {
     local PASSWALL2_REPO="https://github.com/Openwrt-Passwall/openwrt-passwall2.git"
     local PASSWALL2_DIR="$BUILD_DIR/feeds/openwrt_packages/openwrt-passwall2"
 
-    echo "正在从 Openwrt-Passwall 仓库安装 luci-app-passwall2..."
-    
     rm -rf "$PASSWALL2_DIR"
     if ! git clone --depth=1 -b main "$PASSWALL2_REPO" "$PASSWALL2_DIR"; then
         echo "错误：从 $PASSWALL2_REPO 克隆 luci-app-passwall2 仓库失败" >&2
         exit 1
     fi
 
-    echo "luci-app-passwall2 安装完成"
+    echo "✓ luci-app-passwall2 克隆完成"
 }
 
 install_fullconenat() {
@@ -52,8 +50,6 @@ install_lucky() {
     local LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/lucky"
     local LUCI_APP_LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-lucky"
 
-    echo "正在从 gdy666 仓库安装 luci-app-lucky..."
-    
     # 克隆 lucky core
     rm -rf "$LUCKY_DIR"
     if ! git clone --depth=1 --filter=blob:none --no-checkout "$LUCKY_REPO" "$LUCKY_DIR"; then
@@ -97,7 +93,6 @@ install_lucky() {
     if [ -f "$lucky_conf" ]; then
         sed -i "s/option enabled '1'/option enabled '0'/g" "$lucky_conf"
         sed -i "s/option logger '1'/option logger '0'/g" "$lucky_conf"
-        echo "lucky 已配置为默认禁用状态"
     fi
     
     # 处理补丁
@@ -114,43 +109,36 @@ install_lucky() {
         return 0
     fi
     
-    echo "正在更新 lucky Makefile..."
     local patch_line="\\t[ -f \$(TOPDIR)/../nn6000v2/patches/lucky_${version}_Linux_\$(LUCKY_ARCH)_wanji.tar.gz ] && install -Dm644 \$(TOPDIR)/../nn6000v2/patches/lucky_${version}_Linux_\$(LUCKY_ARCH)_wanji.tar.gz \$(PKG_BUILD_DIR)/\$(PKG_NAME)_\$(PKG_VERSION)_Linux_\$(LUCKY_ARCH).tar.gz"
     
     if grep -q "Build/Prepare" "$makefile_path"; then
         sed -i "/Build\\/Prepare/a\\$patch_line" "$makefile_path"
         sed -i '/wget/d' "$makefile_path"
-        echo "lucky Makefile 更新完成。"
     else
         echo "Warning: lucky Makefile 中未找到 'Build/Prepare'。跳过。" >&2
     fi
     
-    echo "luci-app-lucky 安装完成"
+    echo "✓ luci-app-lucky 克隆完成"
 }
 
 install_adguardhome() {
     local ADGUARDHOME_REPO="https://github.com/wzdddyy/luci-app-adguardhome.git"
     local ADGUARDHOME_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-adguardhome"
 
-    echo "正在安装 luci-app-adguardhome..."
-    
     rm -rf "$ADGUARDHOME_DIR"
     if ! git clone --depth=1 "$ADGUARDHOME_REPO" "$ADGUARDHOME_DIR"; then
         echo "错误：从 $ADGUARDHOME_REPO 克隆 luci-app-adguardhome 仓库失败" >&2
         exit 1
     fi
 
-    echo "luci-app-adguardhome 安装完成"
+    echo "✓ luci-app-adguardhome 克隆完成"
 }
 
 install_easytier() {
     local EASYTIER_REPO="https://github.com/EasyTier/luci-app-easytier.git"
     local EASYTIER_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-easytier"
 
-    echo "正在从 EasyTier 官方仓库安装 luci-app-easytier..."
-    
     # 安装依赖
-    echo "正在安装 EasyTier 依赖..."
     ./scripts/feeds install -f luci-lib-jsonc
     
     rm -rf "$EASYTIER_DIR"
@@ -159,17 +147,14 @@ install_easytier() {
         exit 1
     fi
 
-    echo "luci-app-easytier 安装完成"
+    echo "✓ luci-app-easytier 克隆完成"
 }
 
 install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
     local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
 
-    echo "正在从 destan19 仓库安装 OpenAppFilter..."
-    
     # 安装依赖
-    echo "正在安装 OAF 依赖..."
     ./scripts/feeds install -f kmod-ipt-nat
     
     rm -rf "$OAF_DIR"
@@ -182,24 +167,21 @@ install_oaf() {
     local oaf_makefile="$OAF_DIR/oaf/Makefile"
     if [ -f "$oaf_makefile" ]; then
         sed -i 's/DEPENDS:=.*oaf/DEPENDS:=/g' "$oaf_makefile"
-        echo "已修复 oaf 递归依赖问题"
     fi
 
     # 默认禁用 OAF 服务
     local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
     if [ -f "$oaf_config" ]; then
         sed -i "s/option enabled '1'/option enabled '0'/g" "$oaf_config"
-        echo "OAF 已配置为默认禁用状态"
     fi
 
-    echo "OpenAppFilter 安装完成"
+    echo "✓ OpenAppFilter 克隆完成"
 }
 
 install_diskman() {
     local path="$BUILD_DIR/feeds/openwrt_packages/luci-app-diskman"
     local repo_url="https://github.com/lisaac/luci-app-diskman.git"
     
-    echo "正在安装 diskman..."
     mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
     cd "$BUILD_DIR/feeds/openwrt_packages" || return
     \rm -rf "luci-app-diskman"
@@ -223,14 +205,13 @@ install_diskman() {
     sed -i 's/fs-ntfs /fs-ntfs3 /g' "$path/Makefile"
     sed -i '/ntfs-3g-utils /d' "$path/Makefile"
     
-    echo "diskman 安装完成"
+    echo "✓ luci-app-diskman 克隆完成"
 }
 
 _sync_luci_lib_docker() {
     local repo_url="https://github.com/lisaac/luci-lib-docker.git"
     local luci_lib_docker_dir="$BUILD_DIR/feeds/openwrt_packages/luci-lib-docker"
     
-    echo "正在同步 luci-lib-docker..."
     mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
     
     rm -rf "$luci_lib_docker_dir"
@@ -239,14 +220,13 @@ _sync_luci_lib_docker() {
         exit 1
     fi
     
-    echo "luci-lib-docker 同步完成"
+    echo "✓ luci-lib-docker 克隆完成"
 }
 
 install_dockerman() {
     local path="$BUILD_DIR/feeds/openwrt_packages/luci-app-dockerman"
     local repo_url="https://github.com/wzdddyy/luci-app-dockerman.git"
     
-    echo "正在安装 dockerman..."
     _sync_luci_lib_docker || return
     
     mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
@@ -269,7 +249,7 @@ install_dockerman() {
     \rm -rf dockerman
     cd "$BUILD_DIR"
 
-    echo "dockerman 安装完成"
+    echo "✓ luci-app-dockerman 克隆完成"
 }
 
 install_quickfile() {
@@ -278,11 +258,11 @@ install_quickfile() {
     if [ -d "$target_dir" ]; then
         rm -rf "$target_dir"
     fi
-    echo "正在安装 luci-app-quickfile..."
     if ! git clone --depth 1 "$repo_url" "$target_dir"; then
         echo "错误：从 $repo_url 克隆 luci-app-quickfile 仓库失败" >&2
         exit 1
     fi
+    echo "✓ luci-app-quickfile 克隆完成"
 }
 
 remove_attendedsysupgrade() {
