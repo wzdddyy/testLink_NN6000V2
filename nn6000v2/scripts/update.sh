@@ -87,11 +87,13 @@ main() {
     fix_openssl_ktls
     fix_opkg_check
     fix_quectel_cm
-    install_pbr_isp
-    fix_pbr_ip_forward
     
     # 6. 统一安装阶段
     install_feeds
+    
+    # 7. PBR 配置阶段
+    install_pbr_isp
+    fix_pbr_ip_forward
 }
 
 main "$@"
