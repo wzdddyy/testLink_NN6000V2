@@ -15,7 +15,7 @@ for val in $cpu_values; do
 done
 
 # 等待一段时间（增加采样间隔）
-sleep 0.5
+sleep 1
 
 # 获取第二次CPU统计数据
 cpu_line=$(head -n1 /proc/stat 2>/dev/null)
@@ -60,4 +60,4 @@ output="CPU: ${cpu_usage}%"
 [ -n "$nss_util" ] && output="$output NSS: ${nss_util}%"
 [ -n "$ecm_count" ] && output="$output ECM: ${ecm_count}"
 
-echo -n "$output"
+printf "%s" "$output"
