@@ -22,9 +22,7 @@ install_openwrt_packages() {
 
 
 install_passwall_packages() {
-    ./scripts/feeds install -p passwall_packages -f chinadns-ng dns2socks geoview hysteria ipt2socks microsocks \
-        naiveproxy shadow-tls shadowsocks-libev shadowsocks-rust shadowsocksr-libev simple-obfs sing-box \
-        tcping trojan-plus tuic-client v2ray-geodata v2ray-plugin xray-core xray-plugin
+    ./scripts/feeds install -p passwall_packages -f chinadns-ng geoview hysteria sing-box tcping v2ray-geodata xray-core
     echo "✓ Passwall 依赖安装完成"
 }
 
