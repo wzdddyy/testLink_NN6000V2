@@ -444,7 +444,6 @@ remove_plugins_menu() {
     local menu_file="$BUILD_DIR/feeds/luci/modules/luci-mod-system/root/usr/share/luci/menu.d/luci-mod-system.json"
     if [ -f "$menu_file" ]; then
         echo "正在移除 plugins 菜单..."
-        # 使用 awk 精确删除 plugins 菜单条目，避免误删其他菜单
         awk '
             BEGIN { in_plugins = 0 }
             /"admin\/system\/plugins": {/ { in_plugins = 1; next }
