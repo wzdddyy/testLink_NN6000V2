@@ -80,7 +80,6 @@ main() {
     install_pbr_isp
     fix_pbr_ip_forward
     fix_quickstart
-    remove_plugins_menu
 }
 
 main "$@"

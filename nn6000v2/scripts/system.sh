@@ -440,27 +440,6 @@ remove_tweaked_packages() {
     fi
 }
 
-remove_plugins_menu() {
-    local menu_file="$BUILD_DIR/feeds/luci/modules/luci-mod-system/root/usr/share/luci/menu.d/luci-mod-system.json"
-    if [ -f "$menu_file" ]; then
-        echo "正在移除 plugins 菜单..."
-        # 使用 awk 精确删除 plugins 菜单条目，避免误删其他菜单
-        awk '
-            BEGIN { in_plugins = 0 }
-            /"admin\/system\/plugins": {/ { in_plugins = 1; next }
-            in_plugins {
-                if (/^[[:space:]]*},?$/) {
-                    in_plugins = 0
-                    next
-                }
-                next
-            }
-            { print }
-        ' "$menu_file" > "$menu_file.tmp" && mv "$menu_file.tmp" "$menu_file"
-        echo "plugins 菜单已移除"
-    fi
-}
-
 fix_quickstart() {
     local file_path="$BUILD_DIR/feeds/openwrt_packages/luci-app-quickstart/luasrc/controller/istore_backend.lua"
     local url="https://gist.githubusercontent.com/puteulanus/1c180fae6bccd25e57eb6d30b7aa28aa/raw/istore_backend.lua"
