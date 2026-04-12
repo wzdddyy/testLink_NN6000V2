@@ -83,7 +83,10 @@ if [[ -d action_build ]]; then
     BUILD_DIR="action_build"
 fi
 
-"$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
+# Skip update if building nowifi version (source already cloned)
+if [[ "$Version_Tag" != "nowifi" ]]; then
+    "$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
+fi
 
 apply_config
 remove_uhttpd_dependency
