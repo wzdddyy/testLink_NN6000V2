@@ -46,9 +46,11 @@ jobs:
         run: |
           if [ "${{ matrix.version }}" == "wifi" ]; then
             echo "DEVICE_MODEL=link_nn6000v2_immwrt" >> $GITHUB_ENV
+            echo "CONFIG_MODEL=link_nn6000v2_immwrt" >> $GITHUB_ENV
             echo "VERSION_NAME=WIFI" >> $GITHUB_ENV
           else
             echo "DEVICE_MODEL=link_nn6000v2_immwrt_nowifi" >> $GITHUB_ENV
+            echo "CONFIG_MODEL=link_nn6000v2_immwrt" >> $GITHUB_ENV
             echo "VERSION_NAME=NO_WIFI" >> $GITHUB_ENV
           fi
 
@@ -59,7 +61,7 @@ jobs:
           echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
           export BUILD_TIME=$(TZ=UTC-8 date +"%H.%M.%S")
           echo "BUILD_TIME=$BUILD_TIME" >> $GITHUB_ENV
-          export BUILD_SRC=$(awk -F"=" '/REPO_URL/ {print $NF}' "./nn6000v2/configs/${{ env.DEVICE_MODEL }}.ini")
+          export BUILD_SRC=$(awk -F"=" '/REPO_URL/ {print $NF}' "./nn6000v2/configs/${{ env.CONFIG_MODEL }}.ini")
           echo "BUILD_SRC=$BUILD_SRC" >> $GITHUB_ENV
 
       - name: Pre Clone
@@ -67,7 +69,7 @@ jobs:
           chmod +x ./nn6000v2/scripts/pre_clone_action.sh
           chmod +x ./nn6000v2/scripts/update.sh
           chmod +x ./nn6000v2/scripts/build.sh
-          ./nn6000v2/scripts/pre_clone_action.sh ${{ env.DEVICE_MODEL }}
+          ./nn6000v2/scripts/pre_clone_action.sh ${{ env.CONFIG_MODEL }}
 
       - name: Cache Dependencies
         uses: actions/cache@v5.0.4
@@ -89,7 +91,7 @@ jobs:
           fi
 
       - name: Build Firmware
-        run: ./nn6000v2/scripts/build.sh ${{ env.DEVICE_MODEL }}
+        run: ./nn6000v2/scripts/build.sh ${{ env.CONFIG_MODEL }}
 
       - name: Get Kernel Verion
         run: |
@@ -131,7 +133,7 @@ jobs:
       - name: Release Firmware
         uses: softprops/action-gh-release@v2.6.1
         with:
-          tag_name: ${{ env.BUILD_DATE }}_${{ env.BUILD_TIME }}_${{ env.DEVICE_MODEL }}
+          tag_name: ${{ env.BUILD_DATE }}_${{ env.BUILD_TIME }}_${{ matrix.version }}
           files: ./firmware/*.*
           body_path: ./release_body.txt
           token: ${{ secrets.GITHUB_TOKEN }}
