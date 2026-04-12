@@ -21,12 +21,7 @@ jobs:
     permissions:
       actions: write
       contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04]
-        version: ${{ github.event.inputs.BUILD_VERSION == 'all' && fromJson('["wifi", "nowifi"]') || (github.event.inputs.BUILD_VERSION == 'wifi' && fromJson('["wifi"]') || fromJson('["nowifi"]')) }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Build System Setup
@@ -42,18 +37,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.2
 
-      - name: Set Version Variables
-        run: |
-          if [ "${{ matrix.version }}" == "wifi" ]; then
-            echo "DEVICE_MODEL=link_nn6000v2_immwrt" >> $GITHUB_ENV
-            echo "CONFIG_MODEL=link_nn6000v2_immwrt" >> $GITHUB_ENV
-            echo "VERSION_NAME=WIFI" >> $GITHUB_ENV
-          else
-            echo "DEVICE_MODEL=link_nn6000v2_immwrt_nowifi" >> $GITHUB_ENV
-            echo "CONFIG_MODEL=link_nn6000v2_immwrt" >> $GITHUB_ENV
-            echo "VERSION_NAME=NO_WIFI" >> $GITHUB_ENV
-          fi
-
       - name: Set Build Date and Timezone
         run: |
           sudo -E timedatectl set-timezone "Asia/Shanghai"
@@ -61,7 +44,7 @@ jobs:
           echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
           export BUILD_TIME=$(TZ=UTC-8 date +"%H.%M.%S")
           echo "BUILD_TIME=$BUILD_TIME" >> $GITHUB_ENV
-          export BUILD_SRC=$(awk -F"=" '/REPO_URL/ {print $NF}' "./nn6000v2/configs/${{ env.CONFIG_MODEL }}.ini")
+          export BUILD_SRC=$(awk -F"=" '/REPO_URL/ {print $NF}' "./nn6000v2/configs/link_nn6000v2_immwrt.ini")
           echo "BUILD_SRC=$BUILD_SRC" >> $GITHUB_ENV
 
       - name: Pre Clone
@@ -69,7 +52,6 @@ jobs:
           chmod +x ./nn6000v2/scripts/pre_clone_action.sh
           chmod +x ./nn6000v2/scripts/update.sh
           chmod +x ./nn6000v2/scripts/build.sh
-          ./nn6000v2/scripts/pre_clone_action.sh ${{ env.CONFIG_MODEL }}
 
       - name: Cache Dependencies
         uses: actions/cache@v5.0.4
@@ -77,10 +59,9 @@ jobs:
           path: |
             ./action_build/.ccache
             ./action_build/staging_dir
-          key: ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}-${{ matrix.version }}
+          key: ${{ runner.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}
           restore-keys: |
-            ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}-
-            ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-
+            ${{ runner.os }}-${{ hashFiles('repo_flag') }}-
 
       - name: Refresh the cache
         run: |
@@ -90,21 +71,49 @@ jobs:
             done
           fi
 
-      - name: Build Firmware
-        run: ./nn6000v2/scripts/build.sh ${{ env.CONFIG_MODEL }} ${{ matrix.version }}
-
-      - name: Get Kernel Verion
+      - name: Build WiFi Version
+        if: ${{ github.event.inputs.BUILD_VERSION == 'all' || github.event.inputs.BUILD_VERSION == 'wifi' }}
         run: |
-          # 获取内核版本
-          echo "KVER=$(grep -oP "^kernel.*" ./firmware/*.manifest | grep -oP "[4-6]\.[0-9]{1,3}\.[0-9]{1,3}")" >> $GITHUB_ENV
+          ./nn6000v2/scripts/pre_clone_action.sh link_nn6000v2_immwrt
+          ./nn6000v2/scripts/build.sh link_nn6000v2_immwrt wifi
+          mkdir -p ./firmware_wifi
+          mv ./firmware/* ./firmware_wifi/ 2>/dev/null || true
+          rm -rf ./firmware
+          echo "WIFI_KVER=$(grep -oP "^kernel.*" ./firmware_wifi/*.manifest | grep -oP "[4-6]\.[0-9]{1,3}\.[0-9]{1,3}" | head -1)" >> $GITHUB_ENV
+
+      - name: Build NO WiFi Version
+        if: ${{ github.event.inputs.BUILD_VERSION == 'all' || github.event.inputs.BUILD_VERSION == 'nowifi' }}
+        run: |
+          ./nn6000v2/scripts/pre_clone_action.sh link_nn6000v2_immwrt
+          ./nn6000v2/scripts/build.sh link_nn6000v2_immwrt nowifi
+          mkdir -p ./firmware_nowifi
+          mv ./firmware/* ./firmware_nowifi/ 2>/dev/null || true
+          rm -rf ./firmware
+          echo "NOWIFI_KVER=$(grep -oP "^kernel.*" ./firmware_nowifi/*.manifest | grep -oP "[4-6]\.[0-9]{1,3}\.[0-9]{1,3}" | head -1)" >> $GITHUB_ENV
+
+      - name: Merge Firmware Files
+        if: ${{ github.event.inputs.BUILD_VERSION == 'all' }}
+        run: |
+          mkdir -p ./firmware
+          mv ./firmware_wifi/* ./firmware/ 2>/dev/null || true
+          mv ./firmware_nowifi/* ./firmware/ 2>/dev/null || true
+          rm -rf ./firmware_wifi ./firmware_nowifi
+          echo "KVER=${{ env.WIFI_KVER }}" >> $GITHUB_ENV
+
+      - name: Set Kernel Version for Single Build
+        if: ${{ github.event.inputs.BUILD_VERSION != 'all' }}
+        run: |
+          if [ "${{ github.event.inputs.BUILD_VERSION }}" == "wifi" ]; then
+            echo "KVER=${{ env.WIFI_KVER }}" >> $GITHUB_ENV
+          else
+            echo "KVER=${{ env.NOWIFI_KVER }}" >> $GITHUB_ENV
+          fi
 
       - name: Delete Old Cache
         run: |
-          # 获取缓存列表并删除
-          gh cache list --key ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ matrix.version }} --json key --jq '.[] | .key' | while read -r key; do
+          gh cache list --key ${{ runner.os }}-${{ hashFiles('repo_flag') }}- --json key --jq '.[] | .key' | while read -r key; do
             gh cache delete "$key"
           done
-          # 输出缓存状态
           echo "========cache status========"
           echo "ccache: $(du -sh ./action_build/.ccache | cut -f 1)"
           echo "staging: $(du -sh ./action_build/staging_dir | cut -f 1)"
@@ -119,21 +128,29 @@ jobs:
 
       - name: Prepare Release Body
         run: |
-          echo "云编译发布 - ${{ env.VERSION_NAME }}版本" > release_body.txt
+          if [ "${{ github.event.inputs.BUILD_VERSION }}" == "all" ]; then
+            echo "云编译发布 - WiFi + NO_WIFI 双版本" > release_body.txt
+          elif [ "${{ github.event.inputs.BUILD_VERSION }}" == "wifi" ]; then
+            echo "云编译发布 - WiFi 版本" > release_body.txt
+          else
+            echo "云编译发布 - NO_WIFI 版本" > release_body.txt
+          fi
           echo "源码：${{ env.BUILD_SRC }}" >> release_body.txt
           echo "Kernel: ${{ env.KVER }}" >> release_body.txt
-          if [ "${{ env.VERSION_NAME }}" == "WIFI" ]; then
-            echo "WIFI 密码：147258369" >> release_body.txt
-            echo "此版本包含 WiFi 驱动" >> release_body.txt
-          else
+          if [ "${{ github.event.inputs.BUILD_VERSION }}" == "nowifi" ]; then
             echo "此版本已禁用 WiFi 驱动" >> release_body.txt
+          else
+            echo "WIFI 密码：147258369" >> release_body.txt
+            if [ "${{ github.event.inputs.BUILD_VERSION }}" == "all" ]; then
+              echo "此版本包含 WiFi 驱动" >> release_body.txt
+            fi
           fi
           echo "LAN 地址：10.0.0.1" >> release_body.txt
 
       - name: Release Firmware
         uses: softprops/action-gh-release@v2.6.1
         with:
-          tag_name: ${{ env.BUILD_DATE }}_${{ env.BUILD_TIME }}_${{ matrix.version }}
+          tag_name: ${{ env.BUILD_DATE }}_${{ env.BUILD_TIME }}_${{ github.event.inputs.BUILD_VERSION }}
           files: ./firmware/*.*
           body_path: ./release_body.txt
           token: ${{ secrets.GITHUB_TOKEN }}
