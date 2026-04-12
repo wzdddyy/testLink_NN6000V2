@@ -106,12 +106,12 @@ modify_kernel_size
 
 # Modify device name for nowifi version
 modify_device_name() {
-    if [[ "$Dev" == *"nowifi"* ]]; then
+    if [[ "$Version_Tag" == "nowifi" ]]; then
         local ipq60xx_mk_path="$BASE_PATH/../$BUILD_DIR/target/linux/qualcommax/image/ipq60xx.mk"
         
         if [ -f "$ipq60xx_mk_path" ]; then
-            # Change device name to include nowifi suffix
-            sed -i 's/link_nn6000-v2/link_nn6000-v2-nowifi/g' "$ipq60xx_mk_path"
+            # Change device name to include nowifi suffix in DEVICE_NAME
+            sed -i 's/DEVICE_NAME := link_nn6000-v2/DEVICE_NAME := link_nn6000-v2-nowifi/g' "$ipq60xx_mk_path"
             echo "Updated device name to: link_nn6000-v2-nowifi"
         fi
     fi
