@@ -16,6 +16,7 @@ BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
 
 Dev=$1
 Build_Mod=$2
+Version_Tag=$3
 
 CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
 INI_FILE="$BASE_PATH/configs/$Dev.ini"
@@ -86,6 +87,21 @@ modify_kernel_size() {
 }
 
 modify_kernel_size
+
+# Modify device name for version tagging
+modify_device_name() {
+    if [ -n "$Version_Tag" ]; then
+        local ipq60xx_mk_path="$BASE_PATH/../$BUILD_DIR/target/linux/qualcommax/image/ipq60xx.mk"
+        
+        if [ -f "$ipq60xx_mk_path" ]; then
+            # Modify device name to include version tag
+            sed -i "s/link_nn6000-v2/link_nn6000-v2-${Version_Tag}/g" "$ipq60xx_mk_path"
+            echo "Updated device name to include version tag: link_nn6000-v2-${Version_Tag}"
+        fi
+    fi
+}
+
+modify_device_name
 
 cd "$BASE_PATH/../$BUILD_DIR"
 make defconfig

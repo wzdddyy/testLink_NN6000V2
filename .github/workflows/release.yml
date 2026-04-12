@@ -91,7 +91,7 @@ jobs:
           fi
 
       - name: Build Firmware
-        run: ./nn6000v2/scripts/build.sh ${{ env.CONFIG_MODEL }}
+        run: ./nn6000v2/scripts/build.sh ${{ env.CONFIG_MODEL }} ${{ matrix.version }}
 
       - name: Get Kernel Verion
         run: |
