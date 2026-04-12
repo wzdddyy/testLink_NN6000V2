@@ -2,9 +2,18 @@ name: Go_Release
 
 on:
   workflow_dispatch:
+    inputs:
+      BUILD_VERSION:
+        description: '选择要编译的版本'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - wifi
+          - nowifi
 
 env:
-  DEVICE_MODEL: link_nn6000v2_immwrt
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -13,8 +22,10 @@ jobs:
       actions: write
       contents: write
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-24.04]
+        version: ${{ github.event.inputs.BUILD_VERSION == 'all' && fromJson('["wifi", "nowifi"]') || (github.event.inputs.BUILD_VERSION == 'wifi' && fromJson('["wifi"]') || fromJson('["nowifi"]')) }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -30,6 +41,16 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v6.0.2
+
+      - name: Set Version Variables
+        run: |
+          if [ "${{ matrix.version }}" == "wifi" ]; then
+            echo "DEVICE_MODEL=link_nn6000v2_immwrt" >> $GITHUB_ENV
+            echo "VERSION_NAME=WIFI" >> $GITHUB_ENV
+          else
+            echo "DEVICE_MODEL=link_nn6000v2_immwrt_nowifi" >> $GITHUB_ENV
+            echo "VERSION_NAME=NO_WIFI" >> $GITHUB_ENV
+          fi
 
       - name: Set Build Date and Timezone
         run: |
@@ -52,9 +73,9 @@ jobs:
           path: |
             ./action_build/.ccache
             ./action_build/staging_dir
-          key: ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}
+          key: ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}-${{ matrix.version }}
           restore-keys: |
-            ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-
+            ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ matrix.version }}
 
       - name: Refresh the cache
         run: |
@@ -75,7 +96,7 @@ jobs:
       - name: Delete Old Cache
         run: |
           # 获取缓存列表并删除
-          gh cache list --key ${{ matrix.os }}-${{ hashFiles('repo_flag') }}- --json key --jq '.[] | .key' | while read -r key; do
+          gh cache list --key ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ matrix.version }} --json key --jq '.[] | .key' | while read -r key; do
             gh cache delete "$key"
           done
           # 输出缓存状态
@@ -91,18 +112,23 @@ jobs:
           df -h
           echo "=============================================="
 
-
       - name: Prepare Release Body
         run: |
-          echo "云编译发布" > release_body.txt
+          echo "云编译发布 - ${{ env.VERSION_NAME }}版本" > release_body.txt
           echo "源码：${{ env.BUILD_SRC }}" >> release_body.txt
           echo "Kernel: ${{ env.KVER }}" >> release_body.txt
-          echo "WIFI密码: 147258369" >> release_body.txt
-          echo "LAN地址: 10.0.0.1" >> release_body.txt
+          if [ "${{ env.VERSION_NAME }}" == "WIFI" ]; then
+            echo "WIFI 密码：147258369" >> release_body.txt
+            echo "此版本包含 WiFi 驱动" >> release_body.txt
+          else
+            echo "此版本已禁用 WiFi 驱动" >> release_body.txt
+          fi
+          echo "LAN 地址：10.0.0.1" >> release_body.txt
 
       - name: Release Firmware
         uses: softprops/action-gh-release@v2.6.1
         with:
-          tag_name: ${{ env.BUILD_DATE }}_${{ inputs.model }}
-          files: ${{ inputs.model == 'n1_immwrt' && env.PACKAGED_OUTPUTPATH || './firmware' }}/*.*
+          tag_name: ${{ env.BUILD_DATE }}_${{ env.DEVICE_MODEL }}
+          files: ./firmware/*.*
           body_path: ./release_body.txt
+          token: ${{ secrets.GITHUB_TOKEN }}
