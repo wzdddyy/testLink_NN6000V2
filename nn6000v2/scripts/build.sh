@@ -16,9 +16,23 @@ BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
 
 Dev=$1
 Build_Mod=$2
+Version_Tag=""
 
-CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
-INI_FILE="$BASE_PATH/configs/$Dev.ini"
+# Determine config file path
+if [[ "$Build_Mod" == "wifi" ]] || [[ "$Build_Mod" == "nowifi" ]]; then
+    # Second parameter is version tag, use nowifi config if specified
+    if [[ "$Build_Mod" == "nowifi" ]]; then
+        CONFIG_FILE="$BASE_PATH/configs/kernel/${Dev}_nowifi.config"
+    else
+        CONFIG_FILE="$BASE_PATH/configs/kernel/${Dev}.config"
+    fi
+    INI_FILE="$BASE_PATH/configs/${Dev}.ini"
+    Version_Tag="$Build_Mod"
+else
+    # Original behavior
+    CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
+    INI_FILE="$BASE_PATH/configs/$Dev.ini"
+fi
 
 if [[ ! -f $CONFIG_FILE ]]; then
     echo "Config not found: $CONFIG_FILE"

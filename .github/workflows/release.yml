@@ -69,7 +69,7 @@ jobs:
 
       - name: Build NO WiFi Firmware
         run: |
-          ./nn6000v2/scripts/build.sh link_nn6000v2_immwrt_nowifi
+          ./nn6000v2/scripts/build.sh link_nn6000v2_immwrt nowifi
 
       - name: Get Kernel Verion
         run: |
