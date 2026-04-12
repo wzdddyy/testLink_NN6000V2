@@ -55,8 +55,10 @@ jobs:
       - name: Set Build Date and Timezone
         run: |
           sudo -E timedatectl set-timezone "Asia/Shanghai"
-          export BUILD_DATE=$(TZ=UTC-8 date +"%y.%m.%d_%H.%M.%S")
+          export BUILD_DATE=$(TZ=UTC-8 date +"%y.%m.%d")
           echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
+          export BUILD_TIME=$(TZ=UTC-8 date +"%H.%M.%S")
+          echo "BUILD_TIME=$BUILD_TIME" >> $GITHUB_ENV
           export BUILD_SRC=$(awk -F"=" '/REPO_URL/ {print $NF}' "./nn6000v2/configs/${{ env.DEVICE_MODEL }}.ini")
           echo "BUILD_SRC=$BUILD_SRC" >> $GITHUB_ENV
 
@@ -75,7 +77,8 @@ jobs:
             ./action_build/staging_dir
           key: ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}-${{ matrix.version }}
           restore-keys: |
-            ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ matrix.version }}
+            ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}-
+            ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-
 
       - name: Refresh the cache
         run: |
@@ -128,7 +131,7 @@ jobs:
       - name: Release Firmware
         uses: softprops/action-gh-release@v2.6.1
         with:
-          tag_name: ${{ env.BUILD_DATE }}_${{ env.DEVICE_MODEL }}
+          tag_name: ${{ env.BUILD_DATE }}_${{ env.BUILD_TIME }}_${{ env.DEVICE_MODEL }}
           files: ./firmware/*.*
           body_path: ./release_body.txt
           token: ${{ secrets.GITHUB_TOKEN }}
