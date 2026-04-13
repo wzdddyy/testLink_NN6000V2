@@ -59,8 +59,8 @@ install_nikki() {
 }
 
 install_fullconenat() {
-    # 安装 fullconenat 相关包
-    ./scripts/feeds install -f kmod-fullconenat
+    # 安装 nft-fullcone 相关包
+    ./scripts/feeds install -f kmod-nft-fullcone
 }
 
 install_lucky() {
