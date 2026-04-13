@@ -15,14 +15,8 @@ fi
 BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
 
 Dev=$1
-Build_Mod=$2
 
-if [[ $Build_Mod == "nowifi" ]]; then
-    CONFIG_FILE="$BASE_PATH/configs/kernel/${Dev}_nowifi.config"
-else
-    CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
-fi
-
+CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
 INI_FILE="$BASE_PATH/configs/$Dev.ini"
 
 if [[ ! -f $CONFIG_FILE ]]; then
@@ -53,29 +47,9 @@ remove_uhttpd_dependency() {
 }
 
 apply_config() {
-    local temp_config="$BASE_PATH/../$BUILD_DIR/.config.tmp"
     local final_config="$BASE_PATH/../$BUILD_DIR/.config"
     
-    > "$temp_config"
-    
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ $line =~ ^include[[:space:]]+(.+)$ ]]; then
-            local include_file="${BASH_REMATCH[1]}"
-            local include_path="$BASE_PATH/configs/kernel/$include_file"
-            
-            if [[ -f "$include_path" ]]; then
-                cat "$include_path" >> "$temp_config"
-                echo "# Included: $include_file" >> "$temp_config"
-            else
-                echo "# Warning: Include file not found: $include_path" >> "$temp_config"
-            fi
-        else
-            echo "$line" >> "$temp_config"
-        fi
-    done < "$CONFIG_FILE"
-    
-    \cp -f "$temp_config" "$final_config"
-    rm -f "$temp_config"
+    \cp -f "$CONFIG_FILE" "$final_config"
     
     if grep -qE "(ipq60xx|ipq807x)" "$final_config" &&
         ! grep -q "CONFIG_GIT_MIRROR" "$final_config"; then
@@ -117,43 +91,16 @@ modify_kernel_size
 cd "$BASE_PATH/../$BUILD_DIR"
 make defconfig
 
-if [[ $Build_Mod == "debug" ]]; then
-    exit 0
-fi
+echo "=== 开始编译 ==="
+make download -j$(($(nproc) * 2))
+make -j$(($(nproc) + 1)) || make -j1 V=s
 
 TARGET_DIR="$BASE_PATH/../$BUILD_DIR/bin/targets"
-if [[ -d $TARGET_DIR ]]; then
-    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec rm -f {} +
-fi
-
-if [[ $Build_Mod == "nowifi" ]] && [[ -d $TARGET_DIR ]] && [[ "$(ls -A $TARGET_DIR 2>/dev/null)" ]]; then
-    echo "=== 检测到已编译内容，跳过编译，直接打包无 WiFi 版本 ==="
-else
-    make download -j$(($(nproc) * 2))
-    make -j$(($(nproc) + 1)) || make -j1 V=s
-fi
-
 FIRMWARE_DIR="$BASE_PATH/../firmware"
 mkdir -p "$FIRMWARE_DIR"
 
-if [[ $Build_Mod == "nowifi" ]]; then
-    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) | while read -r file; do
-        filename=$(basename "$file")
-        if [[ $filename == *.bin ]]; then
-            new_filename="${filename%.bin}-nowifi.bin"
-            cp -f "$file" "$FIRMWARE_DIR/$new_filename"
-        else
-            new_filename="${filename%.*}-nowifi.${filename##*.}"
-            cp -f "$file" "$FIRMWARE_DIR/$new_filename"
-        fi
-    done
-    # 重命名 Packages.manifest 为 Packages-nowifi.manifest
-    if [ -f "$FIRMWARE_DIR/Packages.manifest" ]; then
-        mv "$FIRMWARE_DIR/Packages.manifest" "$FIRMWARE_DIR/Packages-nowifi.manifest"
-    fi
-else
-    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
-fi
+echo "=== 打包固件 ==="
+find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
 
 if [[ -d action_build ]]; then
     make clean
