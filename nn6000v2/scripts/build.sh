@@ -53,14 +53,36 @@ remove_uhttpd_dependency() {
 }
 
 apply_config() {
-    \cp -f "$CONFIG_FILE" "$BASE_PATH/../$BUILD_DIR/.config"
+    local temp_config="$BASE_PATH/../$BUILD_DIR/.config.tmp"
+    local final_config="$BASE_PATH/../$BUILD_DIR/.config"
     
-    if grep -qE "(ipq60xx|ipq807x)" "$BASE_PATH/../$BUILD_DIR/.config" &&
-        ! grep -q "CONFIG_GIT_MIRROR" "$BASE_PATH/../$BUILD_DIR/.config"; then
-        cat "$BASE_PATH/configs/kernel/nss.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
+    > "$temp_config"
+    
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        if [[ $line =~ ^include[[:space:]]+(.+)$ ]]; then
+            local include_file="${BASH_REMATCH[1]}"
+            local include_path="$BASE_PATH/configs/kernel/$include_file"
+            
+            if [[ -f "$include_path" ]]; then
+                cat "$include_path" >> "$temp_config"
+                echo "# Included: $include_file" >> "$temp_config"
+            else
+                echo "# Warning: Include file not found: $include_path" >> "$temp_config"
+            fi
+        else
+            echo "$line" >> "$temp_config"
+        fi
+    done < "$CONFIG_FILE"
+    
+    \cp -f "$temp_config" "$final_config"
+    rm -f "$temp_config"
+    
+    if grep -qE "(ipq60xx|ipq807x)" "$final_config" &&
+        ! grep -q "CONFIG_GIT_MIRROR" "$final_config"; then
+        cat "$BASE_PATH/configs/kernel/nss.config" >> "$final_config"
     fi
 
-    cat "$BASE_PATH/configs/kernel/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
+    cat "$BASE_PATH/configs/kernel/docker_deps.config" >> "$final_config"
 }
 
 REPO_URL=$(read_ini_by_key "REPO_URL")
