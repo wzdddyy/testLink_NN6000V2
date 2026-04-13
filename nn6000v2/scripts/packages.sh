@@ -17,7 +17,7 @@ install_openwrt_packages() {
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config\
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf open-app-filter oaf \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall2
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-nikki
 }
 
 install_argon_theme() {
@@ -45,22 +45,17 @@ install_argon_theme() {
 }
 
 
-install_passwall_packages() {
-    ./scripts/feeds install -p passwall_packages -f chinadns-ng geoview hysteria sing-box tcping v2ray-geodata xray-core
-    echo "✓ Passwall 依赖安装完成"
-}
+install_nikki() {
+    local NIKKI_REPO="https://github.com/nikkinikki-org/OpenWrt-nikki.git"
+    local NIKKI_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-nikki"
 
-install_passwall2() {
-    local PASSWALL2_REPO="https://github.com/Openwrt-Passwall/openwrt-passwall2.git"
-    local PASSWALL2_DIR="$BUILD_DIR/feeds/openwrt_packages/openwrt-passwall2"
-
-    rm -rf "$PASSWALL2_DIR"
-    if ! git clone --depth=1 -b main "$PASSWALL2_REPO" "$PASSWALL2_DIR"; then
-        echo "错误：从 $PASSWALL2_REPO 克隆 luci-app-passwall2 仓库失败" >&2
+    rm -rf "$NIKKI_DIR"
+    if ! git clone --depth=1 "$NIKKI_REPO" "$NIKKI_DIR"; then
+        echo "错误：从 $NIKKI_REPO 克隆 luci-app-nikki 仓库失败" >&2
         exit 1
     fi
 
-    echo "✓ luci-app-passwall2 克隆完成"
+    echo "✓ luci-app-nikki 克隆完成"
 }
 
 install_fullconenat() {

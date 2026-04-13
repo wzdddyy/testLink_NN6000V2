@@ -47,7 +47,7 @@ main() {
     install_dockerman
     install_adguardhome
     install_argon_theme
-    install_passwall2
+    install_nikki
     install_easytier
     install_oaf
     install_feeds
@@ -62,7 +62,6 @@ main() {
     update_dnsmasq_conf
     change_cpuusage
     set_custom_task
-    apply_passwall_tweaks
     update_nss_pbuf_performance
     update_nss_diag
     fix_compile_coremark
