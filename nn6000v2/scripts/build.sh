@@ -132,7 +132,22 @@ make -j$(($(nproc) + 1)) || make -j1 V=s
 FIRMWARE_DIR="$BASE_PATH/../firmware"
 \rm -rf "$FIRMWARE_DIR"
 mkdir -p "$FIRMWARE_DIR"
-find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
+
+if [[ $Build_Mod == "nowifi" ]]; then
+    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) | while read -r file; do
+        filename=$(basename "$file")
+        if [[ $filename == *.bin ]]; then
+            new_filename="${filename%.bin}-nowifi.bin"
+            cp -f "$file" "$FIRMWARE_DIR/$new_filename"
+        else
+            new_filename="${filename%.*}-nowifi.${filename##*.}"
+            cp -f "$file" "$FIRMWARE_DIR/$new_filename"
+        fi
+    done
+else
+    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
+fi
+
 \rm -f "$BASE_PATH/../firmware/Packages.manifest" 2>/dev/null
 
 if [[ -d action_build ]]; then
