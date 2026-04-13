@@ -39,6 +39,7 @@ install_feeds() {
     # 先安装 openwrt-packages 中的包
     echo "安装 openwrt-packages 包..."
     install_openwrt_packages
+    install_argon_theme
     install_fullconenat
     
     # 安装 passwall-packages 中的包

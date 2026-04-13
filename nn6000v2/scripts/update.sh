@@ -46,6 +46,7 @@ main() {
     install_diskman
     install_dockerman
     install_adguardhome
+    install_argon_theme
     install_passwall2
     install_easytier
     install_oaf

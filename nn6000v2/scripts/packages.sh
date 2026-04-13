@@ -14,10 +14,34 @@ update_golang() {
 install_openwrt_packages() {
     ./scripts/feeds install -p openwrt_packages -f taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
-        smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
+        smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config\
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf open-app-filter oaf \
         luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall2
+}
+
+install_argon_theme() {
+    local ARGON_REPO="https://github.com/jerrykuku/luci-theme-argon.git"
+    local ARGON_CONFIG_REPO="https://github.com/jerrykuku/luci-app-argon-config.git"
+    local ARGON_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-theme-argon"
+    local ARGON_CONFIG_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-argon-config"
+
+    # 克隆 luci-theme-argon
+    rm -rf "$ARGON_DIR"
+    if ! git clone --depth=1 "$ARGON_REPO" "$ARGON_DIR"; then
+        echo "错误：从 $ARGON_REPO 克隆 luci-theme-argon 仓库失败" >&2
+        exit 1
+    fi
+
+    # 克隆 luci-app-argon-config
+    rm -rf "$ARGON_CONFIG_DIR"
+    if ! git clone --depth=1 "$ARGON_CONFIG_REPO" "$ARGON_CONFIG_DIR"; then
+        echo "错误：从 $ARGON_CONFIG_REPO 克隆 luci-app-argon-config 仓库失败" >&2
+        rm -rf "$ARGON_DIR"
+        exit 1
+    fi
+
+    echo "✓ Argon 主题克隆完成"
 }
 
 
