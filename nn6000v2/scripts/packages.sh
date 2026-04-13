@@ -58,11 +58,6 @@ install_nikki() {
     echo "✓ luci-app-nikki 克隆完成"
 }
 
-install_fullconenat() {
-    # 安装 nft-fullcone 相关包
-    ./scripts/feeds install -f kmod-nft-fullcone
-}
-
 install_lucky() {
     local LUCKY_REPO="https://github.com/gdy666/luci-app-lucky.git"
     local LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/lucky"

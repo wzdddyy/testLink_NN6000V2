@@ -36,7 +36,6 @@ install_feeds() {
     echo "安装 openwrt-packages 包..."
     install_openwrt_packages
     install_argon_theme
-    install_fullconenat
     
     # 安装其他 feeds 的包
     for dir in "$BUILD_DIR"/feeds/*; do
