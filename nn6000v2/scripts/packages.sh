@@ -192,7 +192,7 @@ install_oaf() {
     # 默认禁用 OAF 服务
     local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
     if [ -f "$oaf_config" ]; then
-        sed -i "s/option enabled '1'/option enabled '0'/g" "$oaf_config"
+        sed -i "s/option enable '1'/option enable '0'/g" "$oaf_config"
     fi
 
     echo "✓ OpenAppFilter 克隆完成"
