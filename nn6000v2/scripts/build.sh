@@ -17,7 +17,12 @@ BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
 Dev=$1
 Build_Mod=$2
 
-CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
+if [[ $Build_Mod == "nowifi" ]]; then
+    CONFIG_FILE="$BASE_PATH/configs/kernel/${Dev}_nowifi.config"
+else
+    CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
+fi
+
 INI_FILE="$BASE_PATH/configs/$Dev.ini"
 
 if [[ ! -f $CONFIG_FILE ]]; then
