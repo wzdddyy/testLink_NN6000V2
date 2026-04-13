@@ -14,6 +14,21 @@ fix_default_set() {
             \cp -f "$BASE_PATH/patches/tempinfo" "$BUILD_DIR/package/emortal/autocore/files/tempinfo"
         fi
     fi
+
+    cat <<'EOF' >"$BUILD_DIR/package/base-files/files/etc/opkg/distfeeds.conf"
+src/gz openwrt_base https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/base
+src/gz openwrt_luci https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/luci
+src/gz openwrt_packages https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/packages
+src/gz openwrt_routing https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/routing
+src/gz openwrt_telephony https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/telephony
+EOF
+
+    cat <<'EOF' >"$BUILD_DIR/package/base-files/files/etc/opkg.conf"
+dest root /
+dest ram /tmp
+lists_dir ext /var/opkg-lists
+option overlay_root /overlay
+EOF
 }
 
 fix_miniupnpd() {
