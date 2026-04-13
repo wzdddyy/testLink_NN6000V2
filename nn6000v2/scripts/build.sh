@@ -130,7 +130,6 @@ make download -j$(($(nproc) * 2))
 make -j$(($(nproc) + 1)) || make -j1 V=s
 
 FIRMWARE_DIR="$BASE_PATH/../firmware"
-\rm -rf "$FIRMWARE_DIR"
 mkdir -p "$FIRMWARE_DIR"
 
 if [[ $Build_Mod == "nowifi" ]]; then
@@ -144,11 +143,13 @@ if [[ $Build_Mod == "nowifi" ]]; then
             cp -f "$file" "$FIRMWARE_DIR/$new_filename"
         fi
     done
+    # 重命名 Packages.manifest 为 Packages-nowifi.manifest
+    if [ -f "$FIRMWARE_DIR/Packages.manifest" ]; then
+        mv "$FIRMWARE_DIR/Packages.manifest" "$FIRMWARE_DIR/Packages-nowifi.manifest"
+    fi
 else
     find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
 fi
-
-\rm -f "$BASE_PATH/../firmware/Packages.manifest" 2>/dev/null
 
 if [[ -d action_build ]]; then
     make clean
