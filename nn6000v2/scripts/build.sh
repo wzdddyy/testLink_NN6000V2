@@ -16,23 +16,9 @@ BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
 
 Dev=$1
 Build_Mod=$2
-Version_Tag=""
 
-# Determine config file path
-if [[ "$Build_Mod" == "wifi" ]] || [[ "$Build_Mod" == "nowifi" ]]; then
-    # Second parameter is version tag, use nowifi config if specified
-    if [[ "$Build_Mod" == "nowifi" ]]; then
-        CONFIG_FILE="$BASE_PATH/configs/kernel/${Dev}_nowifi.config"
-    else
-        CONFIG_FILE="$BASE_PATH/configs/kernel/${Dev}.config"
-    fi
-    INI_FILE="$BASE_PATH/configs/${Dev}.ini"
-    Version_Tag="$Build_Mod"
-else
-    # Original behavior
-    CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
-    INI_FILE="$BASE_PATH/configs/$Dev.ini"
-fi
+CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
+INI_FILE="$BASE_PATH/configs/$Dev.ini"
 
 if [[ ! -f $CONFIG_FILE ]]; then
     echo "Config not found: $CONFIG_FILE"
@@ -83,10 +69,7 @@ if [[ -d action_build ]]; then
     BUILD_DIR="action_build"
 fi
 
-# Skip update if building nowifi version (source already cloned)
-if [[ "$Version_Tag" != "nowifi" ]]; then
-    "$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
-fi
+"$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
 
 apply_config
 remove_uhttpd_dependency
@@ -104,21 +87,6 @@ modify_kernel_size() {
 
 modify_kernel_size
 
-# Modify device name for nowifi version
-modify_device_name() {
-    if [[ "$Version_Tag" == "nowifi" ]]; then
-        local ipq60xx_mk_path="$BASE_PATH/../$BUILD_DIR/target/linux/qualcommax/image/ipq60xx.mk"
-        
-        if [ -f "$ipq60xx_mk_path" ]; then
-            # Change device name to include nowifi suffix in DEVICE_NAME
-            sed -i 's/DEVICE_NAME := link_nn6000-v2/DEVICE_NAME := link_nn6000-v2-nowifi/g' "$ipq60xx_mk_path"
-            echo "Updated device name to: link_nn6000-v2-nowifi"
-        fi
-    fi
-}
-
-modify_device_name
-
 cd "$BASE_PATH/../$BUILD_DIR"
 make defconfig
 
@@ -127,24 +95,15 @@ if [[ $Build_Mod == "debug" ]]; then
 fi
 
 TARGET_DIR="$BASE_PATH/../$BUILD_DIR/bin/targets"
-
-# Only remove existing firmware files if not building nowifi version
-if [[ "$Version_Tag" != "nowifi" ]]; then
-    if [[ -d $TARGET_DIR ]]; then
-        find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec rm -f {} +
-    fi
+if [[ -d $TARGET_DIR ]]; then
+    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec rm -f {} +
 fi
 
 make download -j$(($(nproc) * 2))
 make -j$(($(nproc) + 1)) || make -j1 V=s
 
 FIRMWARE_DIR="$BASE_PATH/../firmware"
-
-# Only remove firmware directory if not building nowifi version
-if [[ "$Version_Tag" != "nowifi" ]]; then
-    \rm -rf "$FIRMWARE_DIR"
-fi
-
+\rm -rf "$FIRMWARE_DIR"
 mkdir -p "$FIRMWARE_DIR"
 find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
 \rm -f "$BASE_PATH/../firmware/Packages.manifest" 2>/dev/null
