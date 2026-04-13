@@ -67,7 +67,7 @@ jobs:
       - name: Build Standard Firmware
         run: ./nn6000v2/scripts/build.sh ${{ env.DEVICE_MODEL }}
 
-      - name: Build NO WiFi Firmware
+      - name: Package NO WiFi Firmware
         run: ./nn6000v2/scripts/build.sh ${{ env.DEVICE_MODEL }} nowifi
 
       - name: Get Kernel Verion

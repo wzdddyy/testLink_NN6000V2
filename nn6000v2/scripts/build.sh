@@ -126,8 +126,12 @@ if [[ -d $TARGET_DIR ]]; then
     find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec rm -f {} +
 fi
 
-make download -j$(($(nproc) * 2))
-make -j$(($(nproc) + 1)) || make -j1 V=s
+if [[ $Build_Mod == "nowifi" ]] && [[ -d $TARGET_DIR ]] && [[ "$(ls -A $TARGET_DIR 2>/dev/null)" ]]; then
+    echo "=== 检测到已编译内容，跳过编译，直接打包无 WiFi 版本 ==="
+else
+    make download -j$(($(nproc) * 2))
+    make -j$(($(nproc) + 1)) || make -j1 V=s
+fi
 
 FIRMWARE_DIR="$BASE_PATH/../firmware"
 mkdir -p "$FIRMWARE_DIR"
