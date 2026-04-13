@@ -65,11 +65,9 @@ jobs:
           fi
 
       - name: Build Standard Firmware
-        if: ${{ inputs.build_version == 'both' || inputs.build_version == 'standard' }}
         run: ./nn6000v2/scripts/build.sh ${{ env.DEVICE_MODEL }}
 
       - name: Build NO WiFi Firmware
-        if: ${{ inputs.build_version == 'both' || inputs.build_version == 'nowifi' }}
         run: ./nn6000v2/scripts/build.sh ${{ env.DEVICE_MODEL }} nowifi
 
       - name: Get Kernel Verion
