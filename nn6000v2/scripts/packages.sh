@@ -37,7 +37,6 @@ install_argon_theme() {
     rm -rf "$ARGON_CONFIG_DIR"
     if ! git clone --depth=1 "$ARGON_CONFIG_REPO" "$ARGON_CONFIG_DIR"; then
         echo "错误：从 $ARGON_CONFIG_REPO 克隆 luci-app-argon-config 仓库失败" >&2
-        rm -rf "$ARGON_DIR"
         exit 1
     fi
 
