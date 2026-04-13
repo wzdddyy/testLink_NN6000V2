@@ -14,7 +14,11 @@ fix_default_set() {
             \cp -f "$BASE_PATH/patches/tempinfo" "$BUILD_DIR/package/emortal/autocore/files/tempinfo"
         fi
     fi
+}
 
+configure_opkg() {
+    mkdir -p "$BUILD_DIR/package/base-files/files/etc/opkg"
+    
     cat <<'EOF' >"$BUILD_DIR/package/base-files/files/etc/opkg/distfeeds.conf"
 src/gz openwrt_base https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/base
 src/gz openwrt_luci https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/luci

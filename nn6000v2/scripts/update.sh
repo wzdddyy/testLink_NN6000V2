@@ -51,6 +51,7 @@ main() {
     install_easytier
     install_oaf
     install_feeds
+    configure_opkg
     update_docker_stack
     remove_tweaked_packages
     fix_default_set
