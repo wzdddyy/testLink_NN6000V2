@@ -60,7 +60,7 @@ install_nikki() {
 
 install_fullconenat() {
     # 安装 fullconenat 相关包
-    ./scripts/feeds install -p packages -f kmod-fullconenat
+    ./scripts/feeds install -f kmod-fullconenat
 }
 
 install_lucky() {

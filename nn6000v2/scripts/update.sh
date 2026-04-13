@@ -63,7 +63,6 @@ main() {
     update_dnsmasq_conf
     change_cpuusage
     set_custom_task
-    update_nss_pbuf_performance
     update_nss_diag
     fix_compile_coremark
     set_build_signature
