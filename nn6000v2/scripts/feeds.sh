@@ -35,7 +35,6 @@ install_feeds() {
     # 先安装 openwrt-packages 中的包
     echo "安装 openwrt-packages 包..."
     install_openwrt_packages
-    install_argon_theme
     
     # 安装其他 feeds 的包
     for dir in "$BUILD_DIR"/feeds/*; do
