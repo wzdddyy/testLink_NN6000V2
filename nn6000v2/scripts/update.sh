@@ -47,7 +47,6 @@ main() {
     install_dockerman
     install_adguardhome
     install_argon_theme
-    install_nikki
     install_easytier
     install_oaf
     update_oaf_deconfig
