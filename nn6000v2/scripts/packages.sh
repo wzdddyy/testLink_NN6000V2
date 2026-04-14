@@ -69,8 +69,6 @@ install_nikki() {
     if [ -f "$nikki_makefile" ]; then
         # 修复 firewall4 前缺少 + 的问题
         sed -i 's/+yq firewall4/+yq +firewall4/g' "$nikki_makefile"
-        # 移除对 mihomo 包的依赖
-        sed -i 's/ +mihomo//g' "$nikki_makefile"
     fi
     echo "✓ nikki 核心包复制完成"
 
