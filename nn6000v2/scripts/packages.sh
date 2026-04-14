@@ -63,6 +63,15 @@ install_nikki() {
     # 复制 nikki 核心包
     rm -rf "$OPENWRT_PACKAGES_DIR/nikki"
     cp -r "$NIKKI_REPO_DIR/nikki" "$OPENWRT_PACKAGES_DIR/"
+    
+    # 修复 nikki Makefile 中的依赖问题
+    local nikki_makefile="$OPENWRT_PACKAGES_DIR/nikki/Makefile"
+    if [ -f "$nikki_makefile" ]; then
+        # 修复 firewall4 前缺少 + 的问题
+        sed -i 's/+yq firewall4/+yq +firewall4/g' "$nikki_makefile"
+        # 移除对 mihomo 包的依赖（nikki 会自己编译 Mihomo）
+        sed -i 's/ +mihomo//g' "$nikki_makefile"
+    fi
     echo "✓ nikki 核心包复制完成"
 
     # 复制 luci-app-nikki
@@ -83,6 +92,9 @@ install_nikki() {
         cp -r "$NIKKI_REPO_DIR/mihomo-meta" "$OPENWRT_PACKAGES_DIR/"
         echo "✓ mihomo-meta 复制完成"
     fi
+
+    # 删除克隆的仓库目录以节省空间
+    rm -rf "$NIKKI_REPO_DIR"
 
     echo "✓ OpenWrt-nikki 安装完成"
 }
@@ -206,6 +218,9 @@ install_easytier() {
     rm -rf "$OPENWRT_PACKAGES_DIR/luci-app-easytier"
     cp -r "$EASYTIER_REPO_DIR/luci-app-easytier" "$OPENWRT_PACKAGES_DIR/"
     echo "✓ luci-app-easytier 复制完成"
+
+    # 删除克隆的仓库目录以节省空间
+    rm -rf "$EASYTIER_REPO_DIR"
 }
 
 install_oaf() {
@@ -250,6 +265,9 @@ install_oaf() {
         cp -r "$OAF_REPO_DIR/luci-app-oaf" "$OPENWRT_PACKAGES_DIR/"
         echo "✓ luci-app-oaf 复制完成"
     fi
+
+    # 删除克隆的仓库目录以节省空间
+    rm -rf "$OAF_REPO_DIR"
 
     echo "✓ OpenAppFilter 安装完成"
 }

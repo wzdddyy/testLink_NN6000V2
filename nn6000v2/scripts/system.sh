@@ -453,9 +453,9 @@ fix_quickstart() {
 }
 
 update_oaf_deconfig() {
-    local conf_path="$BUILD_DIR/feeds/small8/open-app-filter/files/appfilter.config"
-    local uci_def="$BUILD_DIR/feeds/small8/luci-app-oaf/root/etc/uci-defaults/94_feature_3.0"
-    local disable_path="$BUILD_DIR/feeds/small8/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
+    local conf_path="$BUILD_DIR/feeds/openwrt_packages/open-app-filter/files/appfilter.config"
+    local uci_def="$BUILD_DIR/feeds/openwrt_packages/luci-app-oaf/root/etc/uci-defaults/94_feature_3.0"
+    local disable_path="$BUILD_DIR/feeds/openwrt_packages/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
 
     if [ -d "${conf_path%/*}" ] && [ -f "$conf_path" ]; then
         sed -i \
