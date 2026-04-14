@@ -17,7 +17,7 @@ install_openwrt_packages() {
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config\
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf open-app-filter oaf \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile nikki luci-app-nikki
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-nikki
 }
 
 install_argon_theme() {
@@ -69,7 +69,7 @@ install_nikki() {
     if [ -f "$nikki_makefile" ]; then
         # 修复 firewall4 前缺少 + 的问题
         sed -i 's/+yq firewall4/+yq +firewall4/g' "$nikki_makefile"
-        # 移除对 mihomo 包的依赖（nikki 会自己编译 Mihomo）
+        # 移除对 mihomo 包的依赖
         sed -i 's/ +mihomo//g' "$nikki_makefile"
     fi
     echo "✓ nikki 核心包复制完成"
