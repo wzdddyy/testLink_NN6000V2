@@ -46,15 +46,45 @@ install_argon_theme() {
 
 install_nikki() {
     local NIKKI_REPO="https://github.com/nikkinikki-org/OpenWrt-nikki.git"
-    local NIKKI_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-nikki"
+    local NIKKI_REPO_DIR="$BUILD_DIR/OpenWrt-nikki"
+    local OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
 
-    rm -rf "$NIKKI_DIR"
-    if ! git clone --depth=1 "$NIKKI_REPO" "$NIKKI_DIR"; then
-        echo "错误：从 $NIKKI_REPO 克隆 luci-app-nikki 仓库失败" >&2
-        exit 1
+    # 检查仓库是否已存在
+    if [ ! -d "$NIKKI_REPO_DIR" ]; then
+        echo "克隆 OpenWrt-nikki 仓库..."
+        if ! git clone --depth=1 "$NIKKI_REPO" "$NIKKI_REPO_DIR"; then
+            echo "错误：从 $NIKKI_REPO 克隆 OpenWrt-nikki 仓库失败" >&2
+            exit 1
+        fi
+    else
+        echo "OpenWrt-nikki 仓库已存在，使用现有仓库"
     fi
 
-    echo "✓ luci-app-nikki 克隆完成"
+    # 复制 nikki 核心包
+    rm -rf "$OPENWRT_PACKAGES_DIR/nikki"
+    cp -r "$NIKKI_REPO_DIR/nikki" "$OPENWRT_PACKAGES_DIR/"
+    echo "✓ nikki 核心包复制完成"
+
+    # 复制 luci-app-nikki
+    rm -rf "$OPENWRT_PACKAGES_DIR/luci-app-nikki"
+    cp -r "$NIKKI_REPO_DIR/luci-app-nikki" "$OPENWRT_PACKAGES_DIR/"
+    echo "✓ luci-app-nikki 复制完成"
+
+    # 复制 mihomo-alpha 包
+    if [ -d "$NIKKI_REPO_DIR/mihomo-alpha" ]; then
+        rm -rf "$OPENWRT_PACKAGES_DIR/mihomo-alpha"
+        cp -r "$NIKKI_REPO_DIR/mihomo-alpha" "$OPENWRT_PACKAGES_DIR/"
+        echo "✓ mihomo-alpha 复制完成"
+    fi
+
+    # 复制 mihomo-meta 包
+    if [ -d "$NIKKI_REPO_DIR/mihomo-meta" ]; then
+        rm -rf "$OPENWRT_PACKAGES_DIR/mihomo-meta"
+        cp -r "$NIKKI_REPO_DIR/mihomo-meta" "$OPENWRT_PACKAGES_DIR/"
+        echo "✓ mihomo-meta 复制完成"
+    fi
+
+    echo "✓ OpenWrt-nikki 安装完成"
 }
 
 install_lucky() {
@@ -148,37 +178,80 @@ install_adguardhome() {
 
 install_easytier() {
     local EASYTIER_REPO="https://github.com/EasyTier/luci-app-easytier.git"
-    local EASYTIER_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-easytier"
+    local EASYTIER_REPO_DIR="$BUILD_DIR/luci-app-easytier-repo"
+    local OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
 
     # 安装依赖
     ./scripts/feeds install -f luci-lib-jsonc
-    
-    rm -rf "$EASYTIER_DIR"
-    if ! git clone --depth=1 "$EASYTIER_REPO" "$EASYTIER_DIR"; then
-        echo "错误：从 $EASYTIER_REPO 克隆 luci-app-easytier 仓库失败" >&2
-        exit 1
+
+    # 检查仓库是否已存在
+    if [ ! -d "$EASYTIER_REPO_DIR" ]; then
+        echo "克隆 luci-app-easytier 仓库..."
+        if ! git clone --depth=1 "$EASYTIER_REPO" "$EASYTIER_REPO_DIR"; then
+            echo "错误：从 $EASYTIER_REPO 克隆 luci-app-easytier 仓库失败" >&2
+            exit 1
+        fi
+    else
+        echo "luci-app-easytier 仓库已存在，使用现有仓库"
     fi
 
-    echo "✓ luci-app-easytier 克隆完成"
+    # 复制 easytier 核心包
+    if [ -d "$EASYTIER_REPO_DIR/easytier" ]; then
+        rm -rf "$OPENWRT_PACKAGES_DIR/easytier"
+        cp -r "$EASYTIER_REPO_DIR/easytier" "$OPENWRT_PACKAGES_DIR/"
+        echo "✓ easytier 核心包复制完成"
+    fi
+
+    # 复制 luci-app-easytier
+    rm -rf "$OPENWRT_PACKAGES_DIR/luci-app-easytier"
+    cp -r "$EASYTIER_REPO_DIR/luci-app-easytier" "$OPENWRT_PACKAGES_DIR/"
+    echo "✓ luci-app-easytier 复制完成"
 }
 
 install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
-    local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
+    local OAF_REPO_DIR="$BUILD_DIR/OpenAppFilter"
+    local OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
 
-    rm -rf "$OAF_DIR"
-    if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
-        echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
-        exit 1
+    # 检查仓库是否已存在
+    if [ ! -d "$OAF_REPO_DIR" ]; then
+        echo "克隆 OpenAppFilter 仓库..."
+        if ! git clone --depth=1 "$OAF_REPO" "$OAF_REPO_DIR"; then
+            echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
+            exit 1
+        fi
+    else
+        echo "OpenAppFilter 仓库已存在，使用现有仓库"
     fi
 
-    # 修复 oaf 递归依赖问题，但保留必要依赖
-    local oaf_makefile="$OAF_DIR/oaf/Makefile"
-    if [ -f "$oaf_makefile" ]; then
-        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
+    # 复制 oaf 核心包
+    if [ -d "$OAF_REPO_DIR/oaf" ]; then
+        rm -rf "$OPENWRT_PACKAGES_DIR/oaf"
+        cp -r "$OAF_REPO_DIR/oaf" "$OPENWRT_PACKAGES_DIR/"
+        
+        # 修复 oaf 递归依赖问题，但保留必要依赖
+        local oaf_makefile="$OPENWRT_PACKAGES_DIR/oaf/Makefile"
+        if [ -f "$oaf_makefile" ]; then
+            sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
+        fi
+        echo "✓ oaf 核心包复制完成"
     fi
 
-    echo "✓ OpenAppFilter 克隆完成"
+    # 复制 open-app-filter 包
+    if [ -d "$OAF_REPO_DIR/open-app-filter" ]; then
+        rm -rf "$OPENWRT_PACKAGES_DIR/open-app-filter"
+        cp -r "$OAF_REPO_DIR/open-app-filter" "$OPENWRT_PACKAGES_DIR/"
+        echo "✓ open-app-filter 复制完成"
+    fi
+
+    # 复制 luci-app-oaf
+    if [ -d "$OAF_REPO_DIR/luci-app-oaf" ]; then
+        rm -rf "$OPENWRT_PACKAGES_DIR/luci-app-oaf"
+        cp -r "$OAF_REPO_DIR/luci-app-oaf" "$OPENWRT_PACKAGES_DIR/"
+        echo "✓ luci-app-oaf 复制完成"
+    fi
+
+    echo "✓ OpenAppFilter 安装完成"
 }
 
 install_diskman() {
