@@ -50,6 +50,7 @@ main() {
     install_nikki
     install_easytier
     install_oaf
+    update_oaf_deconfig
     install_feeds
     configure_opkg
     update_docker_stack
