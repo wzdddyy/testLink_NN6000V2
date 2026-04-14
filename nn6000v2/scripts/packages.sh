@@ -17,7 +17,7 @@ install_openwrt_packages() {
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config\
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf open-app-filter oaf \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-nikki
+        luci-app-diskman luci-app-dockerman luci-app-quickfile nikki luci-app-nikki
 }
 
 install_argon_theme() {
