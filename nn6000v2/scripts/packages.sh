@@ -63,13 +63,6 @@ install_nikki() {
     # 复制 nikki 核心包
     rm -rf "$OPENWRT_PACKAGES_DIR/nikki"
     cp -r "$NIKKI_REPO_DIR/nikki" "$OPENWRT_PACKAGES_DIR/"
-    
-    # 修复 nikki Makefile 中的依赖问题
-    local nikki_makefile="$OPENWRT_PACKAGES_DIR/nikki/Makefile"
-    if [ -f "$nikki_makefile" ]; then
-        # 修复 firewall4 前缺少 + 的问题
-        sed -i 's/+yq firewall4/+yq +firewall4/g' "$nikki_makefile"
-    fi
     echo "✓ nikki 核心包复制完成"
 
     # 复制 luci-app-nikki
