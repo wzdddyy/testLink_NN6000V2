@@ -17,7 +17,7 @@ install_openwrt_packages() {
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config\
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf open-app-filter oaf \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-nikki
+        luci-app-diskman luci-app-dockerman luci-app-quickfile
 }
 
 install_argon_theme() {
@@ -45,49 +45,9 @@ install_argon_theme() {
 
 
 install_nikki() {
-    local NIKKI_REPO="https://github.com/nikkinikki-org/OpenWrt-nikki.git"
-    local NIKKI_REPO_DIR="$BUILD_DIR/OpenWrt-nikki"
-    local OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
-
-    # 检查仓库是否已存在
-    if [ ! -d "$NIKKI_REPO_DIR" ]; then
-        echo "克隆 OpenWrt-nikki 仓库..."
-        if ! git clone --depth=1 "$NIKKI_REPO" "$NIKKI_REPO_DIR"; then
-            echo "错误：从 $NIKKI_REPO 克隆 OpenWrt-nikki 仓库失败" >&2
-            exit 1
-        fi
-    else
-        echo "OpenWrt-nikki 仓库已存在，使用现有仓库"
-    fi
-
-    # 复制 nikki 核心包
-    rm -rf "$OPENWRT_PACKAGES_DIR/nikki"
-    cp -r "$NIKKI_REPO_DIR/nikki" "$OPENWRT_PACKAGES_DIR/"
-    echo "✓ nikki 核心包复制完成"
-
-    # 复制 luci-app-nikki
-    rm -rf "$OPENWRT_PACKAGES_DIR/luci-app-nikki"
-    cp -r "$NIKKI_REPO_DIR/luci-app-nikki" "$OPENWRT_PACKAGES_DIR/"
-    echo "✓ luci-app-nikki 复制完成"
-
-    # 复制 mihomo-alpha 包
-    if [ -d "$NIKKI_REPO_DIR/mihomo-alpha" ]; then
-        rm -rf "$OPENWRT_PACKAGES_DIR/mihomo-alpha"
-        cp -r "$NIKKI_REPO_DIR/mihomo-alpha" "$OPENWRT_PACKAGES_DIR/"
-        echo "✓ mihomo-alpha 复制完成"
-    fi
-
-    # 复制 mihomo-meta 包
-    if [ -d "$NIKKI_REPO_DIR/mihomo-meta" ]; then
-        rm -rf "$OPENWRT_PACKAGES_DIR/mihomo-meta"
-        cp -r "$NIKKI_REPO_DIR/mihomo-meta" "$OPENWRT_PACKAGES_DIR/"
-        echo "✓ mihomo-meta 复制完成"
-    fi
-
-    # 删除克隆的仓库目录以节省空间
-    rm -rf "$NIKKI_REPO_DIR"
-
-    echo "✓ OpenWrt-nikki 安装完成"
+    # nikki 包会通过 feeds install -a 自动安装
+    # 此函数保留作为占位符，确保 install_openwrt_packages 中引用时不会报错
+    echo "✓ nikki 包将通过 feeds install -a 自动安装"
 }
 
 install_lucky() {
