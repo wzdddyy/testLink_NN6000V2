@@ -12,12 +12,10 @@ update_feeds() {
         echo "src-git openwrt_packages https://github.com/kenzok8/openwrt-packages.git" >>"$FEEDS_PATH"
     fi
 
-    # 添加 nikki feeds 源
-    if ! grep -q "nikkinikki-org/OpenWrt-nikki" "$FEEDS_PATH"; then
+    if ! grep -q "passwall-packages" "$FEEDS_PATH"; then
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main" >>"$FEEDS_PATH"
+        echo "src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git" >>"$FEEDS_PATH"
     fi
-
 
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
         touch "$BUILD_DIR/include/bpf.mk"
@@ -41,12 +39,17 @@ install_feeds() {
     # 先安装 openwrt-packages 中的包
     echo "安装 openwrt-packages 包..."
     install_openwrt_packages
+    install_fullconenat
     
-    # 安装其他 feeds 的包
+    # 安装 passwall-packages 中的包
+    echo "安装 passwall-packages 包..."
+    install_passwall_packages
+    
+    # 安装其他 feeds 的包（跳过 openwrt_packages 和 passwall_packages）
     for dir in "$BUILD_DIR"/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
             local feed_name=$(basename "$dir")
-            if [[ "$feed_name" != "openwrt_packages" ]]; then
+            if [[ "$feed_name" != "openwrt_packages" ]] && [[ "$feed_name" != "passwall_packages" ]]; then
                 ./scripts/feeds install -f -ap "$feed_name"
             fi
         fi

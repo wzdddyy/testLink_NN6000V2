@@ -48,16 +48,14 @@ remove_uhttpd_dependency() {
 }
 
 apply_config() {
-    local final_config="$BASE_PATH/../$BUILD_DIR/.config"
+    \cp -f "$CONFIG_FILE" "$BASE_PATH/../$BUILD_DIR/.config"
     
-    \cp -f "$CONFIG_FILE" "$final_config"
-    
-    if grep -qE "(ipq60xx|ipq807x)" "$final_config" &&
-        ! grep -q "CONFIG_GIT_MIRROR" "$final_config"; then
-        cat "$BASE_PATH/configs/kernel/nss.config" >> "$final_config"
+    if grep -qE "(ipq60xx|ipq807x)" "$BASE_PATH/../$BUILD_DIR/.config" &&
+        ! grep -q "CONFIG_GIT_MIRROR" "$BASE_PATH/../$BUILD_DIR/.config"; then
+        cat "$BASE_PATH/configs/kernel/nss.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
     fi
 
-    cat "$BASE_PATH/configs/kernel/docker_deps.config" >> "$final_config"
+    cat "$BASE_PATH/configs/kernel/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 }
 
 REPO_URL=$(read_ini_by_key "REPO_URL")

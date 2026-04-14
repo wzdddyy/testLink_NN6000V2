@@ -14,35 +14,35 @@ update_golang() {
 install_openwrt_packages() {
     ./scripts/feeds install -p openwrt_packages -f taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
-        smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config\
+        smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf open-app-filter oaf \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall2
 }
 
-install_argon_theme() {
-    local ARGON_REPO="https://github.com/jerrykuku/luci-theme-argon.git"
-    local ARGON_CONFIG_REPO="https://github.com/jerrykuku/luci-app-argon-config.git"
-    local ARGON_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-theme-argon"
-    local ARGON_CONFIG_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-argon-config"
 
-    # 克隆 luci-theme-argon
-    rm -rf "$ARGON_DIR"
-    if ! git clone --depth=1 "$ARGON_REPO" "$ARGON_DIR"; then
-        echo "错误：从 $ARGON_REPO 克隆 luci-theme-argon 仓库失败" >&2
+install_passwall_packages() {
+    ./scripts/feeds install -p passwall_packages -f chinadns-ng geoview hysteria sing-box tcping v2ray-geodata xray-core
+    echo "✓ Passwall 依赖安装完成"
+}
+
+install_passwall2() {
+    local PASSWALL2_REPO="https://github.com/Openwrt-Passwall/openwrt-passwall2.git"
+    local PASSWALL2_DIR="$BUILD_DIR/feeds/openwrt_packages/openwrt-passwall2"
+
+    rm -rf "$PASSWALL2_DIR"
+    if ! git clone --depth=1 -b main "$PASSWALL2_REPO" "$PASSWALL2_DIR"; then
+        echo "错误：从 $PASSWALL2_REPO 克隆 luci-app-passwall2 仓库失败" >&2
         exit 1
     fi
 
-    # 克隆 luci-app-argon-config
-    rm -rf "$ARGON_CONFIG_DIR"
-    if ! git clone --depth=1 "$ARGON_CONFIG_REPO" "$ARGON_CONFIG_DIR"; then
-        echo "错误：从 $ARGON_CONFIG_REPO 克隆 luci-app-argon-config 仓库失败" >&2
-        exit 1
-    fi
-
-    echo "✓ Argon 主题克隆完成"
+    echo "✓ luci-app-passwall2 克隆完成"
 }
 
+install_fullconenat() {
+    # 安装 fullconenat 相关包
+    ./scripts/feeds install -p packages -f kmod-fullconenat
+}
 
 install_lucky() {
     local LUCKY_REPO="https://github.com/gdy666/luci-app-lucky.git"
@@ -135,86 +135,43 @@ install_adguardhome() {
 
 install_easytier() {
     local EASYTIER_REPO="https://github.com/EasyTier/luci-app-easytier.git"
-    local EASYTIER_REPO_DIR="$BUILD_DIR/luci-app-easytier-repo"
-    local OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
+    local EASYTIER_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-easytier"
 
     # 安装依赖
     ./scripts/feeds install -f luci-lib-jsonc
-
-    # 检查仓库是否已存在
-    if [ ! -d "$EASYTIER_REPO_DIR" ]; then
-        echo "克隆 luci-app-easytier 仓库..."
-        if ! git clone --depth=1 "$EASYTIER_REPO" "$EASYTIER_REPO_DIR"; then
-            echo "错误：从 $EASYTIER_REPO 克隆 luci-app-easytier 仓库失败" >&2
-            exit 1
-        fi
-    else
-        echo "luci-app-easytier 仓库已存在，使用现有仓库"
+    
+    rm -rf "$EASYTIER_DIR"
+    if ! git clone --depth=1 "$EASYTIER_REPO" "$EASYTIER_DIR"; then
+        echo "错误：从 $EASYTIER_REPO 克隆 luci-app-easytier 仓库失败" >&2
+        exit 1
     fi
 
-    # 复制 easytier 核心包
-    if [ -d "$EASYTIER_REPO_DIR/easytier" ]; then
-        rm -rf "$OPENWRT_PACKAGES_DIR/easytier"
-        cp -r "$EASYTIER_REPO_DIR/easytier" "$OPENWRT_PACKAGES_DIR/"
-        echo "✓ easytier 核心包复制完成"
-    fi
-
-    # 复制 luci-app-easytier
-    rm -rf "$OPENWRT_PACKAGES_DIR/luci-app-easytier"
-    cp -r "$EASYTIER_REPO_DIR/luci-app-easytier" "$OPENWRT_PACKAGES_DIR/"
-    echo "✓ luci-app-easytier 复制完成"
-
-    # 删除克隆的仓库目录以节省空间
-    rm -rf "$EASYTIER_REPO_DIR"
+    echo "✓ luci-app-easytier 克隆完成"
 }
 
 install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
-    local OAF_REPO_DIR="$BUILD_DIR/OpenAppFilter"
-    local OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
+    local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
 
-    # 检查仓库是否已存在
-    if [ ! -d "$OAF_REPO_DIR" ]; then
-        echo "克隆 OpenAppFilter 仓库..."
-        if ! git clone --depth=1 "$OAF_REPO" "$OAF_REPO_DIR"; then
-            echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
-            exit 1
-        fi
-    else
-        echo "OpenAppFilter 仓库已存在，使用现有仓库"
+    rm -rf "$OAF_DIR"
+    if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
+        echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
+        exit 1
     fi
 
-    # 复制 oaf 核心包
-    if [ -d "$OAF_REPO_DIR/oaf" ]; then
-        rm -rf "$OPENWRT_PACKAGES_DIR/oaf"
-        cp -r "$OAF_REPO_DIR/oaf" "$OPENWRT_PACKAGES_DIR/"
-        
-        # 修复 oaf 递归依赖问题，但保留必要依赖
-        local oaf_makefile="$OPENWRT_PACKAGES_DIR/oaf/Makefile"
-        if [ -f "$oaf_makefile" ]; then
-            sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
-        fi
-        echo "✓ oaf 核心包复制完成"
+    # 修复 oaf 递归依赖问题，但保留必要依赖
+    local oaf_makefile="$OAF_DIR/oaf/Makefile"
+    if [ -f "$oaf_makefile" ]; then
+        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
     fi
 
-    # 复制 open-app-filter 包
-    if [ -d "$OAF_REPO_DIR/open-app-filter" ]; then
-        rm -rf "$OPENWRT_PACKAGES_DIR/open-app-filter"
-        cp -r "$OAF_REPO_DIR/open-app-filter" "$OPENWRT_PACKAGES_DIR/"
-        echo "✓ open-app-filter 复制完成"
+    # 默认禁用 OAF 服务
+    local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
+    if [ -f "$oaf_config" ]; then
+        sed -i "s/option enabled '1'/option enabled '0'/g" "$oaf_config"
     fi
 
-    # 复制 luci-app-oaf
-    if [ -d "$OAF_REPO_DIR/luci-app-oaf" ]; then
-        rm -rf "$OPENWRT_PACKAGES_DIR/luci-app-oaf"
-        cp -r "$OAF_REPO_DIR/luci-app-oaf" "$OPENWRT_PACKAGES_DIR/"
-        echo "✓ luci-app-oaf 复制完成"
-    fi
-
-    # 删除克隆的仓库目录以节省空间
-    rm -rf "$OAF_REPO_DIR"
-
-    echo "✓ OpenAppFilter 安装完成"
+    echo "✓ OpenAppFilter 克隆完成"
 }
 
 install_diskman() {

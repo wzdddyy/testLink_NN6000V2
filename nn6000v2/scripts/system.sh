@@ -16,25 +16,6 @@ fix_default_set() {
     fi
 }
 
-configure_opkg() {
-    mkdir -p "$BUILD_DIR/package/base-files/files/etc/opkg"
-    
-    cat <<'EOF' >"$BUILD_DIR/package/base-files/files/etc/opkg/distfeeds.conf"
-src/gz openwrt_base https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/base
-src/gz openwrt_luci https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/luci
-src/gz openwrt_packages https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/packages
-src/gz openwrt_routing https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/routing
-src/gz openwrt_telephony https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/packages/aarch64_cortex-a53/telephony
-EOF
-
-    cat <<'EOF' >"$BUILD_DIR/package/base-files/files/etc/opkg.conf"
-dest root /
-dest ram /tmp
-lists_dir ext /var/opkg-lists
-option overlay_root /overlay
-EOF
-}
-
 fix_miniupnpd() {
     local miniupnpd_dir="$BUILD_DIR/feeds/packages/net/miniupnpd"
     local patch_file="999-change-default-leaseduration.patch"
@@ -144,7 +125,26 @@ EOF
     chmod +x "$sh_dir/custom_task"
 }
 
+apply_passwall_tweaks() {
+    local chnlist_path="$BUILD_DIR/feeds/passwall/luci-app-passwall/root/usr/share/passwall/rules/chnlist"
+    if [ -f "$chnlist_path" ]; then
+        >"$chnlist_path"
+    fi
 
+    local xray_util_path="$BUILD_DIR/feeds/passwall/luci-app-passwall/luasrc/passwall/util_xray.lua"
+    if [ -f "$xray_util_path" ]; then
+        sed -i 's/maxRTT = "1s"/maxRTT = "2s"/g' "$xray_util_path"
+        sed -i 's/sampling = 3/sampling = 5/g' "$xray_util_path"
+    fi
+}
+
+update_nss_pbuf_performance() {
+    local pbuf_path="$BUILD_DIR/package/kernel/mac80211/files/pbuf.uci"
+    if [ -d "$(dirname "$pbuf_path")" ] && [ -f $pbuf_path ]; then
+        sed -i "s/auto_scale '1'/auto_scale 'off'/g" $pbuf_path
+        sed -i "s/scaling_governor 'performance'/scaling_governor 'schedutil'/g" $pbuf_path
+    fi
+}
 
 set_build_signature() {
     local file="$BUILD_DIR/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js"
@@ -449,33 +449,6 @@ fix_quickstart() {
             echo "错误：从 $url 下载 istore_backend.lua 失败" >&2
             exit 1
         fi
-    fi
-}
-
-update_oaf_deconfig() {
-    local conf_path="$BUILD_DIR/feeds/openwrt_packages/open-app-filter/files/appfilter.config"
-    local uci_def="$BUILD_DIR/feeds/openwrt_packages/luci-app-oaf/root/etc/uci-defaults/94_feature_3.0"
-    local disable_path="$BUILD_DIR/feeds/openwrt_packages/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
-
-    if [ -d "${conf_path%/*}" ] && [ -f "$conf_path" ]; then
-        sed -i \
-            -e "s/record_enable '1'/record_enable '0'/g" \
-            -e "s/disable_hnat '1'/disable_hnat '0'/g" \
-            -e "s/auto_load_engine '1'/auto_load_engine '0'/g" \
-            "$conf_path"
-    fi
-
-    if [ -d "${uci_def%/*}" ] && [ -f "$uci_def" ]; then
-        sed -i '/\(disable_hnat\|auto_load_engine\)/d' "$uci_def"
-
-        cat >"$disable_path" <<-EOF
-#!/bin/sh
-[ "\$(uci get appfilter.global.enable 2>/dev/null)" = "0" ] && {
-    /etc/init.d/appfilter disable
-    /etc/init.d/appfilter stop
-}
-EOF
-        chmod +x "$disable_path"
     fi
 }
 

@@ -46,12 +46,10 @@ main() {
     install_diskman
     install_dockerman
     install_adguardhome
-    install_argon_theme
+    install_passwall2
     install_easytier
     install_oaf
-    update_oaf_deconfig
     install_feeds
-    configure_opkg
     update_docker_stack
     remove_tweaked_packages
     fix_default_set
@@ -63,6 +61,8 @@ main() {
     update_dnsmasq_conf
     change_cpuusage
     set_custom_task
+    apply_passwall_tweaks
+    update_nss_pbuf_performance
     update_nss_diag
     fix_compile_coremark
     set_build_signature

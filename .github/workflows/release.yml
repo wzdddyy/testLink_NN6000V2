@@ -39,12 +39,12 @@ jobs:
           export BUILD_SRC=$(awk -F"=" '/REPO_URL/ {print $NF}' "./nn6000v2/configs/${{ env.DEVICE_MODEL }}.ini")
           echo "BUILD_SRC=$BUILD_SRC" >> $GITHUB_ENV
 
-      - name: Clone Setup
+      - name: Pre Clone
         run: |
-          chmod +x ./nn6000v2/scripts/clone_setup.sh
+          chmod +x ./nn6000v2/scripts/pre_clone_action.sh
           chmod +x ./nn6000v2/scripts/update.sh
           chmod +x ./nn6000v2/scripts/build.sh
-          ./nn6000v2/scripts/clone_setup.sh ${{ env.DEVICE_MODEL }}
+          ./nn6000v2/scripts/pre_clone_action.sh ${{ env.DEVICE_MODEL }}
 
       - name: Cache Dependencies
         uses: actions/cache@v5.0.4
@@ -82,6 +82,15 @@ jobs:
           echo "========cache status========"
           echo "ccache: $(du -sh ./action_build/.ccache | cut -f 1)"
           echo "staging: $(du -sh ./action_build/staging_dir | cut -f 1)"
+
+      - name: Machine Information
+        run: |
+          echo "=============================================="
+          lscpu | grep -E "name|Core|Thread"
+          echo "=============================================="
+          df -h
+          echo "=============================================="
+
 
       - name: Prepare Release Body
         run: |
