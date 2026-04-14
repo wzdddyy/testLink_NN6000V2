@@ -17,7 +17,7 @@ install_openwrt_packages() {
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config\
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf open-app-filter oaf \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-nikki
 }
 
 install_argon_theme() {
@@ -45,9 +45,9 @@ install_argon_theme() {
 
 
 install_nikki() {
-    # nikki 包会通过 feeds install -a 自动安装
-    # 此函数保留作为占位符，确保 install_openwrt_packages 中引用时不会报错
-    echo "✓ nikki 包将通过 feeds install -a 自动安装"
+    echo "安装 nikki 包..."
+    ./scripts/feeds install -p nikki -f nikki luci-app-nikki
+    echo "✓ OpenWrt-nikki 安装完成"
 }
 
 install_lucky() {
