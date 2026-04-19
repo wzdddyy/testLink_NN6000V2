@@ -73,6 +73,43 @@ configure_conntrack() {
 }
 
 #-------------------------------------------------------------------------------
+# 配置 ZeroTier 防火墙规则（nftables）
+#-------------------------------------------------------------------------------
+configure_zerotier_nftables() {
+    local zt_interface="zerotier"
+    local zt_zone="zerotier_zone"
+    
+    # 检查 ZeroTier 是否已安装
+    if ! command -v zerotier-cli >/dev/null 2>&1; then
+        log_info "ZeroTier 未安装，跳过防火墙配置"
+        return 0
+    fi
+    
+    # 检查是否已有 zerotier 规则
+    if nft list chain inet fw4 input | grep -q "$zt_interface" 2>/dev/null; then
+        log_info "ZeroTier nftables 规则已存在"
+        return 0
+    fi
+    
+    log_info "正在配置 ZeroTier nftables 防火墙规则..."
+    
+    # 创建 zerotier 区域
+    nft add chain inet fw4 "$zt_zone" '{ type filter hook forward priority 0; policy accept; }' 2>/dev/null || true
+    
+    # 允许 zerotier 接口的入站流量
+    nft add rule inet fw4 input iifname "$zt_interface"* counter accept 2>/dev/null || true
+    
+    # 允许 zerotier 接口的转发流量
+    nft add rule inet fw4 forward iifname "$zt_interface"* counter accept 2>/dev/null || true
+    nft add rule inet fw4 forward oifname "$zt_interface"* counter accept 2>/dev/null || true
+    
+    # 允许 zerotier 区域转发
+    nft add rule inet fw4 forward chain "$zt_zone" 2>/dev/null || true
+    
+    log_info "ZeroTier nftables 规则配置完成"
+}
+
+#-------------------------------------------------------------------------------
 # 解除 dropbear SSH 访问限制
 #-------------------------------------------------------------------------------
 configure_dropbear() {
@@ -191,6 +228,9 @@ main() {
     
     # 配置 dropbear
     configure_dropbear
+    
+    # 配置 ZeroTier 防火墙规则（nftables）
+    configure_zerotier_nftables
     
     # 网络优化
     configure_network_optimization
