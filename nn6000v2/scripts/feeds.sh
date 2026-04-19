@@ -41,11 +41,9 @@ install_feeds() {
     install_openwrt_packages
     install_fullconenat
     
-    # 安装 passwall-packages 中的包（此时 golang 应该已经安装）
     echo "安装 passwall-packages 包..."
     install_passwall_packages
     
-    # 安装其他 feeds 的包（跳过 openwrt_packages 和 passwall_packages）
     for dir in "$BUILD_DIR"/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
             local feed_name=$(basename "$dir")
