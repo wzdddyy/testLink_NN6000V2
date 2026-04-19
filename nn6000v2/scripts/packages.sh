@@ -9,15 +9,6 @@ update_golang() {
         fi
         echo "✓ golang 软件包更新完成"
     fi
-    
-    # 安装 golang 编译器
-    echo "正在安装 golang 编译环境..."
-    ./scripts/feeds install -p packages -f golang || {
-        echo "警告：安装 golang 失败，后续可能需要手动安装" >&2
-        return 1
-    }
-    
-    echo "✓ golang 编译环境安装完成"
 }
 
 install_openwrt_packages() {
@@ -26,42 +17,26 @@ install_openwrt_packages() {
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf open-app-filter oaf \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall2
 }
 
 
 install_passwall_packages() {
-    if ! command -v go &> /dev/null; then
-        echo "警告：未检测到 go 编译器，尝试安装..."
-        ./scripts/feeds install -p packages -f golang || {
-            echo "错误：安装 golang 失败" >&2
-            exit 1
-        }
-    fi
-    
-    if ! go version &> /dev/null; then
-        echo "错误：go 编译器不可用，无法编译 Go 语言包" >&2
-        exit 1
-    fi
-    
-    echo "✓ 检测到 Go 环境：$(go version)"
-    echo "正在安装 passwall 依赖包..."
-    ./scripts/feeds install -p passwall_packages -f geoview hysteria sing-box v2ray-geodata xray-core
-    
-    echo "✓ Passwall 协议核心安装完成"
+    ./scripts/feeds install -p passwall_packages -f chinadns-ng geoview hysteria sing-box tcping v2ray-geodata xray-core
+    echo "✓ Passwall 依赖安装完成"
 }
 
-install_passwall() {
-    local PASSWALL_REPO="https://github.com/Openwrt-Passwall/openwrt-passwall.git"
-    local PASSWALL_DIR="$BUILD_DIR/feeds/openwrt_packages/openwrt-passwall"
+install_passwall2() {
+    local PASSWALL2_REPO="https://github.com/Openwrt-Passwall/openwrt-passwall2.git"
+    local PASSWALL2_DIR="$BUILD_DIR/feeds/openwrt_packages/openwrt-passwall2"
 
-    rm -rf "$PASSWALL_DIR"
-    if ! git clone --depth=1 -b main "$PASSWALL_REPO" "$PASSWALL_DIR"; then
-        echo "错误：从 $PASSWALL_REPO 克隆 luci-app-passwall 仓库失败" >&2
+    rm -rf "$PASSWALL2_DIR"
+    if ! git clone --depth=1 -b main "$PASSWALL2_REPO" "$PASSWALL2_DIR"; then
+        echo "错误：从 $PASSWALL2_REPO 克隆 luci-app-passwall2 仓库失败" >&2
         exit 1
     fi
 
-    echo "✓ luci-app-passwall 克隆完成"
+    echo "✓ luci-app-passwall2 克隆完成"
 }
 
 install_fullconenat() {
