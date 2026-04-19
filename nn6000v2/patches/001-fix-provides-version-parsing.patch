@@ -26,7 +26,7 @@ Signed-off-by: ZqinKing <zqinking23@gmail.com>
  	char *item, *tok;
  	abstract_pkg_t *ab_pkg, *provided_abpkg, **tmp, **provides;
  
-@@ -640,6 +641,15 @@ void parse_providelist(pkg_t *pkg, char
+@@ -640,6 +641,16 @@ void parse_providelist(pkg_t *pkg, char
  		if (!tmp)
  			break;
  
@@ -36,8 +36,9 @@ Signed-off-by: ZqinKing <zqinking23@gmail.com>
 +		 * We only care about the package name for virtual package resolution.
 +		 */
 +		version_sep = strpbrk(item, "=(<>");
-+		if (version_sep)
++		if (version_sep) {
 +			*version_sep = '\0';
++		}
 +
  		provided_abpkg = ensure_abstract_pkg_by_name(item);
  

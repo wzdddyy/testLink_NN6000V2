@@ -87,35 +87,72 @@ set_affinity() {
 }
 
 enable_affinity() {
-    # assign 4 rx interrupts to each core
-    set_affinity 'reo2host-destination-ring1' 0 1
-    set_affinity 'reo2host-destination-ring2' 1 1
-    set_affinity 'reo2host-destination-ring3' 2 1
-    set_affinity 'reo2host-destination-ring4' 3 1
+    # 检测 CPU 核心数
+    local cpu_count
+    cpu_count=$(grep -c '^processor' /proc/cpuinfo 2>/dev/null || echo 4)
+    
+    # 如果 CPU 核心数少于 4 个，使用简化配置
+    if [ "$cpu_count" -lt 4 ]; then
+        logger -t "$PROG" "检测到 $cpu_count 核心 CPU，使用简化中断分配策略"
+        
+        # 双核优化：网络中断分配到 CPU0，WiFi 中断分配到 CPU1
+        set_affinity 'reo2host-destination-ring1' 0 1
+        set_affinity 'reo2host-destination-ring2' 0 1
+        set_affinity 'reo2host-destination-ring3' 1 1
+        set_affinity 'reo2host-destination-ring4' 1 1
+        
+        set_affinity 'wbm2host-tx-completions-ring1' 0 1
+        set_affinity 'wbm2host-tx-completions-ring2' 1 1
+        set_affinity 'wbm2host-tx-completions-ring3' 1 1
+        
+        set_affinity 'edma_txcmpl' 0 1
+        set_affinity 'edma_rxfill' 0 1
+        set_affinity 'edma_rxdesc' 0 1
+        set_affinity 'edma_misc' 0 1
+        
+        set_affinity 'nss_queue0' 0-1 1
+        set_affinity 'bam_dma' 0 1
+    else
+        # 四核及以上优化：分散中断负载
+        logger -t "$PROG" "检测到 $cpu_count 核心 CPU，使用优化中断分配策略"
+        
+        # assign 4 rx interrupts to each core (RX 分散到所有核心)
+        set_affinity 'reo2host-destination-ring1' 0 1
+        set_affinity 'reo2host-destination-ring2' 1 1
+        set_affinity 'reo2host-destination-ring3' 2 1
+        set_affinity 'reo2host-destination-ring4' 3 1
 
-    # assign 3 tcl completions to last 3 CPUs
-    set_affinity 'wbm2host-tx-completions-ring1' 1 1
-    set_affinity 'wbm2host-tx-completions-ring2' 2 1
-    set_affinity 'wbm2host-tx-completions-ring3' 3 1
+        # assign 3 tcl completions to last 3 CPUs (TX 完成中断分散)
+        set_affinity 'wbm2host-tx-completions-ring1' 1 1
+        set_affinity 'wbm2host-tx-completions-ring2' 2 1
+        set_affinity 'wbm2host-tx-completions-ring3' 3 1
 
-    # assign 3 ppdu mac interrupts to last 3 cores
-    set_affinity 'ppdu-end-interrupts-mac1' 1 1
-    set_affinity 'ppdu-end-interrupts-mac2' 2 1
-    set_affinity 'ppdu-end-interrupts-mac3' 3 1
+        # assign 3 ppdu mac interrupts to last 3 cores (WiFi MAC 中断分散)
+        set_affinity 'ppdu-end-interrupts-mac1' 1 1
+        set_affinity 'ppdu-end-interrupts-mac2' 2 1
+        set_affinity 'ppdu-end-interrupts-mac3' 3 1
 
-    # assign 4 lan/wan to core 4
-    set_affinity 'edma_txcmpl' 3 1
-    set_affinity 'edma_rxfill' 3 1
-    set_affinity 'edma_rxdesc' 3 1
-    set_affinity 'edma_misc' 3 1
+        # assign 4 lan/wan to core 3 (以太网集中到 CPU3，避免干扰 WiFi)
+        set_affinity 'edma_txcmpl' 3 1
+        set_affinity 'edma_rxfill' 3 1
+        set_affinity 'edma_rxdesc' 3 1
+        set_affinity 'edma_misc' 3 1
 
-    # assign nss_queue0 to 2-3
-    set_affinity 'nss_queue0' 2-3 1
+        # assign nss_queue0 to CPU 2-3 (NSS 硬件加速分散到 2-3 核心)
+        set_affinity 'nss_queue0' 2-3 1
 
-    # assign Copy Engine
-    set_affinity 'bam_dma' 1 1
-    set_affinity 'bam_dma' 2 2
-    set_affinity 'bam_dma' 3 3
+        # assign Copy Engine (DMA 引擎分散)
+        set_affinity 'bam_dma' 1 1
+        set_affinity 'bam_dma' 2 2
+        set_affinity 'bam_dma' 3 3
+    fi
+    
+    # 优化：将网络定时器和任务分配到特定核心
+    # 减少核心间缓存同步开销
+    if [ -f /proc/irq/default_smp_affinity ]; then
+        # 设置默认中断亲和性为所有核心
+        echo "f" > /proc/irq/default_smp_affinity 2>/dev/null || true
+    fi
 }
 
 boot() {

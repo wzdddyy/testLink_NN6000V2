@@ -11,7 +11,7 @@
  	65535,
 --- a/upnpsoap.c
 +++ b/upnpsoap.c
-@@ -518,15 +518,18 @@ AddPortMapping(struct upnphttp * h, cons
+@@ -518,15 +518,22 @@ AddPortMapping(struct upnphttp * h, cons
  	leaseduration = leaseduration_str ? atoi(leaseduration_str) : 0;
  #ifdef IGD_V2
  	/* PortMappingLeaseDuration can be either a value between 1 and
@@ -25,21 +25,29 @@
 -	 * instead (e.g. 604800 seconds) */
 -	if(leaseduration == 0 || leaseduration > 604800)
 -		leaseduration = 604800;
-+	 * instead (e.g. 86400 seconds) */
++	 * instead (e.g. 86400 seconds).
++	 * 
++	 * Optimized for gaming:
++	 * - Default lease: 8 hours (28800s) - sufficient for most gaming sessions
++	 * - Maximum lease: 24 hours (86400s) - prevents port exhaustion
++	 * - Infinite lease converted to 8 hours for automatic cleanup
++	 */
 +	if (leaseduration == 0) {
-+		leaseduration = 28800;
++		leaseduration = 28800;  /* 8 hours - optimal for gaming */
 +	} else if (leaseduration > 86400) {
-+		leaseduration = 86400;
++		leaseduration = 86400;  /* 24 hours maximum */
 +	}
  #endif
  
  	syslog(LOG_INFO, "%s: ext port %hu to %s:%hu protocol %s for: %s leaseduration=%u rhost=%s",
-@@ -621,7 +624,7 @@ AddAnyPortMapping(struct upnphttp * h, c
+@@ -621,7 +628,8 @@ AddAnyPortMapping(struct upnphttp * h, c
  
  	leaseduration = leaseduration_str ? atoi(leaseduration_str) : 0;
- 	if(leaseduration == 0)
+-	if(leaseduration == 0)
 -		leaseduration = 604800;
-+		leaseduration = 28800;
++	/* Default to 8 hours for automatic port cleanup */
++	if (leaseduration == 0)
++		leaseduration = 28800;  /* 8 hours */
  
  	if (!int_ip || !ext_port || !int_port || !protocol)
  	{
