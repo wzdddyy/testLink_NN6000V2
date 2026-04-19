@@ -41,7 +41,7 @@ install_feeds() {
     install_openwrt_packages
     install_fullconenat
     
-    # 安装 passwall-packages 中的包
+    # 安装 passwall-packages 中的包（此时 golang 应该已经安装）
     echo "安装 passwall-packages 包..."
     install_passwall_packages
     

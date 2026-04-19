@@ -12,13 +12,11 @@ update_golang() {
     
     # 安装 golang 编译器
     echo "正在安装 golang 编译环境..."
-    ./scripts/feeds install -a || {
-        echo "警告：feeds install -a 失败，尝试单独安装 golang..."
-        ./scripts/feeds install -p packages -f golang || {
-            echo "错误：安装 golang 失败" >&2
-            return 1
-        }
+    ./scripts/feeds install -p packages -f golang || {
+        echo "警告：安装 golang 失败，后续可能需要手动安装" >&2
+        return 1
     }
+    
     echo "✓ golang 编译环境安装完成"
 }
 
@@ -37,27 +35,18 @@ install_passwall_packages() {
         echo "警告：未检测到 go 编译器，尝试安装..."
         ./scripts/feeds install -p packages -f golang || {
             echo "错误：安装 golang 失败" >&2
-            return 1
+            exit 1
         }
     fi
     
-    # 验证 go 版本
-    local go_version
-    go_version=$(go version 2>&1)
-    echo "当前 Go 版本：$go_version"
+    if ! go version &> /dev/null; then
+        echo "错误：go 编译器不可用，无法编译 Go 语言包" >&2
+        exit 1
+    fi
     
-    echo "正在安装 Passwall 协议核心..."
-    
-    ./scripts/feeds install -p passwall_packages -f geoview || {
-        echo "警告：geoview 安装失败，尝试重新安装..."
-        ./scripts/feeds install -p passwall_packages -f geoview || {
-            echo "错误：geoview 安装失败，可能影响 Sing-box 分流功能" >&2
-        }
-    }
-    
-    ./scripts/feeds install -p passwall_packages -f hysteria sing-box v2ray-geodata xray-core || {
-        echo "警告：部分 Passwall 组件安装失败" >&2
-    }
+    echo "✓ 检测到 Go 环境：$(go version)"
+    echo "正在安装 passwall 依赖包..."
+    ./scripts/feeds install -p passwall_packages -f geoview hysteria sing-box v2ray-geodata xray-core
     
     echo "✓ Passwall 协议核心安装完成"
 }
