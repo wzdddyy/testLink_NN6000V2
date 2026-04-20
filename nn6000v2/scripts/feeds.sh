@@ -36,12 +36,6 @@ install_feeds() {
     echo "更新 feeds 索引..."
     ./scripts/feeds update -i
     
-    # 安装 openwrt-packages 和 small 中的包
-    echo "安装 openwrt-packages 和 small 包..."
-    install_openwrt_packages
-    install_fullconenat
-    install_passwall
-    
     # 安装其他 feeds 的包
     for dir in "$BUILD_DIR"/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
