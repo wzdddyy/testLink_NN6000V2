@@ -94,7 +94,7 @@ configure_zerotier_nftables() {
     log_info "正在配置 ZeroTier nftables 防火墙规则..."
     
     # 创建 zerotier 区域
-    nft add chain inet fw4 "$zt_zone" '{ type filter hook forward priority 0; policy accept; }' 2>/dev/null || true
+    nft add chain inet fw4 "$zt_zone" 2>/dev/null || true
     
     # 允许 zerotier 接口的入站流量
     nft add rule inet fw4 input iifname "$zt_interface"* counter accept 2>/dev/null || true
@@ -103,8 +103,8 @@ configure_zerotier_nftables() {
     nft add rule inet fw4 forward iifname "$zt_interface"* counter accept 2>/dev/null || true
     nft add rule inet fw4 forward oifname "$zt_interface"* counter accept 2>/dev/null || true
     
-    # 允许 zerotier 区域转发
-    nft add rule inet fw4 forward chain "$zt_zone" 2>/dev/null || true
+    # 添加跳转到 zerotier 区域的规则
+    nft add rule inet fw4 forward jump "$zt_zone" 2>/dev/null || true
     
     log_info "ZeroTier nftables 规则配置完成"
 }
@@ -229,7 +229,7 @@ main() {
     # 配置 dropbear
     configure_dropbear
     
-    # 配置 ZeroTier 防火墙规则（nftables）
+    # 配置 ZeroTier 防火墙规则
     configure_zerotier_nftables
     
     # 网络优化
