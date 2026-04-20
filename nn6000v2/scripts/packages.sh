@@ -146,8 +146,14 @@ install_oaf() {
         exit 1
     fi
 
+    # 修复 oaf 递归依赖问题，但保留必要依赖
+    local oaf_makefile="$OAF_DIR/oaf/Makefile"
+    if [ -f "$oaf_makefile" ]; then
+        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
+    fi
+
     # 默认禁用 OAF 服务
-    local oaf_config="$OAF_DIR/luci-app-oaf/files/etc/config/appfilter"
+    local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
     if [ -f "$oaf_config" ]; then
         sed -i "s/option enabled '1'/option enabled '0'/g" "$oaf_config"
     fi
