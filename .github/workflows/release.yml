@@ -132,6 +132,12 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.BUILD_DATE }}_${{ env.DEVICE_MODEL }}
-          files: './firmware'/*.*
+          files: |
+            ./firmware/*.bin
+            ./firmware/*.manifest
+            ./firmware/*.img.gz
+            ./firmware/*.itb
+            ./firmware/*.fip
+            ./firmware/*.ubi
           body_path: ./release_body.txt
           make_latest: true
