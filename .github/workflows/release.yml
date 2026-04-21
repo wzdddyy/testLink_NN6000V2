@@ -23,7 +23,7 @@ jobs:
           sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
           sudo -E apt -yqq install dos2unix
           sudo -E apt -yqq install libfuse-dev
-          curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+          curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
           sudo -E apt -yqq install nodejs
           sudo -E npm install -g uglify-js clean-css-cli
           
