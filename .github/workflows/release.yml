@@ -2,6 +2,10 @@ name: Go_Release
 
 on:
   workflow_dispatch:
+  schedule:
+    # 每 3 天编译一次（UTC 时间，北京时间 = UTC+8）
+    # UTC 20:00 = 北京时间 04:00
+    - cron: '0 20 */3 * *'
 
 env:
   DEVICE_MODEL: link_nn6000v2_immwrt
@@ -100,12 +104,37 @@ jobs:
           echo "云编译发布" > release_body.txt
           echo "源码：${{ env.BUILD_SRC }}" >> release_body.txt
           echo "Kernel: ${{ env.KVER }}" >> release_body.txt
-          echo "WIFI密码: 147258369" >> release_body.txt
-          echo "LAN地址: 10.0.0.1" >> release_body.txt
+          echo "WIFI 密码：147258369" >> release_body.txt
+          echo "LAN 地址：10.0.0.1" >> release_body.txt
+
+      - name: Clean Old Releases and Tags
+        run: |
+          # 获取当前发布的 tag
+          CURRENT_TAG="${{ env.BUILD_DATE }}_${{ env.DEVICE_MODEL }}"
+          echo "当前编译版本：$CURRENT_TAG"
+          
+          echo "开始清理所有旧的 releases..."
+          gh release list --limit 100 --json tagName --jq '.[].tagName' | while read -r old_tag; do
+            if [ -n "$old_tag" ] && [ "$old_tag" != "$CURRENT_TAG" ]; then
+              echo "删除旧版本：$old_tag"
+              gh release delete "$old_tag" --cleanup-tag --yes || true
+            fi
+          done
+          
+          # 清理孤立的 tags
+          echo "清理孤立的 tags..."
+          git fetch --tags
+          git tag -l | grep -v "$CURRENT_TAG" | while read -r tag; do
+            echo "删除孤立 tag: $tag"
+            git tag -d "$tag" || true
+          done
+          
+          echo "所有旧版本已清理完成！"
 
       - name: Release Firmware
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ env.BUILD_DATE }}_${{ inputs.model }}
-          files: ${{ inputs.model == 'n1_immwrt' && env.PACKAGED_OUTPUTPATH || './firmware' }}/*.*
+          tag_name: ${{ env.BUILD_DATE }}_${{ env.DEVICE_MODEL }}
+          files: './firmware'/*.*
           body_path: ./release_body.txt
+          make_latest: true
