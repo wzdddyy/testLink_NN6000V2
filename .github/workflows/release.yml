@@ -104,13 +104,14 @@ jobs:
           echo "WIFI 密码：147258369" >> release_body.txt
           echo "LAN 地址：10.0.0.1" >> release_body.txt
 
-      - name: Clean Old Releases and Tags
+      - name: Clean Old Releases, Tags and Workflow Runs
         run: |
           # 获取当前发布的 tag
           CURRENT_TAG="${{ env.BUILD_DATE }}_${{ env.DEVICE_MODEL }}"
           echo "当前编译版本：$CURRENT_TAG"
           
-          echo "开始清理所有旧的 releases..."
+          # ========== 清理 Releases 和 Tags ==========
+          echo "开始清理旧的 releases..."
           gh release list --limit 100 --json tagName --jq '.[].tagName' | while read -r old_tag; do
             if [ -n "$old_tag" ] && [ "$old_tag" != "$CURRENT_TAG" ]; then
               echo "删除旧版本：$old_tag"
@@ -118,7 +119,6 @@ jobs:
             fi
           done
           
-          # 清理孤立的 tags
           echo "清理孤立的 tags..."
           git fetch --tags
           git tag -l | grep -v "$CURRENT_TAG" | while read -r tag; do
@@ -127,15 +127,12 @@ jobs:
           done
           
           echo "Releases 和 Tags 清理完成！"
-
-      - name: Clean Old Workflow Runs
-        run: |
-          # 获取当前 workflow ID
-          echo "获取 workflow ID..."
+          
+          # ========== 清理 Workflow 运行记录 ==========
+          echo "开始清理旧的 workflow 运行记录..."
           WORKFLOW_ID=$(gh api /repos/${{ github.repository }}/actions/workflows | jq -r '.workflows[] | select(.name=="Go_Release") | .id')
           echo "Workflow ID: $WORKFLOW_ID"
           
-          echo "开始清理旧的 workflow 运行记录..."
           gh api /repos/${{ github.repository }}/actions/workflows/$WORKFLOW_ID/runs --paginate | \
             jq -r '.workflow_runs[1:].id' | while read -r run_id; do
               if [ -n "$run_id" ]; then
@@ -144,7 +141,7 @@ jobs:
               fi
             done
           
-          echo "Workflow 运行记录清理完成！"
+          echo "所有清理工作完成！"
 
       - name: Release Firmware
         uses: softprops/action-gh-release@v3
