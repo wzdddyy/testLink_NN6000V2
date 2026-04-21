@@ -126,7 +126,25 @@ jobs:
             git tag -d "$tag" || true
           done
           
-          echo "所有旧版本已清理完成！"
+          echo "Releases 和 Tags 清理完成！"
+
+      - name: Clean Old Workflow Runs
+        run: |
+          # 获取当前 workflow ID
+          echo "获取 workflow ID..."
+          WORKFLOW_ID=$(gh api /repos/${{ github.repository }}/actions/workflows | jq -r '.workflows[] | select(.name=="Go_Release") | .id')
+          echo "Workflow ID: $WORKFLOW_ID"
+          
+          echo "开始清理旧的 workflow 运行记录..."
+          gh api /repos/${{ github.repository }}/actions/workflows/$WORKFLOW_ID/runs --paginate | \
+            jq -r '.workflow_runs[1:].id' | while read -r run_id; do
+              if [ -n "$run_id" ]; then
+                echo "删除 workflow 运行记录：$run_id"
+                gh api -X DELETE /repos/${{ github.repository }}/actions/runs/$run_id || true
+              fi
+            done
+          
+          echo "Workflow 运行记录清理完成！"
 
       - name: Release Firmware
         uses: softprops/action-gh-release@v3
