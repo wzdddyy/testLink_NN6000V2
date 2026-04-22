@@ -12,7 +12,11 @@ update_golang() {
 }
 
 install_openwrt_packages() {
-    ./scripts/feeds install -p openwrt_packages -f taskd luci-lib-xterm luci-lib-taskd \
+    # 先安装 PassWall 依赖包
+    ./scripts/feeds install -p openwrt_packages -f \
+        xray-core sing-box trojan-plus naiveproxy shadowsocks-libev v2ray-plugin geoview \
+        microsocks tcping chinadns-ng dns2socks resolveip \
+        taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
@@ -22,6 +26,7 @@ install_openwrt_packages() {
 
 install_passwall() {
     local PASSWALL_LUCI_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-passwall"
+    local PASSWALL_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages/passwall-packages"
     local TEMP_DIR="$BUILD_DIR/feeds/openwrt_packages/openwrt-passwall-temp"
     
     # 克隆 openwrt-passwall 仓库
@@ -31,11 +36,27 @@ install_passwall() {
         exit 1
     fi
     
-    # 移动 luci-app-passwall 到 openwrt_packages
     rm -rf "$PASSWALL_LUCI_DIR"
     mv "$TEMP_DIR/luci-app-passwall" "$PASSWALL_LUCI_DIR"
     rm -rf "$TEMP_DIR"
     echo "✓ luci-app-passwall 克隆完成"
+    
+    rm -rf "$PASSWALL_PACKAGES_DIR"
+    local PASSWALL_PKGS_TEMP="$BUILD_DIR/feeds/openwrt_packages/passwall-packages-temp"
+    rm -rf "$PASSWALL_PKGS_TEMP"
+    if ! git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git "$PASSWALL_PKGS_TEMP"; then
+        echo "错误：克隆 openwrt-passwall-packages 仓库失败" >&2
+        exit 1
+    fi
+    
+    for pkg in "$PASSWALL_PKGS_TEMP"/*; do
+        if [ -d "$pkg" ]; then
+            local pkg_name=$(basename "$pkg")
+            mv "$pkg" "$BUILD_DIR/feeds/openwrt_packages/$pkg_name"
+        fi
+    done
+    rm -rf "$PASSWALL_PKGS_TEMP"
+    echo "✓ passwall-packages 克隆并移动完成"
     
     echo "✓ Passwall 安装完成"
 }
