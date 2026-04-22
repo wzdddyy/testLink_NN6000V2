@@ -187,12 +187,25 @@ install_oaf() {
         sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
     fi
 
-    local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
-    if [ -f "$oaf_config" ]; then
-        sed -i "s/option enabled '1'/option enabled '0'/g" "$oaf_config"
+    # 禁用 OAF 服务配置
+    local appfilter_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
+    if [ -f "$appfilter_config" ]; then
+        sed -i "s/option enabled '1'/option enabled '0'/g" "$appfilter_config"
     fi
 
-    echo "✓ OpenAppFilter 克隆完成"
+    # 创建禁用脚本，在首次启动时确保服务禁用
+    local disable_script="$OAF_DIR/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
+    mkdir -p "$(dirname "$disable_script")"
+    cat > "$disable_script" << 'EOF'
+#!/bin/sh
+[ "$(uci get appfilter.global.enable 2>/dev/null)" = "0" ] && {
+    /etc/init.d/appfilter disable
+    /etc/init.d/appfilter stop
+}
+EOF
+    chmod +x "$disable_script"
+
+    echo "✓ OpenAppFilter 克隆完成 (服务已禁用)"
 }
 
 install_diskman() {
