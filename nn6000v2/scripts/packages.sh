@@ -187,13 +187,12 @@ install_oaf() {
         sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
     fi
 
-    # 禁用 OAF 服务配置
+
     local appfilter_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
     if [ -f "$appfilter_config" ]; then
         sed -i "s/option enabled '1'/option enabled '0'/g" "$appfilter_config"
     fi
 
-    # 创建禁用脚本，在首次启动时确保服务禁用
     local disable_script="$OAF_DIR/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
     mkdir -p "$(dirname "$disable_script")"
     cat > "$disable_script" << 'EOF'
