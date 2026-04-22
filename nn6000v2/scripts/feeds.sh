@@ -45,7 +45,7 @@ install_feeds() {
     echo "安装 small 包..."
     install_passwall
     
-    # 安装其他 feeds 的包（跳过 openwrt_packages 和 small）
+    # 安装其他 feeds 的包
     for dir in "$BUILD_DIR"/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
             local feed_name=$(basename "$dir")
