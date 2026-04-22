@@ -16,13 +16,14 @@ install_openwrt_packages() {
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
-        luci-app-oaf open-app-filter oaf \
+        luci-app-nft-timecontrol luci-app-taskplan \
         luci-app-diskman luci-app-dockerman luci-app-quickfile
 }
 
 install_passwall() {
-    # 从 small 源安装 passwall
+    # 从 small 源安装 passwall（会自动安装依赖）
     ./scripts/feeds install -p small -f luci-app-passwall
+    
     echo "✓ Passwall 安装完成"
 }
 
@@ -136,29 +137,23 @@ install_easytier() {
     echo "✓ luci-app-easytier 克隆完成"
 }
 
-install_oaf() {
-    local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
-    local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
-
-    rm -rf "$OAF_DIR"
-    if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
-        echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
+install_sirpdboy_packages() {
+    local timecontrol_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-nft-timecontrol"
+    rm -rf "$timecontrol_dir"
+    if ! git clone --depth=1 https://github.com/sirpdboy/luci-app-timecontrol.git "$timecontrol_dir"; then
+        echo "错误：克隆 luci-app-timecontrol 仓库失败" >&2
         exit 1
     fi
+    echo "✓ luci-app-nft-timecontrol 克隆完成"
 
-    # 修复 oaf 递归依赖问题
-    local oaf_makefile="$OAF_DIR/oaf/Makefile"
-    if [ -f "$oaf_makefile" ]; then
-        sed -i 's/ +oaf//g' "$oaf_makefile"
+    # 克隆 luci-app-taskplan
+    local taskplan_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-taskplan"
+    rm -rf "$taskplan_dir"
+    if ! git clone --depth=1 https://github.com/sirpdboy/luci-app-taskplan.git "$taskplan_dir"; then
+        echo "错误：克隆 luci-app-taskplan 仓库失败" >&2
+        exit 1
     fi
-
-    # 默认禁用 OAF 服务
-    local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
-    if [ -f "$oaf_config" ]; then
-        sed -i "s/option enabled '1'/option enabled '0'/g" "$oaf_config"
-    fi
-
-    echo "✓ OpenAppFilter 克隆完成"
+    echo "✓ luci-app-taskplan 克隆完成"
 }
 
 install_diskman() {

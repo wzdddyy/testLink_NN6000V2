@@ -47,7 +47,7 @@ main() {
     install_dockerman
     install_adguardhome
     install_easytier
-    install_oaf
+    install_sirpdboy_packages
     install_feeds
     install_openwrt_packages
     install_fullconenat
