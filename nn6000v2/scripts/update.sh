@@ -49,9 +49,6 @@ main() {
     install_easytier
     install_sirpdboy_packages
     install_feeds
-    install_openwrt_packages
-    install_fullconenat
-    install_passwall
     update_docker_stack
     remove_tweaked_packages
     fix_default_set
