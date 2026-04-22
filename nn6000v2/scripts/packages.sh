@@ -23,34 +23,19 @@ install_openwrt_packages() {
 install_passwall() {
     local PASSWALL_LUCI_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-passwall"
     local TEMP_DIR="$BUILD_DIR/feeds/openwrt_packages/openwrt-passwall-temp"
-    local PACKAGES_TEMP_DIR="$BUILD_DIR/feeds/openwrt_packages/passwall-packages-temp"
     
+    # 克隆 openwrt-passwall 仓库
     rm -rf "$TEMP_DIR"
     if ! git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall.git "$TEMP_DIR"; then
         echo "错误：克隆 openwrt-passwall 仓库失败" >&2
         exit 1
     fi
     
+    # 移动 luci-app-passwall 到 openwrt_packages
     rm -rf "$PASSWALL_LUCI_DIR"
     mv "$TEMP_DIR/luci-app-passwall" "$PASSWALL_LUCI_DIR"
     rm -rf "$TEMP_DIR"
     echo "✓ luci-app-passwall 克隆完成"
-    
-    rm -rf "$PACKAGES_TEMP_DIR"
-    if ! git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git "$PACKAGES_TEMP_DIR"; then
-        echo "错误：克隆 openwrt-passwall-packages 仓库失败" >&2
-        exit 1
-    fi
-    
-    for pkg in "$PACKAGES_TEMP_DIR"/*; do
-        if [ -d "$pkg" ]; then
-            local pkg_name=$(basename "$pkg")
-            rm -rf "$BUILD_DIR/feeds/openwrt_packages/$pkg_name"
-            mv "$pkg" "$BUILD_DIR/feeds/openwrt_packages/"
-        fi
-    done
-    rm -rf "$PACKAGES_TEMP_DIR"
-    echo "✓ passwall-packages 克隆完成"
     
     echo "✓ Passwall 安装完成"
 }
