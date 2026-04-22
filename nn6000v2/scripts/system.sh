@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+change_dnsmasq2full() {
+    if ! grep -q "dnsmasq-full" $BUILD_DIR/include/target.mk; then
+        sed -i 's/dnsmasq/dnsmasq-full/g' ./include/target.mk
+    fi
+}
+
 fix_default_set() {
     if [ -d "$BUILD_DIR/feeds/luci/collections/" ]; then
         find "$BUILD_DIR/feeds/luci/collections/" -type f -name "Makefile" -exec sed -i "s/luci-theme-bootstrap/luci-theme-$THEME_SET/g" {} \;
