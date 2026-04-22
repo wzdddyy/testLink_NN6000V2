@@ -1,0 +1,124 @@
+#!/bin/sh
+# Samba4 自动配置脚本 - 启用匿名访问并开放防火墙端口
+
+log_info() {
+    echo "[Samba4] $1"
+}
+
+log_error() {
+    echo "[Samba4] 错误：$1" >&2
+}
+
+#-------------------------------------------------------------------------------
+# 配置 Samba4 匿名访问
+#-------------------------------------------------------------------------------
+configure_samba4_guests() {
+    log_info "正在配置 Samba4 匿名访问..."
+    
+    # 检查 Samba4 是否已安装
+    if [ ! -f "/etc/config/samba4" ]; then
+        log_error "Samba4 配置文件不存在，可能未安装"
+        return 1
+    fi
+    
+    # 启用匿名（guest）访问
+    uci set samba4.@samba4[0].guests='1' 2>/dev/null || {
+        log_error "设置 guests 参数失败"
+        return 1
+    }
+    
+    # 提交配置
+    uci commit samba4 2>/dev/null || {
+        log_error "提交 Samba4 配置失败"
+        return 1
+    }
+    
+    log_info "Samba4 匿名访问配置完成"
+    return 0
+}
+
+#-------------------------------------------------------------------------------
+# 开放防火墙端口 (139, 445)
+#-------------------------------------------------------------------------------
+configure_firewall() {
+    log_info "正在开放 Samba4 防火墙端口..."
+    
+    # 检查防火墙配置文件
+    if [ ! -f "/etc/config/firewall" ]; then
+        log_error "防火墙配置文件不存在"
+        return 1
+    fi
+    
+    # 检查是否已存在 Samba 规则
+    if uci show firewall | grep -q "samba4"; then
+        log_info "Samba4 防火墙规则已存在，跳过"
+        return 0
+    fi
+    
+    # 添加 TCP 139 端口规则
+    uci add firewall rule 2>/dev/null
+    uci set firewall.@rule[-1].name='Samba4-TCP-139' 2>/dev/null
+    uci set firewall.@rule[-1].src='lan' 2>/dev/null
+    uci set firewall.@rule[-1].dest='lan' 2>/dev/null
+    uci set firewall.@rule[-1].proto='tcp' 2>/dev/null
+    uci set firewall.@rule[-1].dest_port='139' 2>/dev/null
+    uci set firewall.@rule[-1].target='ACCEPT' 2>/dev/null
+    uci set firewall.@rule[-1].enabled='1' 2>/dev/null
+    
+    # 添加 TCP 445 端口规则
+    uci add firewall rule 2>/dev/null
+    uci set firewall.@rule[-1].name='Samba4-TCP-445' 2>/dev/null
+    uci set firewall.@rule[-1].src='lan' 2>/dev/null
+    uci set firewall.@rule[-1].dest='lan' 2>/dev/null
+    uci set firewall.@rule[-1].proto='tcp' 2>/dev/null
+    uci set firewall.@rule[-1].dest_port='445' 2>/dev/null
+    uci set firewall.@rule[-1].target='ACCEPT' 2>/dev/null
+    uci set firewall.@rule[-1].enabled='1' 2>/dev/null
+    
+    # 添加 UDP 137-138 端口规则
+    uci add firewall rule 2>/dev/null
+    uci set firewall.@rule[-1].name='Samba4-UDP-137' 2>/dev/null
+    uci set firewall.@rule[-1].src='lan' 2>/dev/null
+    uci set firewall.@rule[-1].dest='lan' 2>/dev/null
+    uci set firewall.@rule[-1].proto='udp' 2>/dev/null
+    uci set firewall.@rule[-1].dest_port='137' 2>/dev/null
+    uci set firewall.@rule[-1].target='ACCEPT' 2>/dev/null
+    uci set firewall.@rule[-1].enabled='1' 2>/dev/null
+    
+    uci add firewall rule 2>/dev/null
+    uci set firewall.@rule[-1].name='Samba4-UDP-138' 2>/dev/null
+    uci set firewall.@rule[-1].src='lan' 2>/dev/null
+    uci set firewall.@rule[-1].dest='lan' 2>/dev/null
+    uci set firewall.@rule[-1].proto='udp' 2>/dev/null
+    uci set firewall.@rule[-1].dest_port='138' 2>/dev/null
+    uci set firewall.@rule[-1].target='ACCEPT' 2>/dev/null
+    uci set firewall.@rule[-1].enabled='1' 2>/dev/null
+    
+    # 提交防火墙配置
+    uci commit firewall 2>/dev/null || {
+        log_error "提交防火墙配置失败"
+        return 1
+    }
+    
+    log_info "Samba4 防火墙端口已开放 (TCP: 139,445 | UDP: 137,138)"
+    return 0
+}
+
+#-------------------------------------------------------------------------------
+# 主函数
+#-------------------------------------------------------------------------------
+main() {
+    log_info "开始配置 Samba4..."
+    
+    # 配置匿名访问
+    configure_samba4_guests
+    
+    # 开放防火墙端口
+    configure_firewall
+    
+    log_info "Samba4 配置完成！"
+    log_info "访问地址：\\\\${LAN_ADDR}\\"
+}
+
+# 执行主函数
+main
