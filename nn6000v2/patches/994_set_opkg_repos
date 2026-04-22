@@ -11,7 +11,7 @@ src/gz openwrt_telephony https://mirror.zju.edu.cn/immortalwrt/releases/24.10.5/
 EOF
 
 # 配置 opkg.conf
-cat > /etc/opkg/opkg.conf << 'EOF'
+cat > /etc/opkg.conf << 'EOF'
 dest root /
 dest ram /tmp
 lists_dir ext /var/opkg-lists
