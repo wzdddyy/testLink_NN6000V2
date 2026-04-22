@@ -130,16 +130,31 @@ jobs:
           
           # ========== 清理 Workflow 运行记录 ==========
           echo "开始清理旧的 workflow 运行记录..."
+          
+          # 获取当前工作流 ID
           WORKFLOW_ID=$(gh api /repos/${{ github.repository }}/actions/workflows | jq -r '.workflows[] | select(.name=="Go_Release") | .id')
           echo "Workflow ID: $WORKFLOW_ID"
           
+          if [ -z "$WORKFLOW_ID" ]; then
+            echo "错误：无法获取 Workflow ID"
+            exit 1
+          fi
+          
+          # 获取所有运行记录
+          CURRENT_RUN_ID=${{ github.run_id }}
+          echo "当前运行 ID: $CURRENT_RUN_ID"
+          
           # 获取所有运行记录并删除旧的
-          gh api /repos/${{ github.repository }}/actions/workflows/$WORKFLOW_ID/runs --paginate --jq '.workflow_runs[1:].id' | while read -r run_id; do
+          gh api /repos/${{ github.repository }}/actions/workflows/$WORKFLOW_ID/runs --paginate --jq '.workflow_runs[] | select(.id != '"$CURRENT_RUN_ID"') | .id' | head -n -1 | while read -r run_id; do
             if [ -n "$run_id" ]; then
               echo "删除 workflow 运行记录：$run_id"
-              gh api -X DELETE /repos/${{ github.repository }}/actions/runs/$run_id || true
+              gh api -X DELETE /repos/${{ github.repository }}/actions/runs/$run_id || echo "删除失败：$run_id"
             fi
           done
+          
+          # 验证删除结果
+          REMAINING_RUNS=$(gh api /repos/${{ github.repository }}/actions/workflows/$WORKFLOW_ID/runs --paginate --jq '.workflow_runs | length')
+          echo "剩余运行记录数：$REMAINING_RUNS"
           
           echo "所有清理工作完成！"
 
