@@ -172,21 +172,7 @@ install_easytier() {
 }
 
 install_sirpdboy_packages() {
-    local timecontrol_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-timecontrol"
-    rm -rf "$timecontrol_dir"
-    if ! git clone --depth=1 --branch main https://github.com/sirpdboy/luci-app-timecontrol.git "$timecontrol_dir"; then
-        echo "错误：克隆 luci-app-timecontrol 仓库失败" >&2
-        exit 1
-    fi
-    echo "✓ luci-app-timecontrol 克隆完成"
-
-    local taskplan_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-taskplan"
-    rm -rf "$taskplan_dir"
-    if ! git clone --depth=1 --branch main https://github.com/sirpdboy/luci-app-taskplan.git "$taskplan_dir"; then
-        echo "错误：克隆 luci-app-taskplan 仓库失败" >&2
-        exit 1
-    fi
-    echo "✓ luci-app-taskplan 克隆完成"
+    echo "✓ 已跳过 luci-app-timecontrol 和 luci-app-taskplan (插件有问题已移除)"
 }
 
 install_diskman() {
