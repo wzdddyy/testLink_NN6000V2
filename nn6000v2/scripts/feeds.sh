@@ -40,7 +40,7 @@ install_feeds() {
     for dir in "$BUILD_DIR"/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
             local feed_name=$(basename "$dir")
-            if [[ "$feed_name" != "openwrt_packages" ]] && [[ "$feed_name" != "passwall-packages" ]] && [[ "$feed_name" != "passwall_luci" ]]; then
+            if [[ "$feed_name" != "openwrt_packages" ]]; then
                 ./scripts/feeds install -f -ap "$feed_name"
             fi
         fi
