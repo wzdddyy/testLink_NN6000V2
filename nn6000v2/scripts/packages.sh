@@ -17,12 +17,40 @@ install_openwrt_packages() {
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-timecontrol luci-app-taskplan \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall
 }
 
 install_passwall() {
-    # 从 small 源安装 passwall
-    ./scripts/feeds install -p small -f luci-app-passwall
+    local PASSWALL_LUCI_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-passwall"
+    local TEMP_DIR="$BUILD_DIR/feeds/openwrt_packages/openwrt-passwall-temp"
+    local PACKAGES_TEMP_DIR="$BUILD_DIR/feeds/openwrt_packages/passwall-packages-temp"
+    
+    rm -rf "$TEMP_DIR"
+    if ! git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall.git "$TEMP_DIR"; then
+        echo "错误：克隆 openwrt-passwall 仓库失败" >&2
+        exit 1
+    fi
+    
+    rm -rf "$PASSWALL_LUCI_DIR"
+    mv "$TEMP_DIR/luci-app-passwall" "$PASSWALL_LUCI_DIR"
+    rm -rf "$TEMP_DIR"
+    echo "✓ luci-app-passwall 克隆完成"
+    
+    rm -rf "$PACKAGES_TEMP_DIR"
+    if ! git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git "$PACKAGES_TEMP_DIR"; then
+        echo "错误：克隆 openwrt-passwall-packages 仓库失败" >&2
+        exit 1
+    fi
+    
+    for pkg in "$PACKAGES_TEMP_DIR"/*; do
+        if [ -d "$pkg" ]; then
+            local pkg_name=$(basename "$pkg")
+            rm -rf "$BUILD_DIR/feeds/openwrt_packages/$pkg_name"
+            mv "$pkg" "$BUILD_DIR/feeds/openwrt_packages/"
+        fi
+    done
+    rm -rf "$PACKAGES_TEMP_DIR"
+    echo "✓ passwall-packages 克隆完成"
     
     echo "✓ Passwall 安装完成"
 }

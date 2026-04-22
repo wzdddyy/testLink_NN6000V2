@@ -12,11 +12,6 @@ update_feeds() {
         echo "src-git openwrt_packages https://github.com/kenzok8/openwrt-packages.git" >>"$FEEDS_PATH"
     fi
 
-    if ! grep -q "small" "$FEEDS_PATH"; then
-        [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
-        echo "src-git small https://github.com/kenzok8/small.git" >>"$FEEDS_PATH"
-    fi
-
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
         touch "$BUILD_DIR/include/bpf.mk"
     fi
@@ -41,15 +36,15 @@ install_feeds() {
     install_openwrt_packages
     install_fullconenat
     
-    # 安装 small 源中的包
-    echo "安装 small 包..."
+    # 安装 passwall
+    echo "安装 Passwall..."
     install_passwall
     
     # 安装其他 feeds 的包
     for dir in "$BUILD_DIR"/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
             local feed_name=$(basename "$dir")
-            if [[ "$feed_name" != "openwrt_packages" ]] && [[ "$feed_name" != "small" ]]; then
+            if [[ "$feed_name" != "openwrt_packages" ]] && [[ "$feed_name" != "passwall-packages" ]] && [[ "$feed_name" != "passwall_luci" ]]; then
                 ./scripts/feeds install -f -ap "$feed_name"
             fi
         fi
