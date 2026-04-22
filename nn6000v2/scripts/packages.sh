@@ -21,7 +21,7 @@ install_openwrt_packages() {
 }
 
 install_passwall() {
-    # 从 small 源安装 passwall（会自动安装依赖）
+    # 从 small 源安装 passwall
     ./scripts/feeds install -p small -f luci-app-passwall
     
     echo "✓ Passwall 安装完成"
@@ -138,13 +138,13 @@ install_easytier() {
 }
 
 install_sirpdboy_packages() {
-    local timecontrol_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-nft-timecontrol"
+    local timecontrol_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-timecontrol"
     rm -rf "$timecontrol_dir"
     if ! git clone --depth=1 https://github.com/sirpdboy/luci-app-timecontrol.git "$timecontrol_dir"; then
         echo "错误：克隆 luci-app-timecontrol 仓库失败" >&2
         exit 1
     fi
-    echo "✓ luci-app-nft-timecontrol 克隆完成"
+    echo "✓ luci-app-timecontrol 克隆完成"
 
     # 克隆 luci-app-taskplan
     local taskplan_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-taskplan"
