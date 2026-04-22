@@ -36,10 +36,6 @@ install_feeds() {
     install_openwrt_packages
     install_fullconenat
     
-    # 安装 passwall
-    echo "安装 Passwall..."
-    install_passwall
-    
     # 安装其他 feeds 的包
     for dir in "$BUILD_DIR"/feeds/*; do
         if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
