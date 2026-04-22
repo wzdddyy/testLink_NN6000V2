@@ -133,13 +133,13 @@ jobs:
           WORKFLOW_ID=$(gh api /repos/${{ github.repository }}/actions/workflows | jq -r '.workflows[] | select(.name=="Go_Release") | .id')
           echo "Workflow ID: $WORKFLOW_ID"
           
-          gh api /repos/${{ github.repository }}/actions/workflows/$WORKFLOW_ID/runs --paginate | \
-            jq -r '.workflow_runs[1:].id' | while read -r run_id; do
-              if [ -n "$run_id" ]; then
-                echo "删除 workflow 运行记录：$run_id"
-                gh api -X DELETE /repos/${{ github.repository }}/actions/runs/$run_id || true
-              fi
-            done
+          # 获取所有运行记录并删除旧的
+          gh api /repos/${{ github.repository }}/actions/workflows/$WORKFLOW_ID/runs --paginate --jq '.workflow_runs[1:].id' | while read -r run_id; do
+            if [ -n "$run_id" ]; then
+              echo "删除 workflow 运行记录：$run_id"
+              gh api -X DELETE /repos/${{ github.repository }}/actions/runs/$run_id || true
+            fi
+          done
           
           echo "所有清理工作完成！"
 
