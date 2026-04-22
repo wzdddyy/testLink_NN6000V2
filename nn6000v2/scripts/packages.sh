@@ -12,7 +12,6 @@ update_golang() {
 }
 
 install_openwrt_packages() {
-    # 先安装 PassWall 依赖包
     ./scripts/feeds install -p openwrt_packages -f \
         xray-core sing-box trojan-plus naiveproxy shadowsocks-libev v2ray-plugin geoview \
         microsocks tcping chinadns-ng dns2socks resolveip \
@@ -20,7 +19,7 @@ install_openwrt_packages() {
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
-        luci-app-timecontrol luci-app-taskplan \
+        luci-app-oaf oaf open-app-filter \
         luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall
 }
 
@@ -171,8 +170,29 @@ install_easytier() {
     echo "✓ luci-app-easytier 克隆完成"
 }
 
-install_sirpdboy_packages() {
-    echo "✓ 已跳过 luci-app-timecontrol 和 luci-app-taskplan (插件有问题已移除)"
+install_oaf() {
+    local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
+    local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
+
+    ./scripts/feeds install -f kmod-ipt-conntrack kmod-ipt-nat
+    
+    rm -rf "$OAF_DIR"
+    if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
+        echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
+        exit 1
+    fi
+
+    local oaf_makefile="$OAF_DIR/oaf/Makefile"
+    if [ -f "$oaf_makefile" ]; then
+        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
+    fi
+
+    local oaf_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
+    if [ -f "$oaf_config" ]; then
+        sed -i "s/option enabled '1'/option enabled '0'/g" "$oaf_config"
+    fi
+
+    echo "✓ OpenAppFilter 克隆完成"
 }
 
 install_diskman() {
