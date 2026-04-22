@@ -174,7 +174,7 @@ install_easytier() {
 install_sirpdboy_packages() {
     local timecontrol_dir="$BUILD_DIR/feeds/openwrt_packages/luci-app-timecontrol"
     rm -rf "$timecontrol_dir"
-    if ! git clone --depth=1 --branch v3.2.4 https://github.com/sirpdboy/luci-app-timecontrol.git "$timecontrol_dir"; then
+    if ! git clone --depth=1 --branch main https://github.com/sirpdboy/luci-app-timecontrol.git "$timecontrol_dir"; then
         echo "错误：克隆 luci-app-timecontrol 仓库失败" >&2
         exit 1
     fi
