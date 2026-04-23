@@ -21,17 +21,23 @@ configure_samba4_guests() {
         return 1
     fi
     
+    # 检查配置 section 是否存在
+    if ! uci show samba4 | grep -q "samba4.@samba\["; then
+        log_error "Samba4 配置 section 不存在"
+        return 1
+    fi
+    
     # 启用匿名（guest）访问
-    uci set samba4.@samba4[0].guests='1' 2>/dev/null || {
+    uci set samba4.@samba[0].guests='1' 2>/dev/null || {
         log_error "设置 guests 参数失败"
         return 1
     }
     
     # 设置 guest 账户为 nobody
-    uci set samba4.@samba4[0].guestname='nobody' 2>/dev/null
+    uci set samba4.@samba[0].guestname='nobody' 2>/dev/null
     
-    # 允许空密码（关键！）
-    uci set samba4.@samba4[0].nullpw='1' 2>/dev/null
+    # 允许空密码
+    uci set samba4.@samba[0].nullpw='1' 2>/dev/null
     
     # 提交配置
     uci commit samba4 2>/dev/null || {
@@ -42,16 +48,20 @@ configure_samba4_guests() {
     # 修改 smb.conf 确保匿名访问
     local smb_conf="/etc/samba/smb.conf"
     if [ -f "$smb_conf" ]; then
+        # 检查是否已配置
+        if grep -q "map to guest" "$smb_conf"; then
+            log_info "smb.conf 已配置匿名访问，跳过"
+            return 0
+        fi
+        
         # 添加/修改全局配置
-        if ! grep -q "map to guest" "$smb_conf"; then
-            sed -i '/^\[global\]/a\    map to guest = Bad User' "$smb_conf"
-        fi
-        if ! grep -q "guest account" "$smb_conf"; then
-            sed -i '/^\[global\]/a\    guest account = nobody' "$smb_conf"
-        fi
-        if ! grep -q "guest ok" "$smb_conf"; then
-            sed -i '/^\[global\]/a\    guest ok = yes' "$smb_conf"
-        fi
+        cat >> "$smb_conf" << 'EOF'
+
+[global]
+    map to guest = Bad User
+    guest account = nobody
+    guest ok = yes
+EOF
     fi
     
     log_info "Samba4 匿名访问配置完成"
