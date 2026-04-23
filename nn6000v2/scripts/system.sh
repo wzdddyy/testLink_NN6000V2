@@ -15,7 +15,6 @@ fix_default_set() {
     install -Dm544 "$BASE_PATH/patches/992_set-wifi-uci.sh" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/992_set-wifi-uci.sh"
     install -Dm544 "$BASE_PATH/patches/993_set_pppoe.sh" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/993_set_pppoe.sh"
     install -Dm544 "$BASE_PATH/patches/994_set_opkg_repos" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/994_set_opkg_repos"
-    install -Dm544 "$BASE_PATH/patches/995_config_samba4" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/995_config_samba4"
 
     if [ -f "$BUILD_DIR/package/emortal/autocore/files/tempinfo" ]; then
         if [ -f "$BASE_PATH/patches/tempinfo" ]; then
