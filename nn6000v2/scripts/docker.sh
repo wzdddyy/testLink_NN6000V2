@@ -366,13 +366,6 @@ _docker_stack_update_dockerd_depends_block() {
     local mk_path="$1"
     local tmp_path
     
-    # 调试输出：显示 Makefile 的 DEPENDS 块
-    _docker_stack_log_info "=== 检查 dockerd Makefile: $mk_path ==="
-    grep -n "DEPENDS" "$mk_path" | head -5
-    _docker_stack_log_info "=== DEPENDS 块内容 ==="
-    sed -n '/^define Package\/dockerd/,/^endef/p' "$mk_path" | grep -A 20 "DEPENDS:"
-    _docker_stack_log_info "=========================="
-    
     tmp_path=$(_docker_stack_mktemp) || return 1
     
     awk '
@@ -386,7 +379,7 @@ _docker_stack_update_dockerd_depends_block() {
         }
         in_package && /^[[:space:]]*DEPENDS[[:space:]]*:/ {
             in_depends = 1; replaced = 1
-            print "  DEPENDS:=$(GO_ARCH_DEPENDS) \\" 
+            print "  DEPENDS:=$(ARCH_DEPENDS) \\" 
             print "    +ca-certificates \\" 
             print "    +containerd \\" 
             print "    +iptables-nft \\" 
@@ -401,8 +394,7 @@ _docker_stack_update_dockerd_depends_block() {
             print "    +nftables \\" 
             print "    +kmod-nft-nat \\" 
             print "    +tini \\" 
-            print "    +uci-firewall \\" 
-            print "    @!(mips||mips64||mipsel)"
+            print "    +uci-firewall"
             next
         }
         in_depends { 
@@ -475,6 +467,8 @@ _docker_stack_fix_dockerd_nftables_comment() {
             -e "/^# \`firewall4\` -> \`firewall\`/d" \
             -e "/^# \`iptables-nft\` -> \`iptables-legacy\`/d" \
             -e "/^# \`ip6tables-nft\` -> \`ip6tables-legacy\`/d" \
+            -e "/^# \`iptables-nft\` -> \`iptables-zz-legacy\`/d" \
+            -e "/^# \`ip6tables-nft\` -> \`ip6tables-zz-legacy\`/d" \
             "$config_path"
         _docker_stack_log_debug "已更新 nftables 注释"
     fi
@@ -672,7 +666,7 @@ _docker_stack_patch_nft_prereq_block() {
         BEGIN { inserted = 0 }
         {
             print
-            if ($0 ~ /^DOCKERD_CONF="\$\{DOCKER_CONF_DIR\}\/daemon\.json"$/ && inserted == 0) {
+            if ($0 ~ /^DOCKERD_CONF=/ && inserted == 0) {
                 inserted = 1
                 print ""
                 print "# === DOCKER_STACK_NFT_PREREQ_START ==="
@@ -741,7 +735,7 @@ _docker_stack_patch_process_config_nftables() {
         awk '
             BEGIN { replaced = 0; skipping = 0 }
             {
-                if ($0 ~ /^[[:space:]]*config_get data_root globals data_root "\/opt\/docker\/"$/) {
+                if ($0 ~ /^[[:space:]]*config_get[[:space:]]+data_root[[:space:]]+globals[[:space:]]+data_root/) {
                     replaced = 1; skipping = 1
                     print "\tconfig_get data_root globals data_root \"/opt/docker/\""
                     print "\tconfig_get log_level globals log_level \"warn\""
@@ -777,7 +771,7 @@ _docker_stack_patch_process_config_nftables() {
                     next
                 }
                 if (skipping == 1) {
-                    if ($0 ~ /^[[:space:]]*config_get_bool ip6tables globals ip6tables "0"$/) {
+                    if ($0 ~ /^[[:space:]]*config_get_bool[[:space:]]+ip6tables[[:space:]]+globals[[:space:]]+ip6tables/) {
                         skipping = 0
                     }
                     next
@@ -807,7 +801,7 @@ _docker_stack_patch_process_config_nftables() {
         awk '
             BEGIN { replaced = 0 }
             {
-                if ($0 ~ /^[[:space:]]*\[ "\$\{iptables\}" -eq "1" \] && config_foreach iptables_add_blocking_rule firewall$/) {
+                if ($0 ~ /^[[:space:]]*\[.*iptables.*-eq.*1.*\].*config_foreach.*iptables_add_blocking_rule.*firewall/) {
                     replaced = 1
                     print "\tBLOCKING_RULE_ERROR=0"
                     print "\tif [ \"${firewall_backend}\" = \"nftables\" ]; then"
