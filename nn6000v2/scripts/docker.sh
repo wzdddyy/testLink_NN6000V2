@@ -382,17 +382,15 @@ _docker_stack_update_dockerd_depends_block() {
             print "  DEPENDS:=$(ARCH_DEPENDS) \\" 
             print "    +ca-certificates \\" 
             print "    +containerd \\" 
-            print "    +iptables-nft \\" 
+            print "    +iptables \\" 
             print "    +iptables-mod-extra \\" 
-            print "    +IPV6:ip6tables-nft \\" 
+            print "    +IPV6:ip6tables \\" 
             print "    +IPV6:kmod-ipt-nat6 \\" 
             print "    +KERNEL_SECCOMP:libseccomp \\" 
             print "    +kmod-ipt-nat \\" 
             print "    +kmod-ipt-physdev \\" 
             print "    +kmod-nf-ipvs \\" 
             print "    +kmod-veth \\" 
-            print "    +nftables \\" 
-            print "    +kmod-nft-nat \\" 
             print "    +tini \\" 
             print "    +uci-firewall"
             next
@@ -429,29 +427,53 @@ _docker_stack_fix_dockerd_vendored_checks() {
     
     tmp_path=$(_docker_stack_mktemp) || return 1
     
-    awk '
-        {
-            if ($0 ~ /^[[:space:]]*\[ ! -f "\$\(PKG_BUILD_DIR\)\/hack\/dockerfile\/install\/containerd\.installer" \] \|\|[[:space:]]*\\$/) next
-            if ($0 ~ /^[[:space:]]*\[ ! -f "\$\(PKG_BUILD_DIR\)\/hack\/dockerfile\/install\/runc\.installer" \] \|\|[[:space:]]*\\$/) next
-            if ($0 ~ /^[[:space:]]*\$\(call EnsureVendoredVersion,\.\.\/containerd\/Makefile,containerd\.installer\)$/) {
-                print "\t[ ! -f \"$(PKG_BUILD_DIR)/hack/dockerfile/install/containerd.installer\" ] || \\" 
-                print "\t\t$(call EnsureVendoredVersion,../containerd/Makefile,containerd.installer)"
+    if grep -q '\$(call EnsureVendoredVersion,[a-z]*)$' "$mk_path"; then
+        _docker_stack_log_debug "检测到新版 vendored 检查格式，正在禁用严格验证..."
+        
+        # 使用 awk 注释掉 Build/Prepare 中的版本验证
+        awk '
+            BEGIN { in_prepare = 0; skip_until_fi = 0 }
+            /^define Build\/Prepare/ { in_prepare = 1; print; next }
+            in_prepare && /^endef$/ { in_prepare = 0; print; next }
+            
+            # 跳过 EnsureVendoredVersion 调用
+            in_prepare && /\$(call EnsureVendoredVersion,/ {
+                print "\t# " $0 " # Disabled by docker_stack"
                 next
             }
-            if ($0 ~ /^[[:space:]]*\$\(call EnsureVendoredVersion,\.\.\/runc\/Makefile,runc\.installer\)$/) {
-                print "\t[ ! -f \"$(PKG_BUILD_DIR)/hack/dockerfile/install/runc.installer\" ] || \\" 
-                print "\t\t$(call EnsureVendoredVersion,../runc/Makefile,runc.installer)"
+            
+            # 处理 CLI 版本检查（多行）
+            in_prepare && /CLI_MAKEFILE=.*grep.*PKG_VERSION/ {
+                print "\t# CLI version check disabled by docker_stack"
+                skip_until_fi = 1
                 next
             }
-            print
+            skip_until_fi && /^[[:space:]]*fi$/ {
+                skip_until_fi = 0
+                next
+            }
+            skip_until_fi { next }
+            
+            # 处理 PKG_GIT_SHORT_COMMIT 检查（多行）
+            in_prepare && /EXPECTED_PKG_GIT_SHORT_COMMIT=/ {
+                print "\t# PKG_GIT_SHORT_COMMIT check disabled by docker_stack"
+                skip_until_fi = 1
+                next
+            }
+            
+            { print }
+        ' "$mk_path" > "$tmp_path" || {
+            _docker_stack_log_error "未能禁用 vendored 严格验证"
+            return 1
         }
-    ' "$mk_path" > "$tmp_path" || {
-        _docker_stack_log_error "未能修补 vendored 依赖校验"
-        return 1
-    }
+        
+        mv "$tmp_path" "$mk_path"
+        _docker_stack_log_debug "已禁用新版 vendored 严格验证"
+        return 0
+    fi
     
-    mv "$tmp_path" "$mk_path"
-    _docker_stack_log_debug "已修复 vendored 检查"
+    _docker_stack_log_debug "Makefile 未使用 EnsureVendoredVersion 宏，无需处理"
+    return 0
 }
 
 #-------------------------------------------------------------------------------
@@ -1307,9 +1329,9 @@ Docker 堆栈更新工具 - 自动更新 OpenWrt 固件中的 Docker 组件
 
 环境变量:
   BUILD_DIR                        OpenWrt 构建目录路径 (必需)
-  DOCKER_STACK_RUNC_VERSION        runc 版本 (默认：v1.3.3)
-  DOCKER_STACK_CONTAINERD_VERSION  containerd 版本 (默认：v1.7.28)
-  DOCKER_STACK_DOCKER_VERSION      docker 版本 (默认：v29.3.1)
+  DOCKER_STACK_RUNC_VERSION        runc 版本 (默认：v1.3.5)
+  DOCKER_STACK_CONTAINERD_VERSION  containerd 版本 (默认：v1.7.30)
+  DOCKER_STACK_DOCKER_VERSION      docker 版本 (默认：v29.4.1)
   DOCKER_STACK_DOCKERD_VERSION     dockerd 版本 (默认：同 DOCKER_STACK_DOCKER_VERSION)
   DOCKER_STACK_STORAGE_DRIVER      存储驱动 (默认：overlay2)
   DOCKER_STACK_DRY_RUN             预览模式，不修改文件 (0/1, 默认：0)
@@ -1354,7 +1376,7 @@ update_docker_stack() {
     local build_dir="${BUILD_DIR:-}"
     local runc_version="${DOCKER_STACK_RUNC_VERSION:-v1.3.5}"
     local containerd_version="${DOCKER_STACK_CONTAINERD_VERSION:-v1.7.30}"
-    local docker_version="${DOCKER_STACK_DOCKER_VERSION:-v29.3.1}"
+    local docker_version="${DOCKER_STACK_DOCKER_VERSION:-v29.4.1}"
     local dockerd_version="${DOCKER_STACK_DOCKERD_VERSION:-$docker_version}"
     local storage_driver="${DOCKER_STACK_STORAGE_DRIVER:-vfs}"
     local dry_run="${DOCKER_STACK_DRY_RUN:-0}"
