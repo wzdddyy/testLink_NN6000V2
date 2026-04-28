@@ -376,8 +376,14 @@ _docker_stack_update_dockerd_depends_block() {
     tmp_path=$(_docker_stack_mktemp) || return 1
     
     awk '
-        BEGIN { in_depends = 0; replaced = 0 }
-        /^[[:space:]]*DEPENDS[[:space:]]*:/ {
+        BEGIN { in_package = 0; in_depends = 0; replaced = 0 }
+        /^define Package\/dockerd$/ { in_package = 1; print; next }
+        in_package && /^endef$/ {
+            in_package = 0
+            print
+            next
+        }
+        in_package && /^[[:space:]]*DEPENDS[[:space:]]*:/ {
             in_depends = 1; replaced = 1
             print "  DEPENDS:=$(GO_ARCH_DEPENDS) \\" 
             print "    +ca-certificates \\" 
