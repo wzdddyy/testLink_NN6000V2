@@ -366,11 +366,18 @@ _docker_stack_update_dockerd_depends_block() {
     local mk_path="$1"
     local tmp_path
     
+    # 调试输出：显示 Makefile 的 DEPENDS 块
+    _docker_stack_log_info "=== 检查 dockerd Makefile: $mk_path ==="
+    grep -n "DEPENDS" "$mk_path" | head -5
+    _docker_stack_log_info "=== DEPENDS 块内容 ==="
+    sed -n '/^define Package\/dockerd/,/^endef/p' "$mk_path" | grep -A 20 "DEPENDS:"
+    _docker_stack_log_info "=========================="
+    
     tmp_path=$(_docker_stack_mktemp) || return 1
     
     awk '
         BEGIN { in_depends = 0; replaced = 0 }
-        /^[[:space:]]*DEPENDS[[:space:]]*(:?=[[:space:]]*\$\(GO_ARCH_DEPENDS\)|=[[:space:]]*\$\(ARCH_DEPENDS\)|:=)?[[:space:]]*(\\)?[[:space:]]*$/ {
+        /^[[:space:]]*DEPENDS[[:space:]]*:/ {
             in_depends = 1; replaced = 1
             print "  DEPENDS:=$(GO_ARCH_DEPENDS) \\" 
             print "    +ca-certificates \\" 
@@ -396,7 +403,7 @@ _docker_stack_update_dockerd_depends_block() {
                 in_depends = 0
                 next
             }
-            if ($0 ~ /^[[:space:]]*\+/ || $0 ~ /^[[:space:]]*:=/ || $0 ~ /^[[:space:]]*endef/) {
+            if ($0 ~ /^[[:space:]]*\+/) {
                 next
             }
         }
@@ -405,6 +412,8 @@ _docker_stack_update_dockerd_depends_block() {
     ' "$mk_path" > "$tmp_path" || {
         _docker_stack_log_error "未能重写 $mk_path 的 DEPENDS 块"
         _docker_stack_log_error "请检查 Makefile 中 DEPENDS 块的格式是否匹配"
+        _docker_stack_log_error "实际文件内容:"
+        cat "$mk_path"
         return 1
     }
     
