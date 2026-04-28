@@ -430,34 +430,59 @@ _docker_stack_fix_dockerd_vendored_checks() {
     if grep -q '\$(call EnsureVendoredVersion,[a-z]*)$' "$mk_path"; then
         _docker_stack_log_debug "检测到新版 vendored 检查格式，正在禁用严格验证..."
         
-        # 使用 awk 注释掉 Build/Prepare 中的版本验证
+        # 使用 awk 注释掉 Build/Prepare 中的所有版本验证
         awk '
-            BEGIN { in_prepare = 0; skip_until_fi = 0 }
+            BEGIN { in_prepare = 0; skip_block = 0; skip_lines = 0 }
             /^define Build\/Prepare/ { in_prepare = 1; print; next }
             in_prepare && /^endef$/ { in_prepare = 0; print; next }
             
-            # 跳过 EnsureVendoredVersion 调用
+            # 注释掉 EnsureVendoredVersion 调用
             in_prepare && /\$(call EnsureVendoredVersion,/ {
                 print "\t# " $0 " # Disabled by docker_stack"
                 next
             }
             
-            # 处理 CLI 版本检查（多行）
+            # 处理 CLI 版本检查（多行块）
             in_prepare && /CLI_MAKEFILE=.*grep.*PKG_VERSION/ {
-                print "\t# CLI version check disabled by docker_stack"
-                skip_until_fi = 1
+                print "\t# " $0 " # Disabled by docker_stack"
+                skip_lines = 1
                 next
             }
-            skip_until_fi && /^[[:space:]]*fi$/ {
-                skip_until_fi = 0
+            skip_lines == 1 && /CLI_VERSION=.*grep/ {
+                print "\t# " $0 " # Disabled by docker_stack"
                 next
             }
-            skip_until_fi { next }
+            skip_lines == 1 && /if \[ "\$\$\$\${CLI_VERSION}" !=/ {
+                print "\t# " $0 " # Disabled by docker_stack"
+                next
+            }
+            skip_lines == 1 && /echo "ERROR: Expected.*CLI_MAKEFILE/ {
+                print "\t# " $0 " # Disabled by docker_stack"
+                next
+            }
+            skip_lines == 1 && /exit 1/ {
+                print "\t# " $0 " # Disabled by docker_stack"
+                skip_lines = 0
+                next
+            }
             
-            # 处理 PKG_GIT_SHORT_COMMIT 检查（多行）
+            # 处理 PKG_GIT_SHORT_COMMIT 检查（多行块）
             in_prepare && /EXPECTED_PKG_GIT_SHORT_COMMIT=/ {
-                print "\t# PKG_GIT_SHORT_COMMIT check disabled by docker_stack"
-                skip_until_fi = 1
+                print "\t# " $0 " # Disabled by docker_stack"
+                skip_lines = 2
+                next
+            }
+            skip_lines == 2 && /if \[ "\$\$\$\${EXPECTED_PKG_GIT_SHORT_COMMIT}" !=/ {
+                print "\t# " $0 " # Disabled by docker_stack"
+                next
+            }
+            skip_lines == 2 && /echo "ERROR: Expected.*PKG_GIT_SHORT_COMMIT/ {
+                print "\t# " $0 " # Disabled by docker_stack"
+                next
+            }
+            skip_lines == 2 && /exit 1/ {
+                print "\t# " $0 " # Disabled by docker_stack"
+                skip_lines = 0
                 next
             }
             
@@ -1330,7 +1355,7 @@ Docker 堆栈更新工具 - 自动更新 OpenWrt 固件中的 Docker 组件
 环境变量:
   BUILD_DIR                        OpenWrt 构建目录路径 (必需)
   DOCKER_STACK_RUNC_VERSION        runc 版本 (默认：v1.3.5)
-  DOCKER_STACK_CONTAINERD_VERSION  containerd 版本 (默认：v1.7.30)
+  DOCKER_STACK_CONTAINERD_VERSION  containerd 版本 (默认：v2.2.3)
   DOCKER_STACK_DOCKER_VERSION      docker 版本 (默认：v29.4.1)
   DOCKER_STACK_DOCKERD_VERSION     dockerd 版本 (默认：同 DOCKER_STACK_DOCKER_VERSION)
   DOCKER_STACK_STORAGE_DRIVER      存储驱动 (默认：overlay2)
@@ -1375,7 +1400,7 @@ HELP
 update_docker_stack() {
     local build_dir="${BUILD_DIR:-}"
     local runc_version="${DOCKER_STACK_RUNC_VERSION:-v1.3.5}"
-    local containerd_version="${DOCKER_STACK_CONTAINERD_VERSION:-v1.7.30}"
+    local containerd_version="${DOCKER_STACK_CONTAINERD_VERSION:-v2.2.3}"
     local docker_version="${DOCKER_STACK_DOCKER_VERSION:-v29.4.1}"
     local dockerd_version="${DOCKER_STACK_DOCKERD_VERSION:-$docker_version}"
     local storage_driver="${DOCKER_STACK_STORAGE_DRIVER:-vfs}"
