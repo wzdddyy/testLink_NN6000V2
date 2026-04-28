@@ -380,6 +380,7 @@ _docker_stack_update_dockerd_depends_block() {
         /^define Package\/dockerd$/ { in_package = 1; print; next }
         in_package && /^endef$/ {
             in_package = 0
+            in_depends = 0
             print
             next
         }
@@ -405,13 +406,13 @@ _docker_stack_update_dockerd_depends_block() {
             next
         }
         in_depends { 
-            if ($0 ~ /@!\(mips\|\|mips64\|\|mipsel\)/) {
-                in_depends = 0
-                next
-            }
             if ($0 ~ /^[[:space:]]*\+/) {
                 next
             }
+            if ($0 ~ /@!\(mips\|\|mips64\|\|mipsel\)/) {
+                next
+            }
+            in_depends = 0
         }
         { print }
         END { if (replaced == 0) exit 2 }
