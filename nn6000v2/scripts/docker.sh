@@ -437,7 +437,7 @@ _docker_stack_fix_dockerd_vendored_checks() {
             in_prepare && /^endef$/ { in_prepare = 0; print; next }
             
             # 注释掉 EnsureVendoredVersion 调用
-            in_prepare && /\$(call EnsureVendoredVersion,/ {
+            in_prepare && /\$\(call EnsureVendoredVersion,/ {
                 print "\t# " $0 " # Disabled by docker_stack"
                 next
             }
