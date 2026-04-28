@@ -370,7 +370,7 @@ _docker_stack_update_dockerd_depends_block() {
     
     awk '
         BEGIN { in_depends = 0; replaced = 0 }
-        /^  DEPENDS:=\$\(GO_ARCH_DEPENDS\) \\$/ {
+        /^[[:space:]]*DEPENDS[[:space:]]*(:?=[[:space:]]*\$\(GO_ARCH_DEPENDS\)|=[[:space:]]*\$\(ARCH_DEPENDS\)|:=)?[[:space:]]*(\\)?[[:space:]]*$/ {
             in_depends = 1; replaced = 1
             print "  DEPENDS:=$(GO_ARCH_DEPENDS) \\" 
             print "    +ca-certificates \\" 
@@ -391,11 +391,20 @@ _docker_stack_update_dockerd_depends_block() {
             print "    @!(mips||mips64||mipsel)"
             next
         }
-        in_depends { if ($0 ~ /@!\(mips\|\|mips64\|\|mipsel\)/) in_depends = 0; next }
+        in_depends { 
+            if ($0 ~ /@!\(mips\|\|mips64\|\|mipsel\)/) {
+                in_depends = 0
+                next
+            }
+            if ($0 ~ /^[[:space:]]*\+/ || $0 ~ /^[[:space:]]*:=/ || $0 ~ /^[[:space:]]*endef/) {
+                next
+            }
+        }
         { print }
         END { if (replaced == 0) exit 2 }
     ' "$mk_path" > "$tmp_path" || {
         _docker_stack_log_error "未能重写 $mk_path 的 DEPENDS 块"
+        _docker_stack_log_error "请检查 Makefile 中 DEPENDS 块的格式是否匹配"
         return 1
     }
     
