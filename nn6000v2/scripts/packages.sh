@@ -35,12 +35,12 @@ install_passwall() {
         exit 1
     fi
     
-    rm -rf "$PASSWALL_LUCI_DIR"
+    rm -rf "$PASSWALL_LUCI_DIR" 2>/dev/null || true
     mv "$TEMP_DIR/luci-app-passwall" "$PASSWALL_LUCI_DIR"
     rm -rf "$TEMP_DIR"
     echo "✓ luci-app-passwall 克隆完成"
     
-    rm -rf "$PASSWALL_PACKAGES_DIR"
+    rm -rf "$PASSWALL_PACKAGES_DIR" 2>/dev/null || true
     local PASSWALL_PKGS_TEMP="$BUILD_DIR/feeds/openwrt_packages/passwall-packages-temp"
     rm -rf "$PASSWALL_PKGS_TEMP"
     if ! git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git "$PASSWALL_PKGS_TEMP"; then
@@ -71,7 +71,7 @@ install_lucky() {
     local LUCI_APP_LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-lucky"
 
     # 克隆 lucky core
-    rm -rf "$LUCKY_DIR"
+    rm -rf "$LUCKY_DIR" 2>/dev/null || true
     if ! git clone --depth=1 --filter=blob:none --no-checkout "$LUCKY_REPO" "$LUCKY_DIR"; then
         echo "错误：从 $LUCKY_REPO 克隆 lucky 仓库失败" >&2
         exit 1
@@ -89,7 +89,7 @@ install_lucky() {
     popd >/dev/null
     
     # 克隆 luci-app-lucky
-    rm -rf "$LUCI_APP_LUCKY_DIR"
+    rm -rf "$LUCI_APP_LUCKY_DIR" 2>/dev/null || true
     if ! git clone --depth=1 --filter=blob:none --no-checkout "$LUCKY_REPO" "$LUCI_APP_LUCKY_DIR"; then
         echo "错误：从 $LUCKY_REPO 克隆 luci-app-lucky 仓库失败" >&2
         rm -rf "$LUCKY_DIR"
@@ -145,7 +145,7 @@ install_adguardhome() {
     local ADGUARDHOME_REPO="https://github.com/wzdddyy/luci-app-adguardhome.git"
     local ADGUARDHOME_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-adguardhome"
 
-    rm -rf "$ADGUARDHOME_DIR"
+    rm -rf "$ADGUARDHOME_DIR" 2>/dev/null || true
     if ! git clone --depth=1 "$ADGUARDHOME_REPO" "$ADGUARDHOME_DIR"; then
         echo "错误：从 $ADGUARDHOME_REPO 克隆 luci-app-adguardhome 仓库失败" >&2
         exit 1
@@ -161,7 +161,7 @@ install_easytier() {
     # 安装依赖
     ./scripts/feeds install -f luci-lib-jsonc
     
-    rm -rf "$EASYTIER_DIR"
+    rm -rf "$EASYTIER_DIR" 2>/dev/null || true
     if ! git clone --depth=1 "$EASYTIER_REPO" "$EASYTIER_DIR"; then
         echo "错误：从 $EASYTIER_REPO 克隆 luci-app-easytier 仓库失败" >&2
         exit 1
@@ -176,7 +176,7 @@ install_oaf() {
 
     ./scripts/feeds install -f kmod-ipt-conntrack kmod-ipt-nat
     
-    rm -rf "$OAF_DIR"
+    rm -rf "$OAF_DIR" 2>/dev/null || true
     if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
         echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
         exit 1
@@ -213,7 +213,7 @@ install_diskman() {
     
     mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
     cd "$BUILD_DIR/feeds/openwrt_packages" || return
-    \rm -rf "luci-app-diskman"
+    \rm -rf "luci-app-diskman" 2>/dev/null || true
 
     if ! git clone --filter=blob:none --no-checkout "$repo_url" diskman; then
         echo "错误：从 $repo_url 克隆 diskman 仓库失败" >&2
@@ -228,7 +228,7 @@ install_diskman() {
 
     mv applications/luci-app-diskman ../luci-app-diskman || return
     cd .. || return
-    \rm -rf diskman
+    \rm -rf diskman 2>/dev/null || true
     cd "$BUILD_DIR"
 
     sed -i 's/fs-ntfs /fs-ntfs3 /g' "$path/Makefile"
@@ -243,7 +243,7 @@ _sync_luci_lib_docker() {
     
     mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
     
-    rm -rf "$luci_lib_docker_dir"
+    rm -rf "$luci_lib_docker_dir" 2>/dev/null || true
     if ! git clone --depth=1 "$repo_url" "$luci_lib_docker_dir"; then
         echo "错误：从 $repo_url 克隆 luci-lib-docker 仓库失败" >&2
         exit 1
@@ -260,7 +260,7 @@ install_dockerman() {
     
     mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
     cd "$BUILD_DIR/feeds/openwrt_packages" || return
-    \rm -rf "luci-app-dockerman"
+    \rm -rf "luci-app-dockerman" 2>/dev/null || true
 
     if ! git clone --filter=blob:none --no-checkout "$repo_url" dockerman; then
         echo "错误：从 $repo_url 克隆 dockerman 仓库失败" >&2
@@ -275,7 +275,7 @@ install_dockerman() {
 
     mv applications/luci-app-dockerman ../luci-app-dockerman || return
     cd .. || return
-    \rm -rf dockerman
+    \rm -rf dockerman 2>/dev/null || true
     cd "$BUILD_DIR"
 
     echo "✓ luci-app-dockerman 克隆完成"
