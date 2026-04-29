@@ -22,29 +22,50 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      
       - name: Build System Setup
         run: |
-          sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
-          sudo -E apt -yqq install dos2unix
-          sudo -E apt -yqq install libfuse-dev
-          sudo -E apt -yqq autoremove --purge
-          sudo -E apt -yqq autoclean
-          sudo -E apt -yqq clean
-          sudo -E systemctl daemon-reload
-          
-          # 清理磁盘空间
-          echo "=== Before cleanup ==="
+          # 1️⃣ 清理预装软件
+          echo "=== Disk Space Before Cleanup ==="
           df -h
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/.ghcup
           sudo rm -rf /usr/local/share/boost
           sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/share/chromium
+          sudo rm -rf /usr/local/share/chrome
+          sudo rm -rf /usr/local/share/ffmpeg
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /opt/microsoft
           sudo docker image prune -a -f 2>/dev/null || true
-          echo "=== After cleanup ==="
+          sudo docker system prune -a -f 2>/dev/null || true
+          sudo rm -rf /var/lib/apt/lists/*
+          
+          echo "=== Disk Space After Cleanup ==="
           df -h
-
-      - name: Checkout
-        uses: actions/checkout@v6.0.2
+          
+          # 2️⃣ 初始化构建环境
+          sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
+          
+          # 3️⃣ 安装额外依赖
+          sudo -E apt -yqq install dos2unix
+          sudo -E apt -yqq install libfuse-dev
+          
+          # 4️⃣ 清理安装产生的缓存
+          sudo -E apt -yqq autoremove --purge
+          sudo -E apt -yqq autoclean
+          sudo -E apt -yqq clean
+          sudo rm -rf /var/lib/apt/lists/*
+          
+          sudo -E systemctl daemon-reload
+          
+          echo "=== Final Disk Space ==="
+          df -h
 
       - name: Set Build Date and Timezone
         run: |
