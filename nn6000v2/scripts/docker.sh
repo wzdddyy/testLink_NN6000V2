@@ -360,65 +360,6 @@ _docker_stack_set_or_append_sysctl_value() {
 }
 
 #-------------------------------------------------------------------------------
-# 更新 dockerd Makefile 依赖
-#-------------------------------------------------------------------------------
-_docker_stack_update_dockerd_depends_block() {
-    local mk_path="$1"
-    local tmp_path
-    
-    tmp_path=$(_docker_stack_mktemp) || return 1
-    
-    awk '
-        BEGIN { in_package = 0; in_depends = 0; replaced = 0 }
-        /^define Package\/dockerd$/ { in_package = 1; print; next }
-        in_package && /^endef$/ {
-            in_package = 0
-            in_depends = 0
-            print
-            next
-        }
-        in_package && /^[[:space:]]*DEPENDS[[:space:]]*:/ {
-            in_depends = 1; replaced = 1
-            print "  DEPENDS:=$(ARCH_DEPENDS) \\" 
-            print "    +ca-certificates \\" 
-            print "    +containerd \\" 
-            print "    +iptables \\" 
-            print "    +iptables-mod-extra \\" 
-            print "    +IPV6:ip6tables \\" 
-            print "    +IPV6:kmod-ipt-nat6 \\" 
-            print "    +KERNEL_SECCOMP:libseccomp \\" 
-            print "    +kmod-ipt-nat \\" 
-            print "    +kmod-ipt-physdev \\" 
-            print "    +kmod-nf-ipvs \\" 
-            print "    +kmod-veth \\" 
-            print "    +tini \\" 
-            print "    +uci-firewall"
-            next
-        }
-        in_depends { 
-            if ($0 ~ /^[[:space:]]*\+/) {
-                next
-            }
-            if ($0 ~ /@!\(mips\|\|mips64\|\|mipsel\)/) {
-                next
-            }
-            in_depends = 0
-        }
-        { print }
-        END { if (replaced == 0) exit 2 }
-    ' "$mk_path" > "$tmp_path" || {
-        _docker_stack_log_error "未能重写 $mk_path 的 DEPENDS 块"
-        _docker_stack_log_error "请检查 Makefile 中 DEPENDS 块的格式是否匹配"
-        _docker_stack_log_error "实际文件内容:"
-        cat "$mk_path"
-        return 1
-    }
-    
-    mv "$tmp_path" "$mk_path"
-    _docker_stack_log_debug "已更新 dockerd Makefile 依赖"
-}
-
-#-------------------------------------------------------------------------------
 # 修复 dockerd vendored 检查
 #-------------------------------------------------------------------------------
 _docker_stack_fix_dockerd_vendored_checks() {
@@ -427,62 +368,40 @@ _docker_stack_fix_dockerd_vendored_checks() {
     
     tmp_path=$(_docker_stack_mktemp) || return 1
     
-    if grep -q '\$(call EnsureVendoredVersion,[a-z]*)$' "$mk_path"; then
-        _docker_stack_log_debug "检测到新版 vendored 检查格式，正在禁用严格验证..."
+    # 检测是否有 EnsureVendoredVersion 调用
+    if grep -q '\$(call EnsureVendoredVersion,' "$mk_path"; then
+        _docker_stack_log_debug "检测到 vendored 版本检查，正在禁用严格验证..."
         
         # 使用 awk 注释掉 Build/Prepare 中的所有版本验证
         awk '
-            BEGIN { in_prepare = 0; skip_block = 0; skip_lines = 0 }
+            BEGIN { in_prepare = 0; skip_lines = 0 }
             /^define Build\/Prepare/ { in_prepare = 1; print; next }
             in_prepare && /^endef$/ { in_prepare = 0; print; next }
             
-            # 注释掉 EnsureVendoredVersion 调用
-            in_prepare && /\$\(call EnsureVendoredVersion,/ {
-                print "\t# " $0 " # Disabled by docker_stack"
+            # 注释掉 EnsureVendoredVersion 调用（第 84-86 行）
+            in_prepare && /[[:space:]]*\$\(call EnsureVendoredVersion,/ {
+                print "#" $0 " # Disabled by docker_stack"
                 next
             }
             
-            # 处理 CLI 版本检查（多行块）
-            in_prepare && /CLI_MAKEFILE=.*grep.*PKG_VERSION/ {
-                print "\t# " $0 " # Disabled by docker_stack"
-                skip_lines = 1
-                next
-            }
-            skip_lines == 1 && /CLI_VERSION=.*grep/ {
-                print "\t# " $0 " # Disabled by docker_stack"
-                next
-            }
-            skip_lines == 1 && /if \[ "\$\$\$\${CLI_VERSION}" !=/ {
-                print "\t# " $0 " # Disabled by docker_stack"
-                next
-            }
-            skip_lines == 1 && /echo "ERROR: Expected.*CLI_MAKEFILE/ {
-                print "\t# " $0 " # Disabled by docker_stack"
-                next
-            }
-            skip_lines == 1 && /exit 1/ {
-                print "\t# " $0 " # Disabled by docker_stack"
-                skip_lines = 0
+            # 处理 CLI 版本检查（第 89-95 行，共 7 行）
+            in_prepare && /[[:space:]]*CLI_MAKEFILE=/ {
+                print "#" $0 " # Disabled by docker_stack"
+                skip_lines = 6
                 next
             }
             
-            # 处理 PKG_GIT_SHORT_COMMIT 检查（多行块）
-            in_prepare && /EXPECTED_PKG_GIT_SHORT_COMMIT=/ {
-                print "\t# " $0 " # Disabled by docker_stack"
-                skip_lines = 2
+            # 处理 PKG_GIT_SHORT_COMMIT 检查（第 98-103 行，共 6 行）
+            in_prepare && /[[:space:]]*EXPECTED_PKG_GIT_SHORT_COMMIT=/ {
+                print "#" $0 " # Disabled by docker_stack"
+                skip_lines = 5
                 next
             }
-            skip_lines == 2 && /if \[ "\$\$\$\${EXPECTED_PKG_GIT_SHORT_COMMIT}" !=/ {
-                print "\t# " $0 " # Disabled by docker_stack"
-                next
-            }
-            skip_lines == 2 && /echo "ERROR: Expected.*PKG_GIT_SHORT_COMMIT/ {
-                print "\t# " $0 " # Disabled by docker_stack"
-                next
-            }
-            skip_lines == 2 && /exit 1/ {
-                print "\t# " $0 " # Disabled by docker_stack"
-                skip_lines = 0
+            
+            # 跳过需要注释的后续行
+            skip_lines > 0 {
+                print "#" $0 " # Disabled by docker_stack"
+                skip_lines--
                 next
             }
             
@@ -493,7 +412,7 @@ _docker_stack_fix_dockerd_vendored_checks() {
         }
         
         mv "$tmp_path" "$mk_path"
-        _docker_stack_log_debug "已禁用新版 vendored 严格验证"
+        _docker_stack_log_debug "已禁用 vendored 版本检查"
         return 0
     fi
     
@@ -1156,7 +1075,6 @@ _docker_stack_update_dockerd_nftables_defaults() {
         return 0
     fi
     
-    _docker_stack_update_dockerd_depends_block "$dockerd_makefile" || return 1
     _docker_stack_fix_dockerd_vendored_checks "$dockerd_makefile" || return 1
     
     _docker_stack_ensure_nftables_init_support "$dockerd_init" || return 1
