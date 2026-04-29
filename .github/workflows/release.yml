@@ -27,17 +27,23 @@ jobs:
       
       - name: Build System Setup
         run: |
-          # 1️⃣ 清理预装软件
+          # 步骤 1: 清理预装软件
           echo "=== Disk Space Before Cleanup ==="
           df -h
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/.ghcup
           sudo rm -rf /usr/local/share/boost
+          
+          # Android/移动开发
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /usr/share/swift
+          
+          # 浏览器/多媒体
           sudo rm -rf /usr/local/share/chromium
           sudo rm -rf /usr/local/share/chrome
+          sudo rm -rf /usr/share/firefox
+          sudo rm -rf /usr/lib/firefox
           sudo rm -rf /usr/local/share/ffmpeg
           sudo rm -rf /usr/local/share/powershell
           sudo rm -rf /opt/hostedtoolcache/CodeQL
@@ -49,14 +55,14 @@ jobs:
           echo "=== Disk Space After Cleanup ==="
           df -h
           
-          # 2️⃣ 初始化构建环境
+          # 步骤 2: 初始化构建环境
           sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
           
-          # 3️⃣ 安装额外依赖
+          # 步骤 3: 安装额外依赖
           sudo -E apt -yqq install dos2unix
           sudo -E apt -yqq install libfuse-dev
           
-          # 4️⃣ 清理安装产生的缓存
+          # 步骤 4: 清理安装产生的缓存
           sudo -E apt -yqq autoremove --purge
           sudo -E apt -yqq autoclean
           sudo -E apt -yqq clean
