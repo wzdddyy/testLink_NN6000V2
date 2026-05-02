@@ -17,7 +17,7 @@ BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
 Dev=$1
 Build_Mod=$2
 
-CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
+CONFIG_FILE="$BASE_PATH/configs/$Dev.config"
 INI_FILE="$BASE_PATH/configs/$Dev.ini"
 
 if [[ ! -f $CONFIG_FILE ]]; then
@@ -49,13 +49,8 @@ remove_uhttpd_dependency() {
 
 apply_config() {
     \cp -f "$CONFIG_FILE" "$BASE_PATH/../$BUILD_DIR/.config"
-    
-    if grep -qE "(ipq60xx|ipq807x)" "$BASE_PATH/../$BUILD_DIR/.config" &&
-        ! grep -q "CONFIG_GIT_MIRROR" "$BASE_PATH/../$BUILD_DIR/.config"; then
-        cat "$BASE_PATH/configs/kernel/nss.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
-    fi
 
-    cat "$BASE_PATH/configs/kernel/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
+    cat "$BASE_PATH/configs/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 }
 
 REPO_URL=$(read_ini_by_key "REPO_URL")

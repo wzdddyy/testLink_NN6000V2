@@ -174,7 +174,8 @@ install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
     local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
 
-    ./scripts/feeds install -f kmod-ipt-conntrack kmod-ipt-nat
+    # 使用 nftables 版本的依赖，避免与 kmod-nf-ipt 冲突
+    ./scripts/feeds install -f kmod-nf-conntrack kmod-nf-nat
     
     rm -rf "$OAF_DIR" 2>/dev/null || true
     if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
@@ -184,7 +185,8 @@ install_oaf() {
 
     local oaf_makefile="$OAF_DIR/oaf/Makefile"
     if [ -f "$oaf_makefile" ]; then
-        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
+        # 修改依赖为 nftables 版本
+        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-nf-conntrack +kmod-nf-nat/g' "$oaf_makefile"
     fi
 
 
