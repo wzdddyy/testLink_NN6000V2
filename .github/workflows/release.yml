@@ -18,7 +18,7 @@ jobs:
       contents: write
     strategy:
       matrix:
-        os: [ubuntu-slim]
+        os: [ubuntu-24.04]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -26,17 +26,48 @@ jobs:
         uses: actions/checkout@v6.0.2
       
       - name: Build System Setup
-        run: |        
-          # 步骤 1: 初始化构建环境
+        run: |
+          # 步骤 1: 清理预装软件
+          echo "=== Disk Space Before Cleanup ==="
+          df -h
+          
+          # 卸载不需要的包
+          sudo apt-get remove -y firefox chromium google-chrome-stable microsoft-edge-stable 2>/dev/null || true
+          sudo apt-get remove -y android-sdk-* android-tools-* 2>/dev/null || true
+          sudo apt-get remove -y dotnet-sdk-* dotnet-runtime-* 2>/dev/null || true
+          sudo apt-get remove -y openjdk-* 2>/dev/null || true
+          sudo apt-get remove -y azure-cli google-cloud-cli awscli 2>/dev/null || true
+          sudo apt-get remove -y powershell 2>/dev/null || true
+          sudo apt-get remove -y miniconda 2>/dev/null || true
+          sudo apt-get remove -y homebrew 2>/dev/null || true
+          sudo apt-get remove -y codeql 2>/dev/null || true
+          
+          # 清理缓存和残留
+          sudo apt-get -y autoremove --purge
+          sudo apt-get -y autoclean
+          sudo rm -rf /var/lib/apt/lists/*
+          
+          # Docker 清理
+          sudo docker image prune -a -f 2>/dev/null || true
+          sudo docker system prune -a -f 2>/dev/null || true
+          
+          echo "=== Disk Space After Cleanup ==="
+          df -h
+          
+          # 步骤 2: 初始化构建环境
           sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
+          
+          # 步骤 3: 安装额外依赖
           sudo -E apt -yqq install dos2unix
           sudo -E apt -yqq install libfuse-dev
           
-          # 步骤 2: 清理安装产生的缓存
+          # 步骤 4: 清理安装产生的缓存
           sudo -E apt -yqq autoremove --purge
           sudo -E apt -yqq autoclean
           sudo -E apt -yqq clean
           sudo rm -rf /var/lib/apt/lists/*
+          
+          sudo -E systemctl daemon-reload
           
           echo "=== Final Disk Space ==="
           df -h
