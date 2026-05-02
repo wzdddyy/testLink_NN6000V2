@@ -32,35 +32,15 @@ jobs:
           df -h
           
           # 卸载不需要的包
-          sudo apt-get remove -y firefox chromium chromium-browser google-chrome-stable microsoft-edge-stable 2>/dev/null || true
-          sudo apt-get remove -y chrome-driver chromedriver firefox-geckodriver 2>/dev/null || true
-          sudo apt-get remove -y dotnet-sdk-8 dotnet-runtime-8 aspnetcore-runtime-8 2>/dev/null || true
-          sudo apt-get remove -y openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk openjdk-21-jdk 2>/dev/null || true
-          sudo apt-get remove -y openjdk-8-jre openjdk-11-jre openjdk-17-jre openjdk-21-jre 2>/dev/null || true
-          sudo apt-get remove -y ghc libghc-* 2>/dev/null || true
-          sudo apt-get remove -y rustc cargo librust-* 2>/dev/null || true
-          sudo apt-get remove -y golang-go golang-doc 2>/dev/null || true
-          sudo apt-get remove -y swift-lang 2>/dev/null || true
-          sudo apt-get remove -y kotlin 2>/dev/null || true
-          sudo apt-get remove -y julia 2>/dev/null || true
-          sudo apt-get remove -y mono-complete mono-devel 2>/dev/null || true
-          sudo apt-get remove -y r-base r-base-dev 2>/dev/null || true
-          sudo apt-get remove -y php-* 2>/dev/null || true
-          sudo apt-get remove -y postgresql postgresql-contrib 2>/dev/null || true
-          sudo apt-get remove -y mysql-server mysql-client 2>/dev/null || true
-          sudo apt-get remove -y azure-cli google-cloud-cli 2>/dev/null || true
-          sudo apt-get remove -y awscli 2>/dev/null || true
-          sudo apt-get remove -y amazon-ecr-credential-helper 2>/dev/null || true
+          sudo apt-get remove -y firefox chromium google-chrome-stable microsoft-edge-stable 2>/dev/null || true
           sudo apt-get remove -y android-sdk-* android-tools-* 2>/dev/null || true
-          sudo apt-get remove -y android-lib* 2>/dev/null || true
-          sudo apt-get remove -y codeql 2>/dev/null || true
+          sudo apt-get remove -y dotnet-sdk-* dotnet-runtime-* 2>/dev/null || true
+          sudo apt-get remove -y openjdk-* 2>/dev/null || true
+          sudo apt-get remove -y azure-cli google-cloud-cli awscli 2>/dev/null || true
           sudo apt-get remove -y powershell 2>/dev/null || true
           sudo apt-get remove -y miniconda 2>/dev/null || true
           sudo apt-get remove -y homebrew 2>/dev/null || true
-          sudo apt-get remove -y libboost-* 2>/dev/null || true
-          sudo apt-get remove -y ffmpeg 2>/dev/null || true
-          sudo apt-get remove -y podman buildah skopeo 2>/dev/null || true
-          sudo apt-get remove -y minikube kind kustomize 2>/dev/null || true
+          sudo apt-get remove -y codeql 2>/dev/null || true
           
           # 清理缓存和残留
           sudo apt-get -y autoremove --purge
