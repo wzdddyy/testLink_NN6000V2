@@ -18,7 +18,7 @@ jobs:
       contents: write
     strategy:
       matrix:
-        os: [ubuntu-slim-24.04]
+        os: [ubuntu-slim]
     runs-on: ${{ matrix.os }}
 
     steps:
