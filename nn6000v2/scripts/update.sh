@@ -61,7 +61,6 @@ main() {
     change_cpuusage
     set_custom_task
     apply_passwall_tweaks
-    update_nss_pbuf_performance
     update_nss_diag
     fix_compile_coremark
     set_build_signature

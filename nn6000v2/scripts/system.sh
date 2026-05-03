@@ -130,14 +130,6 @@ apply_passwall_tweaks() {
     fi
 }
 
-update_nss_pbuf_performance() {
-    local pbuf_path="$BUILD_DIR/package/kernel/mac80211/files/pbuf.uci"
-    if [ -d "$(dirname "$pbuf_path")" ] && [ -f $pbuf_path ]; then
-        sed -i "s/auto_scale '1'/auto_scale 'off'/g" $pbuf_path
-        sed -i "s/scaling_governor 'performance'/scaling_governor 'schedutil'/g" $pbuf_path
-    fi
-}
-
 set_build_signature() {
     local file="$BUILD_DIR/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js"
     if [ -d "$(dirname "$file")" ] && [ -f $file ]; then
