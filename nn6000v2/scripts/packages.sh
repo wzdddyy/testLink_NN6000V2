@@ -19,7 +19,6 @@ install_openwrt_packages() {
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
-        luci-app-oaf oaf open-app-filter \
         luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall
 }
 
@@ -205,6 +204,9 @@ install_oaf() {
 }
 EOF
     chmod +x "$disable_script"
+
+    # 安装修改后的 OAF 包
+    ./scripts/feeds install -f luci-app-oaf oaf open-app-filter
 
     echo "✓ OpenAppFilter 克隆完成 (服务已禁用)"
 }
