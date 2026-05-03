@@ -69,9 +69,6 @@ fi
 apply_config
 remove_uhttpd_dependency
 
-# Modify kernel size to 12MB for ipq60xx devices
-modify_kernel_size
-
 # 修复各种编译问题
 fix_compilation_issues() {
     echo "=== 修复编译问题 ==="
@@ -89,8 +86,7 @@ fix_compilation_issues() {
     echo "✓ 编译问题修复完成"
 }
 
-fix_compilation_issues
-
+# Modify kernel size to 12MB for ipq60xx devices
 modify_kernel_size() {
     local ipq60xx_mk_path="$BASE_PATH/../$BUILD_DIR/target/linux/qualcommax/image/ipq60xx.mk"
     
@@ -101,6 +97,7 @@ modify_kernel_size() {
     fi
 }
 
+fix_compilation_issues
 modify_kernel_size
 
 cd "$BASE_PATH/../$BUILD_DIR"
