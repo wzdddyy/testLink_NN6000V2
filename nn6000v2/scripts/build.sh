@@ -70,6 +70,27 @@ apply_config
 remove_uhttpd_dependency
 
 # Modify kernel size to 12MB for ipq60xx devices
+modify_kernel_size
+
+# 修复各种编译问题
+fix_compilation_issues() {
+    echo "=== 修复编译问题 ==="
+    
+    # 1. 修复 mac80211 ath11k 补丁应用失败问题
+    local mac80211_patch_dir="$BASE_PATH/../$BUILD_DIR/package/kernel/mac80211/patches/ath11k"
+    if [ -d "$mac80211_patch_dir" ]; then
+        local problematic_patch="$mac80211_patch_dir/990-ath11k-clamp-reg-rule-bandwidth.patch"
+        if [ -f "$problematic_patch" ]; then
+            echo "⚠️ 删除有问题的 ath11k 补丁：990-ath11k-clamp-reg-rule-bandwidth.patch"
+            rm -f "$problematic_patch"
+        fi
+    fi
+    
+    echo "✓ 编译问题修复完成"
+}
+
+fix_compilation_issues
+
 modify_kernel_size() {
     local ipq60xx_mk_path="$BASE_PATH/../$BUILD_DIR/target/linux/qualcommax/image/ipq60xx.mk"
     
