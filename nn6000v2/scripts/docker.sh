@@ -1325,20 +1325,13 @@ _docker_stack_patch_dockerd_makefile() {
     
     _docker_stack_log_info "正在修复 dockerd Makefile 依赖..."
     
-    # 替换 iptables 依赖为 nftables 版本
-    # +iptables -> 移除（用户空间工具，nftables 不需要）
-    # +iptables-mod-extra -> 移除
-    # +kmod-ipt-nat -> +kmod-nft-nat
-    # +kmod-ipt-physdev -> +kmod-nft-bridge
-    # +kmod-nf-ipvs -> 保留（IPVS 与 nftables 兼容）
-    # +kmod-ipt-nat6 -> +kmod-nft-nat6
-    
     sed -i \
         -e 's/+kmod-ipt-nat\b/+kmod-nft-nat/g' \
         -e 's/+kmod-ipt-physdev\b/+kmod-nft-bridge/g' \
-        -e 's/+IPV6:kmod-ipt-nat6\b/+IPV6:kmod-nft-nat6/g' \
         -e '/+iptables\b/d' \
-        -e '/+iptables-mod-extra/d' \
+        -e '/+iptables-mod-extra\b/d' \
+        -e '/+kmod-ipt-nat6\b/d' \
+        -e '/+IPV6:kmod-ipt-nat6/d' \
         "$dockerd_makefile"
     
     # 清理依赖行中的多余逗号

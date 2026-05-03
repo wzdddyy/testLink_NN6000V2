@@ -185,8 +185,12 @@ install_oaf() {
 
     local oaf_makefile="$OAF_DIR/oaf/Makefile"
     if [ -f "$oaf_makefile" ]; then
-        # 修改依赖为 nftables 版本
+        # 修改依赖为 nftables 版本，避免与 kmod-nf-ipt 冲突
+        # 使用 kmod-nf-conntrack 和 kmod-nf-nat，不使用 kmod-nf-ipt
         sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-nf-conntrack +kmod-nf-nat/g' "$oaf_makefile"
+        # 确保不依赖 kmod-iptables 或 kmod-nf-ipt
+        sed -i 's/kmod-iptables//g; s/kmod-nf-ipt//g' "$oaf_makefile"
+        echo "✓ OAF 依赖已修复：移除 kmod-iptables/kmod-nf-ipt"
     fi
 
 
