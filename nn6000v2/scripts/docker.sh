@@ -1313,6 +1313,41 @@ HELP
 }
 
 #-------------------------------------------------------------------------------
+# 修复 dockerd Makefile 依赖（nftables 兼容）
+#-------------------------------------------------------------------------------
+_docker_stack_patch_dockerd_makefile() {
+    local dockerd_makefile="$1"
+    
+    [ ! -f "$dockerd_makefile" ] && {
+        _docker_stack_log_error "dockerd Makefile 不存在：$dockerd_makefile"
+        return 1
+    }
+    
+    _docker_stack_log_info "正在修复 dockerd Makefile 依赖..."
+    
+    # 替换 iptables 依赖为 nftables 版本
+    # +iptables -> 移除（用户空间工具，nftables 不需要）
+    # +iptables-mod-extra -> 移除
+    # +kmod-ipt-nat -> +kmod-nft-nat
+    # +kmod-ipt-physdev -> +kmod-nft-bridge
+    # +kmod-nf-ipvs -> 保留（IPVS 与 nftables 兼容）
+    # +kmod-ipt-nat6 -> +kmod-nft-nat6
+    
+    sed -i \
+        -e 's/+kmod-ipt-nat\b/+kmod-nft-nat/g' \
+        -e 's/+kmod-ipt-physdev\b/+kmod-nft-bridge/g' \
+        -e 's/+IPV6:kmod-ipt-nat6\b/+IPV6:kmod-nft-nat6/g' \
+        -e '/+iptables\b/d' \
+        -e '/+iptables-mod-extra/d' \
+        "$dockerd_makefile"
+    
+    # 清理依赖行中的多余逗号
+    sed -i 's/,,/,/g; s/,+/+/g; s/,$//g' "$dockerd_makefile"
+    
+    _docker_stack_log_info "✓ dockerd Makefile 已修复为 nftables 兼容"
+}
+
+#-------------------------------------------------------------------------------
 # 主函数：更新 Docker 堆栈
 #-------------------------------------------------------------------------------
 update_docker_stack() {
@@ -1385,6 +1420,11 @@ update_docker_stack() {
     _docker_stack_update_component "containerd" "$containerd_makefile" "releases" "$containerd_version" "$dry_run" || return 1
     _docker_stack_update_component "docker" "$docker_makefile" "tags" "$docker_version" "$dry_run" || return 1
     _docker_stack_update_component "dockerd" "$dockerd_makefile" "releases" "$dockerd_version" "$dry_run" || return 1
+    
+    # 修复 dockerd Makefile 依赖（nftables 兼容）
+    if [ "$dry_run" = "0" ]; then
+        _docker_stack_patch_dockerd_makefile "$dockerd_makefile" || return 1
+    fi
     
     # 配置 nftables 默认值
     _docker_stack_update_dockerd_nftables_defaults "$build_dir" "$dry_run" "$storage_driver" || return 1
