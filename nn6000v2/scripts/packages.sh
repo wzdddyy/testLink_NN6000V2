@@ -171,14 +171,22 @@ install_easytier() {
 
 install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
-    local OAF_DIR="$BUILD_DIR/package/oaf/OpenAppFilter"
+    local OAF_DIR="$BUILD_DIR/package/oaf"
+    local OAF_TEMP="$BUILD_DIR/package/oaf-temp"
 
     rm -rf "$OAF_DIR" 2>/dev/null || true
+    rm -rf "$OAF_TEMP" 2>/dev/null || true
     mkdir -p "$OAF_DIR"
-    if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
+    
+    if ! git clone --depth=1 "$OAF_REPO" "$OAF_TEMP"; then
         echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
         exit 1
     fi
+
+    mv "$OAF_TEMP/oaf" "$OAF_DIR/"
+    mv "$OAF_TEMP/open-app-filter" "$OAF_DIR/"
+    mv "$OAF_TEMP/luci-app-oaf" "$OAF_DIR/"
+    rm -rf "$OAF_TEMP"
 
     local oaf_makefile="$OAF_DIR/oaf/Makefile"
     if [ -f "$oaf_makefile" ]; then
