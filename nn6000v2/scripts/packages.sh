@@ -171,9 +171,10 @@ install_easytier() {
 
 install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
-    local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
+    local OAF_DIR="$BUILD_DIR/package/oaf/OpenAppFilter"
 
     rm -rf "$OAF_DIR" 2>/dev/null || true
+    mkdir -p "$OAF_DIR"
     if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
         echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
         exit 1
@@ -200,10 +201,6 @@ install_oaf() {
 }
 EOF
     chmod +x "$disable_script"
-    ./scripts/feeds install -f kmod-nf-conntrack
-    ./scripts/feeds install -f oaf
-    ./scripts/feeds install -f open-app-filter
-    ./scripts/feeds install -f luci-app-oaf
 
     echo "✓ OpenAppFilter 克隆完成 (服务已禁用)"
 }
