@@ -19,7 +19,8 @@ install_openwrt_packages() {
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall \
+        oaf open-app-filter luci-app-oaf
 }
 
 install_passwall() {
@@ -171,34 +172,15 @@ install_easytier() {
 
 install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
-    local OAF_DIR="$BUILD_DIR/package/oaf"
-    local OAF_TEMP="$BUILD_DIR/package/oaf-temp"
+    local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
 
     rm -rf "$OAF_DIR" 2>/dev/null || true
-    rm -rf "$OAF_TEMP" 2>/dev/null || true
-    mkdir -p "$OAF_DIR"
-    
-    if ! git clone --depth=1 "$OAF_REPO" "$OAF_TEMP"; then
+    if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
         echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
         exit 1
     fi
 
-    mv "$OAF_TEMP/oaf" "$OAF_DIR/"
-    mv "$OAF_TEMP/open-app-filter" "$OAF_DIR/"
-    mv "$OAF_TEMP/luci-app-oaf" "$OAF_DIR/"
-    rm -rf "$OAF_TEMP"
-
-    local oaf_makefile="$OAF_DIR/oaf/Makefile"
-    if [ -f "$oaf_makefile" ]; then
-        sed -i 's/DEPENDS:=.*/DEPENDS:=+kmod-nf-conntrack/g' "$oaf_makefile"
-        echo "✓ OAF 依赖已修复：使用 kmod-nf-conntrack"
-    fi
-
-    local appfilter_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
-    if [ -f "$appfilter_config" ]; then
-        sed -i "s/option enabled '1'/option enabled '0'/g" "$appfilter_config"
-    fi
-
+    # 创建禁用 OAF 服务的脚本
     local disable_script="$OAF_DIR/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
     mkdir -p "$(dirname "$disable_script")"
     cat > "$disable_script" << 'EOF'
