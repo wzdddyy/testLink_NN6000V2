@@ -173,9 +173,6 @@ install_oaf() {
     local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
     local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
 
-    # 使用 nftables 版本的依赖，避免与 kmod-nf-ipt 冲突
-    ./scripts/feeds install -f kmod-nf-conntrack kmod-nf-nat
-    
     rm -rf "$OAF_DIR" 2>/dev/null || true
     if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
         echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
@@ -187,7 +184,6 @@ install_oaf() {
         sed -i 's/DEPENDS:=.*/DEPENDS:=+kmod-nf-conntrack/g' "$oaf_makefile"
         echo "✓ OAF 依赖已修复：使用 kmod-nf-conntrack"
     fi
-
 
     local appfilter_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
     if [ -f "$appfilter_config" ]; then
@@ -204,9 +200,10 @@ install_oaf() {
 }
 EOF
     chmod +x "$disable_script"
-
-    # 安装修改后的 OAF 包
-    ./scripts/feeds install -f luci-app-oaf oaf open-app-filter
+    ./scripts/feeds install -f kmod-nf-conntrack
+    ./scripts/feeds install -f oaf
+    ./scripts/feeds install -f open-app-filter
+    ./scripts/feeds install -f luci-app-oaf
 
     echo "✓ OpenAppFilter 克隆完成 (服务已禁用)"
 }
