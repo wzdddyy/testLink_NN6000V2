@@ -114,6 +114,10 @@ fix_compilation_issues() {
         fi
     fi
     
+    # 6. 禁用有问题的 onionshare-cli
+    echo "CONFIG_PACKAGE_onionshare-cli=n" >> "$BASE_PATH/../$BUILD_DIR/.config"
+    echo "✓ 禁用 onionshare-cli"
+    
     echo "✓ 编译问题修复完成"
 }
 
