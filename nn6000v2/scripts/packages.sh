@@ -19,8 +19,7 @@ install_openwrt_packages() {
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall \
-        oaf open-app-filter luci-app-oaf
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall
 }
 
 install_passwall() {
@@ -170,30 +169,7 @@ install_easytier() {
     echo "✓ luci-app-easytier 克隆完成"
 }
 
-install_oaf() {
-    local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
-    local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
 
-    rm -rf "$OAF_DIR" 2>/dev/null || true
-    if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
-        echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
-        exit 1
-    fi
-
-    # 创建禁用 OAF 服务的脚本
-    local disable_script="$OAF_DIR/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
-    mkdir -p "$(dirname "$disable_script")"
-    cat > "$disable_script" << 'EOF'
-#!/bin/sh
-[ "$(uci get appfilter.global.enable 2>/dev/null)" = "0" ] && {
-    /etc/init.d/appfilter disable
-    /etc/init.d/appfilter stop
-}
-EOF
-    chmod +x "$disable_script"
-
-    echo "✓ OpenAppFilter 克隆完成 (服务已禁用)"
-}
 
 install_diskman() {
     local path="$BUILD_DIR/feeds/openwrt_packages/luci-app-diskman"

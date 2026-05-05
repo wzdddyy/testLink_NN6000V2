@@ -83,6 +83,37 @@ fix_compilation_issues() {
         fi
     fi
     
+    # 2. 修复 rust 编译问题
+    local rust_makefile="$BASE_PATH/../$BUILD_DIR/feeds/packages/lang/rust/Makefile"
+    if [ -f "$rust_makefile" ]; then
+        sed -i 's/download-ci-llvm=true/download-ci-llvm=false/g' "$rust_makefile"
+        echo "✓ 修复 rust 编译配置"
+    fi
+    
+    # 3. 修复 coremark 编译问题
+    local coremark_makefile="$BASE_PATH/../$BUILD_DIR/feeds/packages/utils/coremark/Makefile"
+    if [ -f "$coremark_makefile" ]; then
+        sed -i 's/mkdir \$/mkdir -p \$/g' "$coremark_makefile"
+        echo "✓ 修复 coremark 编译配置"
+    fi
+    
+    # 4. 修复 kconfig 递归依赖问题
+    local package_metadata="$BASE_PATH/../$BUILD_DIR/scripts/package-metadata.pl"
+    if [ -f "$package_metadata" ]; then
+        sed -i 's/<PACKAGE_\$pkgname/!=y/g' "$package_metadata"
+        echo "✓ 修复 kconfig 递归依赖"
+    fi
+    
+    # 5. 修复可能的 openssl ktls 依赖问题
+    local openssl_config="$BASE_PATH/../$BUILD_DIR/package/libs/openssl/Config.in"
+    if [ -f "$openssl_config" ]; then
+        if ! grep -q 'depends on PACKAGE_kmod-tls' "$openssl_config"; then
+            sed -i 's/select PACKAGE_kmod-tls/depends on PACKAGE_kmod-tls/g' "$openssl_config"
+            sed -i '/depends on PACKAGE_kmod-tls/a\\tdefault y if PACKAGE_kmod-tls' "$openssl_config"
+            echo "✓ 修复 openssl ktls 依赖"
+        fi
+    fi
+    
     echo "✓ 编译问题修复完成"
 }
 
