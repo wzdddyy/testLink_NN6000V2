@@ -51,6 +51,8 @@ apply_config() {
     \cp -f "$CONFIG_FILE" "$BASE_PATH/../$BUILD_DIR/.config"
 
     cat "$BASE_PATH/configs/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
+    
+    cd "$BASE_PATH/../$BUILD_DIR" && make defconfig
 }
 
 REPO_URL=$(read_ini_by_key "REPO_URL")
@@ -135,8 +137,6 @@ modify_kernel_size() {
 fix_compilation_issues
 modify_kernel_size
 
-cd "$BASE_PATH/../$BUILD_DIR"
-make defconfig
 
 if [[ $Build_Mod == "debug" ]]; then
     exit 0
