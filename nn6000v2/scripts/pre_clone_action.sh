@@ -13,21 +13,10 @@ BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
 
 Dev=$1
 
-INI_FILE="$BASE_PATH/configs/$Dev.ini"
+# 使用环境变量
+REPO_URL="${REPO_URL}"
+REPO_BRANCH="${REPO_BRANCH:-main}"
 
-if [[ ! -f $INI_FILE ]]; then
-    echo "INI file not found: $INI_FILE"
-    exit 1
-fi
-
-read_ini_by_key() {
-    local key=$1
-    awk -F"=" -v key="$key" '$1 == key {print $2}' "$INI_FILE"
-}
-
-REPO_URL=$(read_ini_by_key "REPO_URL")
-REPO_BRANCH=$(read_ini_by_key "REPO_BRANCH")
-REPO_BRANCH=${REPO_BRANCH:-main}
 # GitHub Actions usually runs in root of repo, so build dir should be relative to repo root
 # We need to construct absolute path or ensure context is correct.
 # Assuming this script is run from repo root or nn6000v2.

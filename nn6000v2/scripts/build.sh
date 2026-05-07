@@ -25,15 +25,16 @@ if [[ ! -f $CONFIG_FILE ]]; then
     exit 1
 fi
 
-if [[ ! -f $INI_FILE ]]; then
-    echo "INI file not found: $INI_FILE"
-    exit 1
-fi
+# INI 文件现在只是可选的（向后兼容），主要使用环境变量
+# if [[ ! -f $INI_FILE ]]; then
+#     echo "INI file not found: $INI_FILE"
+#     exit 1
+# fi
 
-read_ini_by_key() {
-    local key=$1
-    awk -F"=" -v key="$key" '$1 == key {print $2}' "$INI_FILE"
-}
+# read_ini_by_key() {
+#     local key=$1
+#     awk -F"=" -v key="$key" '$1 == key {print $2}' "$INI_FILE"
+# }
 
 remove_uhttpd_dependency() {
     local config_path="$BASE_PATH/../$BUILD_DIR/.config"
