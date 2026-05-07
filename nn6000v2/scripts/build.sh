@@ -46,7 +46,7 @@ COMMIT_HASH="${COMMIT_HASH:-none}"
 if [[ "$BUILD_DIR" != /* ]]; then
     BUILD_DIR="$BASE_PATH/../$BUILD_DIR"
 fi
-# 规范化路径（处理 .. 和 .）
+
 BUILD_DIR=$(readlink -f "$BUILD_DIR" 2>/dev/null || echo "$BUILD_DIR")
 
 # 创建 repo_flag 用于缓存识别
