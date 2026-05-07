@@ -57,11 +57,14 @@ apply_config() {
 # 使用环境变量配置
 REPO_URL="${REPO_URL}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
-BUILD_DIR="${BUILD_DIR}"
+BUILD_DIR="${BUILD_DIR:-action_build}"
 COMMIT_HASH="${COMMIT_HASH:-none}"
 
-if [[ -d action_build ]]; then
-    BUILD_DIR="action_build"
+# 转换为绝对路径
+if [[ "$BUILD_DIR" != /* ]]; then
+    if [[ -d "$BASE_PATH/../$BUILD_DIR" ]]; then
+        BUILD_DIR="$BASE_PATH/../$BUILD_DIR"
+    fi
 fi
 
 "$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"

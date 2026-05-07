@@ -84,16 +84,16 @@ jobs:
         uses: actions/cache@v5.0.4
         with:
           path: |
-            ./action_build/.ccache
-            ./action_build/staging_dir
+            ./${{ env.BUILD_DIR }}/.ccache
+            ./${{ env.BUILD_DIR }}/staging_dir
           key: ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}
           restore-keys: |
             ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-
 
       - name: Refresh the cache
         run: |
-          if [ -d "./action_build/staging_dir" ]; then
-            find "./action_build/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r dir; do
+          if [ -d "./${{ env.BUILD_DIR }}/staging_dir" ]; then
+            find "./${{ env.BUILD_DIR }}/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r dir; do
                 find "$dir" -type f -exec touch {} +
             done
           fi
@@ -114,8 +114,8 @@ jobs:
           done
           # 输出缓存状态
           echo "========cache status========"
-          echo "ccache: $(du -sh ./action_build/.ccache | cut -f 1)"
-          echo "staging: $(du -sh ./action_build/staging_dir | cut -f 1)"
+          echo "ccache: $(du -sh ./${{ env.BUILD_DIR }}/.ccache | cut -f 1)"
+          echo "staging: $(du -sh ./${{ env.BUILD_DIR }}/staging_dir | cut -f 1)"
 
       - name: Machine Information
         run: |
