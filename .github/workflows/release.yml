@@ -73,12 +73,9 @@ jobs:
           echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
           echo "BUILD_SRC=${{ env.REPO_URL }}" >> $GITHUB_ENV
 
-      - name: Pre Clone
+      - name: Prepare Build Scripts
         run: |
-          chmod +x ./nn6000v2/scripts/pre_clone_action.sh
-          chmod +x ./nn6000v2/scripts/update.sh
-          chmod +x ./nn6000v2/scripts/build.sh
-          ./nn6000v2/scripts/pre_clone_action.sh ${{ env.DEVICE_MODEL }}
+          chmod +x ./nn6000v2/scripts/*.sh
 
       - name: Cache Dependencies
         uses: actions/cache@v5.0.4
