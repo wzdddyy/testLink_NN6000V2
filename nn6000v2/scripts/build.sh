@@ -3,16 +3,8 @@
 set -e
 
 # Determine nn6000v2 path
-if [ -d "nn6000v2" ]; then
-    NN6000V2_PATH="nn6000v2"
-elif [ -d "../nn6000v2" ]; then
-    NN6000V2_PATH="../nn6000v2"
-else
-    echo "Error: nn6000v2 directory not found!"
-    exit 1
-fi
-
-BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_PATH="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 Dev=$1
 Build_Mod=$2
@@ -45,17 +37,17 @@ apply_config() {
 }
 
 # 使用环境变量配置
-REPO_URL="${REPO_URL}"
+REPO_URL="${REPO_URL:-https://github.com/immortalwrt/immortalwrt.git}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
-BUILD_DIR="${BUILD_DIR:-action_build}"
+BUILD_DIR="${BUILD_DIR:-immortalwrt}"
 COMMIT_HASH="${COMMIT_HASH:-none}"
 
-# 转换为绝对路径
+# 确保 BUILD_DIR 是绝对路径
 if [[ "$BUILD_DIR" != /* ]]; then
-    if [[ -d "$BASE_PATH/../$BUILD_DIR" ]]; then
-        BUILD_DIR="$BASE_PATH/../$BUILD_DIR"
-    fi
+    BUILD_DIR="$BASE_PATH/../$BUILD_DIR"
 fi
+# 规范化路径（处理 .. 和 .）
+BUILD_DIR=$(readlink -f "$BUILD_DIR" 2>/dev/null || echo "$BUILD_DIR")
 
 "$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
 

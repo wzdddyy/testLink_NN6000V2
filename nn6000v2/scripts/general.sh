@@ -11,6 +11,12 @@ clone_repo() {
 }
 
 apply_patches() {
+    # 如果没有设置 BASE_PATH，使用脚本所在目录
+    if [[ -z "$BASE_PATH" ]]; then
+        local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        BASE_PATH="$(cd "$SCRIPT_DIR/.." && pwd)"
+    fi
+    
     local PATCHES_DIR="$BASE_PATH/patches"
     
     if [[ ! -d "$PATCHES_DIR" ]]; then

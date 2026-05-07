@@ -14,10 +14,8 @@ REPO_BRANCH=$2
 BUILD_DIR=$3
 COMMIT_HASH=$4
 
-# Convert BUILD_DIR to absolute path
-if [[ "$BUILD_DIR" != /* ]]; then
-    BUILD_DIR="$(pwd)/$BUILD_DIR"
-fi
+# 规范化路径（处理 .. 和 .）
+BUILD_DIR=$(readlink -f "$BUILD_DIR" 2>/dev/null || echo "$BUILD_DIR")
 
 FEEDS_CONF="feeds.conf.default"
 GOLANG_REPO="https://github.com/sbwml/packages_lang_golang"
@@ -25,8 +23,11 @@ GOLANG_BRANCH="26.x"
 THEME_SET="argon"
 LAN_ADDR="10.0.0.1"
 
-SCRIPT_DIR=$(cd $(dirname $0) && pwd)
-BASE_PATH=${BASE_PATH:-$(dirname "$SCRIPT_DIR")}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_PATH="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# 导出 BASE_PATH 供子脚本使用
+export BASE_PATH
 
 source "$SCRIPT_DIR/general.sh"
 source "$SCRIPT_DIR/feeds.sh"
