@@ -47,6 +47,7 @@ main() {
     install_dockerman
     install_adguardhome
     install_easytier
+    install_oaf
     install_passwall
     install_feeds
     update_docker_stack
@@ -60,6 +61,7 @@ main() {
     change_cpuusage
     set_custom_task
     apply_passwall_tweaks
+    update_nss_pbuf_performance
     update_nss_diag
     fix_compile_coremark
     set_build_signature

@@ -130,6 +130,14 @@ apply_passwall_tweaks() {
     fi
 }
 
+update_nss_pbuf_performance() {
+    local pbuf_path="$BUILD_DIR/package/kernel/mac80211/files/pbuf.uci"
+    if [ -d "$(dirname "$pbuf_path")" ] && [ -f $pbuf_path ]; then
+        sed -i "s/auto_scale '1'/auto_scale 'off'/g" $pbuf_path
+        sed -i "s/scaling_governor 'performance'/scaling_governor 'schedutil'/g" $pbuf_path
+    fi
+}
+
 set_build_signature() {
     local file="$BUILD_DIR/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js"
     if [ -d "$(dirname "$file")" ] && [ -f $file ]; then
@@ -173,12 +181,12 @@ EOF
 update_script_priority() {
     local qca_drv_path="$BUILD_DIR/package/feeds/nss_packages/qca-nss-drv/files/qca-nss-drv.init"
     if [ -d "${qca_drv_path%/*}" ] && [ -f "$qca_drv_path" ]; then
-        sed -i 's/START=.*/START=85/g' "$qca_drv_path"
+        sed -i 's/START=.*/START=88/g' "$qca_drv_path"
     fi
 
     local pbuf_path="$BUILD_DIR/package/kernel/mac80211/files/qca-nss-pbuf.init"
     if [ -d "${pbuf_path%/*}" ] && [ -f "$pbuf_path" ]; then
-        sed -i 's/START=.*/START=86/g' "$pbuf_path"
+        sed -i 's/START=.*/START=89/g' "$pbuf_path"
     fi
 }
 
@@ -243,27 +251,23 @@ install_pbr_isp() {
     local pbr_makefile="$pbr_pkg_dir/Makefile"
     local pbr_init_script="$pbr_pkg_dir/files/etc/init.d/pbr"
 
-    if [ ! -d "$pbr_pkg_dir" ]; then
-        echo "PBR package directory not found: $pbr_pkg_dir, skipping install_pbr_isp"
-        return 0
-    fi
+    if [ -d "$pbr_pkg_dir" ]; then
+        echo "正在安装 PBR 多 ISP 自动识别脚本..."
+        install -Dm755 "$BASE_PATH/patches/pbr.user.isp" "$pbr_dir/pbr.user.isp"
 
-    echo "正在安装 PBR 多 ISP 自动识别脚本..."
-    install -Dm755 "$BASE_PATH/patches/pbr.user.isp" "$pbr_dir/pbr.user.isp"
-
-    if [ -f "$pbr_makefile" ]; then
-        if ! grep -q "pbr.user.isp" "$pbr_makefile"; then
-            echo "正在修改 PBR Makefile 添加安装规则..."
-            sed -i '/pbr.user.netflix.*\$(1)/a\
+        if [ -f "$pbr_makefile" ]; then
+            if ! grep -q "pbr.user.isp" "$pbr_makefile"; then
+                echo "正在修改 PBR Makefile 添加安装规则..."
+                sed -i '/pbr.user.netflix.*\$(1)/a\
 	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.isp $(1)/usr/share/pbr/pbr.user.isp' "$pbr_makefile"
+            fi
         fi
-    fi
-    
-    # Add auto-retry mechanism to pbr init script
-    if [ -f "$pbr_init_script" ]; then
-        echo "正在添加 PBR 自动重试机制..."
-        # Simple retry: try every 10s for up to 50s if not configured
-        cat >> "$pbr_init_script" << 'EOF'
+        
+        # Add auto-retry mechanism to pbr init script
+        if [ -f "$pbr_init_script" ]; then
+            echo "正在添加 PBR 自动重试机制..."
+            # Simple retry: try every 10s for up to 50s if not configured
+            cat >> "$pbr_init_script" << 'EOF'
 
 # PBR auto-retry (simple version)
 [ -f /var/run/pbr_configured ] || ( for i in 1 2 3 4 5; do
@@ -271,6 +275,7 @@ install_pbr_isp() {
     /usr/share/pbr/pbr.user.isp >/dev/null 2>&1 && break
 done ) &
 EOF
+        fi
     fi
 
     if [ -f "$pbr_conf" ]; then
@@ -292,13 +297,13 @@ fix_pbr_ip_forward() {
     local pbr_init_script="$pbr_pkg_dir/files/etc/init.d/pbr"
 
     if [ ! -d "$pbr_pkg_dir" ]; then
-        echo "PBR package directory not found: $pbr_pkg_dir, skipping fix_pbr_ip_forward"
-        return 0
+        echo "PBR package directory not found: $pbr_pkg_dir"
+        return 1
     fi
 
     if [ ! -f "$pbr_init_script" ]; then
-        echo "PBR init script not found: $pbr_init_script, skipping fix_pbr_ip_forward"
-        return 0
+        echo "PBR init script not found: $pbr_init_script"
+        return 1
     fi
 
     # Check if fix is already applied (enabled check already present)
@@ -324,7 +329,7 @@ fix_pbr_ip_forward() {
         return 0
     else
         echo "修复应用失败：未找到预期的修复内容"
-        return 0
+        return 1
     fi
 }
 

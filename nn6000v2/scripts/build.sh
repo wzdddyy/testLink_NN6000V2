@@ -49,16 +49,15 @@ remove_uhttpd_dependency() {
 
 apply_config() {
     \cp -f "$CONFIG_FILE" "$BASE_PATH/../$BUILD_DIR/.config"
-
+    
     cat "$BASE_PATH/configs/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 }
 
-REPO_URL=$(read_ini_by_key "REPO_URL")
-REPO_BRANCH=$(read_ini_by_key "REPO_BRANCH")
-REPO_BRANCH=${REPO_BRANCH:-main}
-BUILD_DIR=$(read_ini_by_key "BUILD_DIR")
-COMMIT_HASH=$(read_ini_by_key "COMMIT_HASH")
-COMMIT_HASH=${COMMIT_HASH:-none}
+# 使用环境变量配置
+REPO_URL="${REPO_URL}"
+REPO_BRANCH="${REPO_BRANCH:-main}"
+BUILD_DIR="${BUILD_DIR}"
+COMMIT_HASH="${COMMIT_HASH:-none}"
 
 if [[ -d action_build ]]; then
     BUILD_DIR="action_build"
@@ -68,58 +67,6 @@ fi
 
 apply_config
 remove_uhttpd_dependency
-
-# 修复各种编译问题
-fix_compilation_issues() {
-    echo "=== 修复编译问题 ==="
-    
-    # 1. 修复 mac80211 ath11k 补丁应用失败问题
-    local mac80211_patch_dir="$BASE_PATH/../$BUILD_DIR/package/kernel/mac80211/patches/ath11k"
-    if [ -d "$mac80211_patch_dir" ]; then
-        local problematic_patch="$mac80211_patch_dir/990-ath11k-clamp-reg-rule-bandwidth.patch"
-        if [ -f "$problematic_patch" ]; then
-            echo "⚠️ 删除有问题的 ath11k 补丁：990-ath11k-clamp-reg-rule-bandwidth.patch"
-            rm -f "$problematic_patch"
-        fi
-    fi
-    
-    # 2. 修复 rust 编译问题
-    local rust_makefile="$BASE_PATH/../$BUILD_DIR/feeds/packages/lang/rust/Makefile"
-    if [ -f "$rust_makefile" ]; then
-        sed -i 's/download-ci-llvm=true/download-ci-llvm=false/g' "$rust_makefile"
-        echo "✓ 修复 rust 编译配置"
-    fi
-    
-    # 3. 修复 coremark 编译问题
-    local coremark_makefile="$BASE_PATH/../$BUILD_DIR/feeds/packages/utils/coremark/Makefile"
-    if [ -f "$coremark_makefile" ]; then
-        sed -i 's/mkdir \$/mkdir -p \$/g' "$coremark_makefile"
-        echo "✓ 修复 coremark 编译配置"
-    fi
-    
-    # 4. 修复 kconfig 递归依赖问题
-    local package_metadata="$BASE_PATH/../$BUILD_DIR/scripts/package-metadata.pl"
-    if [ -f "$package_metadata" ]; then
-        sed -i 's/<PACKAGE_\$pkgname/!=y/g' "$package_metadata"
-        echo "✓ 修复 kconfig 递归依赖"
-    fi
-    
-    # 5. 修复可能的 openssl ktls 依赖问题
-    local openssl_config="$BASE_PATH/../$BUILD_DIR/package/libs/openssl/Config.in"
-    if [ -f "$openssl_config" ]; then
-        if ! grep -q 'depends on PACKAGE_kmod-tls' "$openssl_config"; then
-            sed -i 's/select PACKAGE_kmod-tls/depends on PACKAGE_kmod-tls/g' "$openssl_config"
-            sed -i '/depends on PACKAGE_kmod-tls/a\\tdefault y if PACKAGE_kmod-tls' "$openssl_config"
-            echo "✓ 修复 openssl ktls 依赖"
-        fi
-    fi
-    
-    # 6. 禁用有问题的 onionshare-cli
-    echo "CONFIG_PACKAGE_onionshare-cli=n" >> "$BASE_PATH/../$BUILD_DIR/.config"
-    echo "✓ 禁用 onionshare-cli"
-    
-    echo "✓ 编译问题修复完成"
-}
 
 # Modify kernel size to 12MB for ipq60xx devices
 modify_kernel_size() {
@@ -132,11 +79,10 @@ modify_kernel_size() {
     fi
 }
 
-fix_compilation_issues
 modify_kernel_size
 
-echo "=== Running make defconfig to process dependencies ==="
-cd "$BASE_PATH/../$BUILD_DIR" && make defconfig
+cd "$BASE_PATH/../$BUILD_DIR"
+make defconfig
 
 if [[ $Build_Mod == "debug" ]]; then
     exit 0

@@ -9,6 +9,9 @@ on:
 
 env:
   DEVICE_MODEL: link_nn6000v2_immwrt
+  REPO_URL: https://github.com/VIKINGYFY/immortalwrt.git
+  REPO_BRANCH: main
+  BUILD_DIR: imm-nss
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -45,18 +48,14 @@ jobs:
           echo "=== Disk Space After Cleanup ==="
           df -h
           
-          # 步骤 2: 更新系统软件包
-          sudo -E apt -yqq update
-          sudo -E apt -yqq full-upgrade
-          
-          # 步骤 3: 初始化构建环境
+          # 步骤 2: 初始化构建环境
           sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
           
-          # 步骤 4: 安装额外依赖
+          # 步骤 3: 安装额外依赖
           sudo -E apt -yqq install dos2unix
           sudo -E apt -yqq install libfuse-dev
           
-          # 步骤 5: 清理安装产生的缓存
+          # 步骤 4: 清理安装产生的缓存
           sudo -E apt -yqq autoremove --purge
           sudo -E apt -yqq autoclean
           sudo -E apt -yqq clean
@@ -72,8 +71,7 @@ jobs:
           sudo -E timedatectl set-timezone "Asia/Shanghai"
           export BUILD_DATE=$(TZ=UTC-8 date +"%y.%m.%d_%H.%M.%S")
           echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
-          export BUILD_SRC=$(awk -F"=" '/REPO_URL/ {print $NF}' "./nn6000v2/configs/${{ env.DEVICE_MODEL }}.ini")
-          echo "BUILD_SRC=$BUILD_SRC" >> $GITHUB_ENV
+          echo "BUILD_SRC=${{ env.REPO_URL }}" >> $GITHUB_ENV
 
       - name: Pre Clone
         run: |
