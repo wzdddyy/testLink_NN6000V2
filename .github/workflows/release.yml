@@ -83,7 +83,9 @@ jobs:
           path: |
             ./${{ env.BUILD_DIR }}/.ccache
             ./${{ env.BUILD_DIR }}/staging_dir
-          key: ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}
+            ./${{ env.BUILD_DIR }}/dl
+            ./${{ env.BUILD_DIR }}/feeds
+          key: ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-v1
           restore-keys: |
             ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-
 

@@ -49,7 +49,6 @@ main() {
     install_dockerman
     install_adguardhome
     install_easytier
-    install_oaf
     install_passwall
     install_feeds
     update_docker_stack
