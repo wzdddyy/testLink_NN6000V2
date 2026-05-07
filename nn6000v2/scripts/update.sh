@@ -37,6 +37,7 @@ source "$SCRIPT_DIR/docker.sh"
 
 main() {
     clone_repo
+    apply_patches
     clean_up
     reset_feeds_conf
     update_feeds

@@ -1,0 +1,23 @@
+The nft_compat module provides compatibility support for using legacy
+iptables match/target modules within the nftables framework, which is
+required by:
+- xtables-nft (iptables-nft and ip6tables-nft backends)
+- LuCI firewall4 and other applications using iptables commands
+
+Signed-off-by: Your Name <your.email@example.com>
+---
+ package/kernel/linux/modules/netfilter.mk | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+--- a/package/kernel/linux/modules/netfilter.mk
++++ b/package/kernel/linux/modules/netfilter.mk
+@@ -1150,8 +1150,7 @@ define KernelPackage/nft-core
+   FILES:=$(foreach mod,$(NFT_CORE-m),$(LINUX_DIR)/net/$(mod).ko)
+   AUTOLOAD:=$(call AutoProbe,$(notdir $(NFT_CORE-m)))
+   KCONFIG:= \
+-	CONFIG_NFT_COMPAT=n \
+-	CONFIG_NFT_QUEUE=n \
++	CONFIG_NFT_QUEUE=n \
+ 	$(KCONFIG_NFT_CORE)
+ endef
+ 
