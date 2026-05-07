@@ -35,28 +35,9 @@ apply_patches() {
     
     for patch in "$PATCHES_DIR"/*.patch; do
         if [[ -f "$patch" ]]; then
-            local patch_name=$(basename $patch)
-            echo "  应用：$patch_name"
-            
-            # 检查补丁类型
-            if head -5 "$patch" | grep -q "^--- a/"; then
-                # 标准 git 格式补丁，使用 -p1
-                if ! patch -p1 --dry-run < "$patch" >/dev/null 2>&1; then
-                    echo "    警告：补丁 $patch_name 应用失败（可能是源码已更新或路径不匹配），跳过..."
-                else
-                    patch -p1 < "$patch" 2>/dev/null
-                fi
-            else
-                # 其他格式补丁，尝试自动检测
-                if ! patch -p1 --dry-run < "$patch" >/dev/null 2>&1; then
-                    if ! patch -p0 --dry-run < "$patch" >/dev/null 2>&1; then
-                        echo "    警告：补丁 $patch_name 无法应用，跳过..."
-                    else
-                        patch -p0 < "$patch" 2>/dev/null
-                    fi
-                else
-                    patch -p1 < "$patch" 2>/dev/null
-                fi
+            echo "  应用：$(basename $patch)"
+            if ! patch -p1 < "$patch"; then
+                echo "警告：补丁 $(basename $patch) 应用失败，继续下一个..."
             fi
         fi
     done
