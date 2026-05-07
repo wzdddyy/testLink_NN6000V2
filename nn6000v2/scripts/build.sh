@@ -36,7 +36,7 @@ apply_config() {
     cat "$BASE_PATH/configs/docker_deps.config" >> "$BUILD_DIR/.config"
 }
 
-# 使用环境变量配置（工作流中已定义默认值）
+# 使用环境变量配置
 REPO_URL="${REPO_URL:-https://github.com/VIKINGYFY/immortalwrt.git}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
 BUILD_DIR="${BUILD_DIR:-imm-nss}"
