@@ -19,8 +19,7 @@ install_openwrt_packages() {
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall \
-        luci-app-eqos
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall
 }
 
 install_passwall() {
