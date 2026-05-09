@@ -31,19 +31,13 @@ install_feeds() {
     echo "更新 feeds 索引..."
     ./scripts/feeds update -i
     
-    # 先安装 openwrt-packages 中的包
-    echo "安装 openwrt-packages 包..."
+    # 先安装 openwrt-packages 中必要的包
+    echo "安装 openwrt-packages 必要包..."
     install_openwrt_packages
     
-    # 安装其他 feeds 的包
-    for dir in "$BUILD_DIR"/feeds/*; do
-        if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
-            local feed_name=$(basename "$dir")
-            if [[ "$feed_name" != "openwrt_packages" ]]; then
-                ./scripts/feeds install -f -ap "$feed_name"
-            fi
-        fi
-    done
+    # 再安装其他所有配置中选中的包
+    echo "安装其他 feeds 包..."
+    ./scripts/feeds install -a
     
     echo "=== feeds 包安装完成 ==="
     cd - >/dev/null || exit 1
