@@ -165,8 +165,6 @@ clone_adguardhome() {
     clone_packages "luci-app-adguardhome" \
         "${GITHUB_BASE}wzdddyy/luci-app-adguardhome.git" \
         "$OPENWRT_PACKAGES_DIR/luci-app-adguardhome"
-    
-    echo "✓ luci-app-adguardhome 克隆完成"
 }
 
 clone_easytier() {
@@ -185,8 +183,6 @@ clone_easytier() {
         "$EASYTIER_DIR"
 
     rm -rf "$TEMP_DIR"
-    
-    echo "✓ luci-app-easytier 克隆完成"
 }
 
 clone_oaf() {
@@ -245,8 +241,6 @@ clone_diskman() {
     
     sed -i 's/fs-ntfs /fs-ntfs3 /g' "$path/Makefile"
     sed -i '/ntfs-3g-utils /d' "$path/Makefile"
-    
-    echo "✓ luci-app-diskman 克隆完成"
 }
 
 _sync_luci_lib_docker() {
@@ -279,8 +273,6 @@ clone_dockerman() {
         "" \
         "$temp_dir/applications/luci-app-dockerman" \
         "$path"
-    
-    echo "✓ luci-app-dockerman 克隆完成"
 }
 
 clone_quickfile() {
@@ -295,8 +287,6 @@ clone_quickfile() {
         "mkdir -p \"$QUICKFILE_DIR\" && mv \"$TEMP_DIR/luci-app-quickfile\" \"$TEMP_DIR/quickfile\" \"$QUICKFILE_DIR/\""
 
     rm -rf "$TEMP_DIR"
-    
-    echo "✓ luci-app-quickfile 克隆完成"
 }
 
 remove_attendedsysupgrade() {
