@@ -106,24 +106,30 @@ clone_lucky() {
     local LUCKY_REPO="https://github.com/gdy666/luci-app-lucky.git"
     local LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/lucky"
     local LUCI_APP_LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-lucky"
+    local LUCKY_TEMP="$BUILD_DIR/feeds/openwrt_packages/lucky-temp"
+    local LUCKI_APP_TEMP="$BUILD_DIR/feeds/openwrt_packages/luci-app-lucky-temp"
 
     clone_packages "lucky" \
         "$LUCKY_REPO" \
-        "$LUCKY_DIR" \
+        "$LUCKY_TEMP" \
         "lucky" \
         "" \
         "" \
-        "$LUCKY_DIR/lucky" \
+        "$LUCKY_TEMP/lucky" \
         "$LUCKY_DIR"
+
+    rm -rf "$LUCKY_TEMP"
 
     clone_packages "luci-app-lucky" \
         "$LUCKY_REPO" \
-        "$LUCI_APP_LUCKY_DIR" \
+        "$LUCKI_APP_TEMP" \
         "luci-app-lucky" \
         "" \
         "" \
-        "$LUCI_APP_LUCKY_DIR/luci-app-lucky" \
+        "$LUCKI_APP_TEMP/luci-app-lucky" \
         "$LUCI_APP_LUCKY_DIR"
+
+    rm -rf "$LUCKI_APP_TEMP"
     
     local lucky_conf="$LUCKY_DIR/lucky/files/luckyuci"
     if [ -f "$lucky_conf" ]; then
