@@ -83,7 +83,7 @@ clone_passwall() {
         "$TEMP_DIR" \
         "" \
         "" \
-        'rm -rf "$PASSWALL_LUCI_DIR" 2>/dev/null || true; mv "$TEMP_DIR/luci-app-passwall" "$PASSWALL_LUCI_DIR"; rm -rf "$TEMP_DIR"'
+        "rm -rf \"$PASSWALL_LUCI_DIR\" 2>/dev/null || true; mv \"$TEMP_DIR/luci-app-passwall\" \"$PASSWALL_LUCI_DIR\"; rm -rf \"$TEMP_DIR\""
     
     rm -rf "$PASSWALL_PACKAGES_DIR" 2>/dev/null || true
     
@@ -92,7 +92,7 @@ clone_passwall() {
         "$PASSWALL_PKGS_TEMP" \
         "" \
         "" \
-        'for pkg in "$PASSWALL_PKGS_TEMP"/*; do if [ -d "$pkg" ]; then local pkg_name=$(basename "$pkg"); mv "$pkg" "$BUILD_DIR/feeds/openwrt_packages/$pkg_name"; fi; done; rm -rf "$PASSWALL_PKGS_TEMP"'
+        "for pkg in \"$PASSWALL_PKGS_TEMP\"/*; do if [ -d \"\$pkg\" ]; then pkg_name=\$(basename \"\$pkg\"); mv \"\$pkg\" \"$BUILD_DIR/feeds/openwrt_packages/\$pkg_name\"; fi; done; rm -rf \"$PASSWALL_PKGS_TEMP\""
     
     echo "✓ Passwall 安装完成"
 }
