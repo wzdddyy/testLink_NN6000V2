@@ -47,6 +47,7 @@ clone_packages() {
         popd >/dev/null
         
         if [ -n "$move_from" ] && [ -n "$move_to" ]; then
+            rm -rf "$move_to" 2>/dev/null || true
             mv "$move_from" "$move_to" || return 1
         fi
     else
