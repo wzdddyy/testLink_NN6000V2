@@ -35,7 +35,7 @@ clone_packages() {
         
         pushd "$target_dir" >/dev/null
         git sparse-checkout init --cone
-        if ! git sparse-checkout set "$sparse_pattern"; then
+        if ! git sparse-checkout set $sparse_pattern; then
             echo "错误：稀疏检出 $sparse_pattern 失败" >&2
             popd >/dev/null
             return 1
