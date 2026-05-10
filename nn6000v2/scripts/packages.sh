@@ -113,8 +113,8 @@ clone_lucky() {
         "lucky" \
         "" \
         "" \
-        "lucky" \
-        "$LUCKY_DIR/lucky"
+        "$LUCKY_DIR/lucky" \
+        "$LUCKY_DIR"
 
     clone_packages "luci-app-lucky" \
         "$LUCKY_REPO" \
@@ -122,8 +122,8 @@ clone_lucky() {
         "luci-app-lucky" \
         "" \
         "" \
-        "luci-app-lucky" \
-        "$LUCI_APP_LUCKY_DIR/luci-app-lucky"
+        "$LUCI_APP_LUCKY_DIR/luci-app-lucky" \
+        "$LUCI_APP_LUCKY_DIR"
     
     local lucky_conf="$LUCKY_DIR/lucky/files/luckyuci"
     if [ -f "$lucky_conf" ]; then
@@ -172,7 +172,7 @@ clone_easytier() {
         "luci-app-easytier" \
         "" \
         "" \
-        "luci-app-easytier" \
+        "$TEMP_DIR/luci-app-easytier" \
         "$EASYTIER_DIR"
 
     rm -rf "$TEMP_DIR"
@@ -227,7 +227,7 @@ clone_diskman() {
         "applications/luci-app-diskman" \
         "" \
         "" \
-        "applications/luci-app-diskman" \
+        "$temp_dir/applications/luci-app-diskman" \
         "$path"
     
     sed -i 's/fs-ntfs /fs-ntfs3 /g' "$path/Makefile"
@@ -262,7 +262,7 @@ clone_dockerman() {
         "applications/luci-app-dockerman" \
         "" \
         "" \
-        "applications/luci-app-dockerman" \
+        "$temp_dir/applications/luci-app-dockerman" \
         "$path"
 }
 
