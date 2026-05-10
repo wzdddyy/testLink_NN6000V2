@@ -113,9 +113,10 @@ jobs:
       - name: Refresh the cache
         run: |
           if [ -d "./action_build/staging_dir" ]; then
-            find "./action_build/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r dir; do
+            find "./action_build/staging_dir" -type d -name "stamp" | while read -r dir; do
                 find "$dir" -type f -exec touch {} +
             done
+            mkdir -p ./action_build/tmp && echo "1" > ./action_build/tmp/.build
           fi
 
       - name: Build Firmware
