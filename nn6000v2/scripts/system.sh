@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 change_dnsmasq2full() {
     if ! grep -q "dnsmasq-full" $BUILD_DIR/include/target.mk; then
-        sed -i 's/dnsmasq/dnsmasq-full/g' ./include/target.mk
+        sed -i 's/dnsmasq/dnsmasq-full/g' $BUILD_DIR/include/target.mk
     fi
 }
 
@@ -12,8 +12,7 @@ fix_default_set() {
 
     install -Dm544 "$BASE_PATH/patches/990_set_argon_primary" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/990_set_argon_primary"
     install -Dm544 "$BASE_PATH/patches/991_custom_settings" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/991_custom_settings"
-    install -Dm544 "$BASE_PATH/patches/992_set-wifi-uci.sh" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/992_set-wifi-uci.sh"
-    install -Dm544 "$BASE_PATH/patches/993_set_pppoe.sh" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/993_set_pppoe.sh"
+    install -Dm544 "$BASE_PATH/patches/992_network_config.sh" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/992_network_config.sh"
     install -Dm544 "$BASE_PATH/patches/994_set_opkg_repos" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/994_set_opkg_repos"
 
     if [ -f "$BUILD_DIR/package/emortal/autocore/files/tempinfo" ]; then

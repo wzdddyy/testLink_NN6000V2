@@ -17,8 +17,7 @@ update_feeds() {
     fi
 
     echo "=== 开始执行 feeds update ==="
-    ./scripts/feeds clean
-    ./scripts/feeds update -a
+    (cd "$BUILD_DIR" && ./scripts/feeds clean && ./scripts/feeds update -a)
     echo "=== feeds update 完成 ==="
 }
 

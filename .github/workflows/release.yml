@@ -82,7 +82,7 @@ jobs:
           echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
           echo "BUILD_SRC=${{ env.REPO_URL }}" >> $GITHUB_ENV
 
-      - name: Pre Clone
+      - name: Clone Source Code
         run: |
           chmod +x ./nn6000v2/scripts/update.sh
           chmod +x ./nn6000v2/scripts/build.sh
@@ -100,7 +100,7 @@ jobs:
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
           fi
 
-      - name: Cache Dependencies
+      - name: Cache Build Dependencies
         uses: actions/cache@v5.0.4
         with:
           path: |

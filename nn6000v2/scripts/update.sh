@@ -41,14 +41,14 @@ main() {
     reset_feeds_conf
     update_feeds
     update_golang
-    install_quickfile
-    install_lucky
-    install_diskman
-    install_dockerman
-    install_adguardhome
-    install_easytier
-    install_oaf
-    install_passwall
+    clone_quickfile
+    clone_lucky
+    clone_diskman
+    clone_dockerman
+    clone_adguardhome
+    clone_easytier
+    clone_oaf
+    clone_passwall
     install_feeds
     update_docker_stack
     remove_tweaked_packages
