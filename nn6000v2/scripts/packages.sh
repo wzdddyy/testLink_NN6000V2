@@ -12,13 +12,14 @@ update_golang() {
 }
 
 install_openwrt_packages() {
-    ./scripts/feeds install -p openwrt_packages \
+    ./scripts/feeds install -p openwrt_packages -f \
         xray-core sing-box trojan-plus naiveproxy shadowsocks-libev v2ray-plugin geoview \
         microsocks tcping chinadns-ng dns2socks resolveip \
         taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
+        luci-app-oaf oaf open-app-filter \
         luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall
 }
 
@@ -57,6 +58,11 @@ install_passwall() {
     echo "✓ passwall-packages 克隆并移动完成"
     
     echo "✓ Passwall 安装完成"
+}
+
+install_fullconenat() {
+    # 安装 fullconenat
+    ./scripts/feeds install -p packages -f kmod-nft-fullcone
 }
 
 install_lucky() {
@@ -164,6 +170,42 @@ install_easytier() {
     echo "✓ luci-app-easytier 克隆完成"
 }
 
+install_oaf() {
+    local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
+    local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
+
+    ./scripts/feeds install -f kmod-ipt-conntrack kmod-ipt-nat
+    
+    rm -rf "$OAF_DIR" 2>/dev/null || true
+    if ! git clone --depth=1 "$OAF_REPO" "$OAF_DIR"; then
+        echo "错误：从 $OAF_REPO 克隆 OpenAppFilter 仓库失败" >&2
+        exit 1
+    fi
+
+    local oaf_makefile="$OAF_DIR/oaf/Makefile"
+    if [ -f "$oaf_makefile" ]; then
+        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
+    fi
+
+
+    local appfilter_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
+    if [ -f "$appfilter_config" ]; then
+        sed -i "s/option enabled '1'/option enabled '0'/g" "$appfilter_config"
+    fi
+
+    local disable_script="$OAF_DIR/luci-app-oaf/root/etc/uci-defaults/99_disable_oaf"
+    mkdir -p "$(dirname "$disable_script")"
+    cat > "$disable_script" << 'EOF'
+#!/bin/sh
+[ "$(uci get appfilter.global.enable 2>/dev/null)" = "0" ] && {
+    /etc/init.d/appfilter disable
+    /etc/init.d/appfilter stop
+}
+EOF
+    chmod +x "$disable_script"
+
+    echo "✓ OpenAppFilter 克隆完成 (服务已禁用)"
+}
 
 install_diskman() {
     local path="$BUILD_DIR/feeds/openwrt_packages/luci-app-diskman"
