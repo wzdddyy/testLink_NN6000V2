@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+GITHUB_BASE="https://github.com/"
+OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
+
 update_golang() {
     if [[ -d ./feeds/packages/lang/golang ]]; then
         \rm -rf ./feeds/packages/lang/golang
@@ -73,13 +76,13 @@ install_openwrt_packages() {
 }
 
 clone_passwall() {
-    local PASSWALL_LUCI_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-passwall"
-    local PASSWALL_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages/passwall-packages"
-    local TEMP_DIR="$BUILD_DIR/feeds/openwrt_packages/openwrt-passwall-temp"
-    local PASSWALL_PKGS_TEMP="$BUILD_DIR/feeds/openwrt_packages/passwall-packages-temp"
+    local PASSWALL_LUCI_DIR="$OPENWRT_PACKAGES_DIR/luci-app-passwall"
+    local PASSWALL_PACKAGES_DIR="$OPENWRT_PACKAGES_DIR/passwall-packages"
+    local TEMP_DIR="$OPENWRT_PACKAGES_DIR/openwrt-passwall-temp"
+    local PASSWALL_PKGS_TEMP="$OPENWRT_PACKAGES_DIR/passwall-packages-temp"
     
     clone_packages "luci-app-passwall" \
-        "https://github.com/Openwrt-Passwall/openwrt-passwall.git" \
+        "${GITHUB_BASE}Openwrt-Passwall/openwrt-passwall.git" \
         "$TEMP_DIR" \
         "" \
         "" \
@@ -88,13 +91,13 @@ clone_passwall() {
     rm -rf "$PASSWALL_PACKAGES_DIR" 2>/dev/null || true
     
     clone_packages "passwall-packages" \
-        "https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git" \
+        "${GITHUB_BASE}Openwrt-Passwall/openwrt-passwall-packages.git" \
         "$PASSWALL_PKGS_TEMP" \
         "" \
         "" \
-        "for pkg in \"$PASSWALL_PKGS_TEMP\"/*; do if [ -d \"\$pkg\" ]; then pkg_name=\$(basename \"\$pkg\"); mv \"\$pkg\" \"$BUILD_DIR/feeds/openwrt_packages/\$pkg_name\"; fi; done; rm -rf \"$PASSWALL_PKGS_TEMP\""
+        "for pkg in \"$PASSWALL_PKGS_TEMP\"/*; do if [ -d \"\$pkg\" ]; then pkg_name=\$(basename \"\$pkg\"); mv \"\$pkg\" \"$OPENWRT_PACKAGES_DIR/\$pkg_name\"; fi; done; rm -rf \"$PASSWALL_PKGS_TEMP\""
     
-    echo "✓ Passwall 安装完成"
+    echo "✓ Passwall 克隆完成"
 }
 
 install_fullconenat() {
@@ -103,11 +106,11 @@ install_fullconenat() {
 }
 
 clone_lucky() {
-    local LUCKY_REPO="https://github.com/gdy666/luci-app-lucky.git"
-    local LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/lucky"
-    local LUCI_APP_LUCKY_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-lucky"
-    local LUCKY_TEMP="$BUILD_DIR/feeds/openwrt_packages/lucky-temp"
-    local LUCKI_APP_TEMP="$BUILD_DIR/feeds/openwrt_packages/luci-app-lucky-temp"
+    local LUCKY_REPO="${GITHUB_BASE}gdy666/luci-app-lucky.git"
+    local LUCKY_DIR="$OPENWRT_PACKAGES_DIR/lucky"
+    local LUCI_APP_LUCKY_DIR="$OPENWRT_PACKAGES_DIR/luci-app-lucky"
+    local LUCKY_TEMP="$OPENWRT_PACKAGES_DIR/lucky-temp"
+    local LUCKI_APP_TEMP="$OPENWRT_PACKAGES_DIR/luci-app-lucky-temp"
 
     clone_packages "lucky" \
         "$LUCKY_REPO" \
@@ -158,22 +161,26 @@ clone_lucky() {
     else
         echo "Warning: lucky Makefile 中未找到 'Build/Prepare'。跳过。" >&2
     fi
+    
+    echo "✓ lucky 克隆完成"
 }
 
 clone_adguardhome() {
     clone_packages "luci-app-adguardhome" \
-        "https://github.com/wzdddyy/luci-app-adguardhome.git" \
-        "$BUILD_DIR/feeds/openwrt_packages/luci-app-adguardhome"
+        "${GITHUB_BASE}wzdddyy/luci-app-adguardhome.git" \
+        "$OPENWRT_PACKAGES_DIR/luci-app-adguardhome"
+    
+    echo "✓ luci-app-adguardhome 克隆完成"
 }
 
 clone_easytier() {
-    local EASYTIER_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-easytier"
-    local TEMP_DIR="$BUILD_DIR/feeds/openwrt_packages/easytier-temp"
+    local EASYTIER_DIR="$OPENWRT_PACKAGES_DIR/luci-app-easytier"
+    local TEMP_DIR="$OPENWRT_PACKAGES_DIR/easytier-temp"
 
     (cd "$BUILD_DIR" && ./scripts/feeds install -f luci-lib-jsonc)
 
     clone_packages "luci-app-easytier" \
-        "https://github.com/EasyTier/luci-app-easytier.git" \
+        "${GITHUB_BASE}EasyTier/luci-app-easytier.git" \
         "$TEMP_DIR" \
         "luci-app-easytier" \
         "" \
@@ -182,12 +189,14 @@ clone_easytier() {
         "$EASYTIER_DIR"
 
     rm -rf "$TEMP_DIR"
+    
+    echo "✓ luci-app-easytier 克隆完成"
 }
 
 clone_oaf() {
-    local OAF_REPO="https://github.com/destan19/OpenAppFilter.git"
-    local OAF_DIR="$BUILD_DIR/feeds/openwrt_packages/OpenAppFilter"
-    local TEMP_DIR="$BUILD_DIR/feeds/openwrt_packages/oaf-temp"
+    local OAF_REPO="${GITHUB_BASE}destan19/OpenAppFilter.git"
+    local OAF_DIR="$OPENWRT_PACKAGES_DIR/OpenAppFilter"
+    local TEMP_DIR="$OPENWRT_PACKAGES_DIR/oaf-temp"
 
     (cd "$BUILD_DIR" && ./scripts/feeds install -f kmod-ipt-conntrack kmod-ipt-nat)
     
@@ -220,12 +229,14 @@ clone_oaf() {
 }
 EOF
     chmod +x "$disable_script"
+    
+    echo "✓ OpenAppFilter 克隆完成"
 }
 
 clone_diskman() {
-    local path="$BUILD_DIR/feeds/openwrt_packages/luci-app-diskman"
-    local repo_url="https://github.com/lisaac/luci-app-diskman.git"
-    local temp_dir="$BUILD_DIR/feeds/openwrt_packages/diskman"
+    local path="$OPENWRT_PACKAGES_DIR/luci-app-diskman"
+    local repo_url="${GITHUB_BASE}lisaac/luci-app-diskman.git"
+    local temp_dir="$OPENWRT_PACKAGES_DIR/diskman"
     
     clone_packages "luci-app-diskman" \
         "$repo_url" \
@@ -238,13 +249,15 @@ clone_diskman() {
     
     sed -i 's/fs-ntfs /fs-ntfs3 /g' "$path/Makefile"
     sed -i '/ntfs-3g-utils /d' "$path/Makefile"
+    
+    echo "✓ luci-app-diskman 克隆完成"
 }
 
 _sync_luci_lib_docker() {
-    local repo_url="https://github.com/lisaac/luci-lib-docker.git"
-    local luci_lib_docker_dir="$BUILD_DIR/feeds/openwrt_packages/luci-lib-docker"
+    local repo_url="${GITHUB_BASE}lisaac/luci-lib-docker.git"
+    local luci_lib_docker_dir="$OPENWRT_PACKAGES_DIR/luci-lib-docker"
     
-    mkdir -p "$BUILD_DIR/feeds/openwrt_packages" || return
+    mkdir -p "$OPENWRT_PACKAGES_DIR" || return
     
     rm -rf "$luci_lib_docker_dir" 2>/dev/null || true
     if ! git clone --depth=1 "$repo_url" "$luci_lib_docker_dir"; then
@@ -256,9 +269,9 @@ _sync_luci_lib_docker() {
 }
 
 clone_dockerman() {
-    local path="$BUILD_DIR/feeds/openwrt_packages/luci-app-dockerman"
-    local repo_url="https://github.com/wzdddyy/luci-app-dockerman.git"
-    local temp_dir="$BUILD_DIR/feeds/openwrt_packages/dockerman"
+    local path="$OPENWRT_PACKAGES_DIR/luci-app-dockerman"
+    local repo_url="${GITHUB_BASE}wzdddyy/luci-app-dockerman.git"
+    local temp_dir="$OPENWRT_PACKAGES_DIR/dockerman"
     
     _sync_luci_lib_docker || return
     
@@ -270,20 +283,24 @@ clone_dockerman() {
         "" \
         "$temp_dir/applications/luci-app-dockerman" \
         "$path"
+    
+    echo "✓ luci-app-dockerman 克隆完成"
 }
 
 clone_quickfile() {
-    local QUICKFILE_DIR="$BUILD_DIR/feeds/openwrt_packages/luci-app-quickfile"
-    local TEMP_DIR="$BUILD_DIR/feeds/openwrt_packages/quickfile-temp"
+    local QUICKFILE_DIR="$OPENWRT_PACKAGES_DIR/luci-app-quickfile"
+    local TEMP_DIR="$OPENWRT_PACKAGES_DIR/quickfile-temp"
 
     clone_packages "luci-app-quickfile" \
-        "https://github.com/sbwml/luci-app-quickfile.git" \
+        "${GITHUB_BASE}sbwml/luci-app-quickfile.git" \
         "$TEMP_DIR" \
         "luci-app-quickfile quickfile" \
         "" \
         "mkdir -p \"$QUICKFILE_DIR\" && mv \"$TEMP_DIR/luci-app-quickfile\" \"$TEMP_DIR/quickfile\" \"$QUICKFILE_DIR/\""
 
     rm -rf "$TEMP_DIR"
+    
+    echo "✓ luci-app-quickfile 克隆完成"
 }
 
 remove_attendedsysupgrade() {
