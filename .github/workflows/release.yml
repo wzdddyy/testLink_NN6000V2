@@ -9,6 +9,9 @@ on:
 
 env:
   DEVICE_MODEL: link_nn6000v2_immwrt
+  REPO_URL: https://github.com/VIKINGYFY/immortalwrt.git
+  REPO_BRANCH: main
+  BUILD_DIR: imm-nss
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -30,25 +33,24 @@ jobs:
           # 步骤 1: 清理预装软件
           echo "=== Disk Space Before Cleanup ==="
           df -h
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/local/share/boost
           
-          # Android/移动开发
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /usr/share/swift
+          # 卸载大型不需要的软件包
+          sudo apt-get purge -y \
+            dotnet* \
+            ghc* \
+            libboost* \
+            android* \
+            swift* \
+            chromium* \
+            chrome* \
+            firefox* \
+            ffmpeg* \
+            powershell* \
+            codeql* \
+            microsoft* \
+            || true
           
-          # 浏览器/多媒体
-          sudo rm -rf /usr/local/share/chromium
-          sudo rm -rf /usr/local/share/chrome
-          sudo rm -rf /usr/share/firefox
-          sudo rm -rf /usr/lib/firefox
-          sudo rm -rf /usr/local/share/ffmpeg
-          sudo rm -rf /usr/local/share/powershell
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo rm -rf /opt/microsoft
-          sudo docker image prune -a -f 2>/dev/null || true
+          sudo apt-get autoremove -y --purge
           sudo docker system prune -a -f 2>/dev/null || true
           sudo rm -rf /var/lib/apt/lists/*
           
@@ -78,15 +80,25 @@ jobs:
           sudo -E timedatectl set-timezone "Asia/Shanghai"
           export BUILD_DATE=$(TZ=UTC-8 date +"%y.%m.%d_%H.%M.%S")
           echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
-          export BUILD_SRC=$(awk -F"=" '/REPO_URL/ {print $NF}' "./nn6000v2/configs/${{ env.DEVICE_MODEL }}.ini")
-          echo "BUILD_SRC=$BUILD_SRC" >> $GITHUB_ENV
+          echo "BUILD_SRC=${{ env.REPO_URL }}" >> $GITHUB_ENV
 
       - name: Pre Clone
         run: |
-          chmod +x ./nn6000v2/scripts/pre_clone_action.sh
           chmod +x ./nn6000v2/scripts/update.sh
           chmod +x ./nn6000v2/scripts/build.sh
-          ./nn6000v2/scripts/pre_clone_action.sh ${{ env.DEVICE_MODEL }}
+          
+          # 克隆仓库
+          echo "克隆仓库: ${{ env.REPO_URL }} 分支: ${{ env.REPO_BRANCH }}"
+          git clone --depth 1 -b ${{ env.REPO_BRANCH }} ${{ env.REPO_URL }} ./action_build
+          
+          # 写入 repo_flag 文件（用于缓存 key）
+          echo "${{ env.REPO_URL }}/${{ env.REPO_BRANCH }}" > ./repo_flag
+          
+          # 移除国内下载源
+          PROJECT_MIRRORS_FILE="./action_build/scripts/projectsmirrors.json"
+          if [ -f "$PROJECT_MIRRORS_FILE" ]; then
+            sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
+          fi
 
       - name: Cache Dependencies
         uses: actions/cache@v5.0.4

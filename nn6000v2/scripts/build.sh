@@ -17,23 +17,18 @@ BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
 Dev=$1
 Build_Mod=$2
 
-CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
-INI_FILE="$BASE_PATH/configs/$Dev.ini"
+CONFIG_FILE="$BASE_PATH/configs/$Dev.config"
 
 if [[ ! -f $CONFIG_FILE ]]; then
     echo "Config not found: $CONFIG_FILE"
     exit 1
 fi
 
-if [[ ! -f $INI_FILE ]]; then
-    echo "INI file not found: $INI_FILE"
-    exit 1
-fi
-
-read_ini_by_key() {
-    local key=$1
-    awk -F"=" -v key="$key" '$1 == key {print $2}' "$INI_FILE"
-}
+# Use environment variables or defaults for repo config
+REPO_URL=${REPO_URL:-https://github.com/VIKINGYFY/immortalwrt.git}
+REPO_BRANCH=${REPO_BRANCH:-main}
+BUILD_DIR=${BUILD_DIR:-imm-nss}
+COMMIT_HASH=${COMMIT_HASH:-none}
 
 remove_uhttpd_dependency() {
     local config_path="$BASE_PATH/../$BUILD_DIR/.config"
@@ -49,21 +44,9 @@ remove_uhttpd_dependency() {
 
 apply_config() {
     \cp -f "$CONFIG_FILE" "$BASE_PATH/../$BUILD_DIR/.config"
-    
-    if grep -qE "(ipq60xx|ipq807x)" "$BASE_PATH/../$BUILD_DIR/.config" &&
-        ! grep -q "CONFIG_GIT_MIRROR" "$BASE_PATH/../$BUILD_DIR/.config"; then
-        cat "$BASE_PATH/configs/kernel/nss.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
-    fi
 
-    cat "$BASE_PATH/configs/kernel/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
+    cat "$BASE_PATH/configs/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 }
-
-REPO_URL=$(read_ini_by_key "REPO_URL")
-REPO_BRANCH=$(read_ini_by_key "REPO_BRANCH")
-REPO_BRANCH=${REPO_BRANCH:-main}
-BUILD_DIR=$(read_ini_by_key "BUILD_DIR")
-COMMIT_HASH=$(read_ini_by_key "COMMIT_HASH")
-COMMIT_HASH=${COMMIT_HASH:-none}
 
 if [[ -d action_build ]]; then
     BUILD_DIR="action_build"
