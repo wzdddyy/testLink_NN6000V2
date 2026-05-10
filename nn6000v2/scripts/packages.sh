@@ -100,11 +100,6 @@ clone_passwall() {
     echo "✓ Passwall 克隆完成"
 }
 
-install_fullconenat() {
-    # 安装 fullconenat
-    ./scripts/feeds install -p packages -f kmod-nft-fullcone
-}
-
 clone_lucky() {
     local LUCKY_REPO="${GITHUB_BASE}gdy666/luci-app-lucky.git"
     local LUCKY_DIR="$OPENWRT_PACKAGES_DIR/lucky"
