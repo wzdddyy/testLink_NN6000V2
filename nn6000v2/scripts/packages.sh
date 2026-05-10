@@ -97,8 +97,6 @@ clone_passwall() {
         "" \
         "" \
         "for pkg in \"$PASSWALL_PKGS_TEMP\"/*; do if [ -d \"\$pkg\" ]; then pkg_name=\$(basename \"\$pkg\"); mv \"\$pkg\" \"$OPENWRT_PACKAGES_DIR/\$pkg_name\"; fi; done; rm -rf \"$PASSWALL_PKGS_TEMP\""
-    
-    echo "✓ Passwall 克隆完成"
 }
 
 clone_lucky() {
@@ -157,8 +155,6 @@ clone_lucky() {
     else
         echo "Warning: lucky Makefile 中未找到 'Build/Prepare'。跳过。" >&2
     fi
-    
-    echo "✓ lucky 克隆完成"
 }
 
 clone_adguardhome() {
@@ -221,8 +217,6 @@ clone_oaf() {
 }
 EOF
     chmod +x "$disable_script"
-    
-    echo "✓ OpenAppFilter 克隆完成"
 }
 
 clone_diskman() {
