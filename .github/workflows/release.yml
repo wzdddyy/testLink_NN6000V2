@@ -165,7 +165,6 @@ jobs:
             echo "# 📦 Link_nn6000v2 云编译发布"
             echo ""
             echo "## ℹ️ 版本信息"
-            echo "- 设备型号：Link_nn6000v2"
             echo "- 源码：${{ env.BUILD_SRC }}"
             echo "- Kernel: ${{ env.KVER }}"
             echo ""
