@@ -201,8 +201,8 @@ jobs:
           # ========== 清理 Releases 和 Tags ==========
           echo "开始清理旧的 releases..."
           
-          # 获取所有 releases 并排序
-          ALL_TAGS=$(gh release list --limit 1000 --json tagName --jq '[.[].tagName] | sort | reverse | join("\n")' 2>/dev/null || echo "")
+          # 获取所有 releases 并排序（按创建时间倒序）
+          ALL_TAGS=$(gh release list --limit 1000 --json tagName,createdAt --jq 'sort_by(.createdAt) | reverse | .[].tagName' 2>/dev/null || echo "")
           
           # 保留最近 2 个版本，删除其他所有
           if [ -n "$ALL_TAGS" ]; then
@@ -217,8 +217,9 @@ jobs:
           echo "清理孤立的 tags..."
           git fetch --tags 2>/dev/null || true
           git fetch --tags --prune 2>/dev/null || true
-          ALL_LOCAL_TAGS=$(git tag -l | sort -V | tac)
-          echo "$ALL_LOCAL_TAGS" | tail -n +3 | while read -r tag; do
+          # 获取远程所有 tags 并排序
+          ALL_REMOTE_TAGS=$(git tag -l | sort -V | tac)
+          echo "$ALL_REMOTE_TAGS" | tail -n +3 | while read -r tag; do
             if [ -n "$tag" ]; then
               echo "删除孤立 tag: $tag"
               git tag -d "$tag" 2>/dev/null || true
@@ -236,11 +237,11 @@ jobs:
           WORKFLOW_ID=${{ github.workflow }}
           echo "Workflow: $WORKFLOW_ID, Run ID: $CURRENT_RUN_ID"
           
-          # 删除旧的运行记录
+          # 删除旧的运行记录（保留最近 2 次）
           if [ -n "$WORKFLOW_ID" ]; then
             gh api /repos/${{ github.repository }}/actions/workflows/$WORKFLOW_ID/runs \
               --paginate --jq '.workflow_runs[] | select(.id != '"$CURRENT_RUN_ID"') | .id' 2>/dev/null | \
-              head -n -1 | while read -r run_id; do
+              tail -n +2 | while read -r run_id; do
                 if [ -n "$run_id" ]; then
                   echo "删除 workflow 运行记录：$run_id"
                   gh api -X DELETE /repos/${{ github.repository }}/actions/runs/$run_id 2>/dev/null || true
