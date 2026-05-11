@@ -150,11 +150,25 @@ jobs:
 
       - name: Prepare Release Body
         run: |
-          echo "云编译发布" > release_body.txt
-          echo "源码：${{ env.BUILD_SRC }}" >> release_body.txt
-          echo "Kernel: ${{ env.KVER }}" >> release_body.txt
-          echo "WIFI 密码：147258369" >> release_body.txt
-          echo "LAN 地址：10.0.0.1" >> release_body.txt
+          {
+            echo "# 📦 Link_nn6000v2 云编译发布"
+            echo ""
+            echo "## ℹ️ 版本信息"
+            echo "- 设备型号：Link_nn6000v2"
+            echo "- 源码：${{ env.BUILD_SRC }}"
+            echo "- Kernel: ${{ env.KVER }}"
+            echo ""
+            echo "## 🔐 网络配置"
+            echo "- WIFI 密码：147258369"
+            echo "- LAN 地址：10.0.0.1"
+            echo ""
+            echo "## 👤 默认账户"
+            echo "- 账户：root"
+            echo "- 密码：无"
+            echo ""
+            echo "## ⚠️ 注意事项"
+            echo "- no_wifi 后缀的版本未包含 WIFI 驱动程序"
+          } > release_body.txt
 
       - name: Clean Old Releases, Tags and Workflow Runs
         run: |
