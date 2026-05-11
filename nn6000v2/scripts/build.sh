@@ -146,7 +146,7 @@ if [[ -d action_build ]]; then
     make clean
 fi
 
-# 如果是带 WiFi 版本编译，完成后自动编译无 WiFi 版本
+# 如果是正常版本编译，完成后自动编译无 WiFi 版本
 if [[ "$Dev" != *"nowifi"* ]]; then
     echo ""
     echo "=============================================="
