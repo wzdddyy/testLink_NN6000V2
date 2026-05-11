@@ -124,19 +124,13 @@ jobs:
           ./nn6000v2/scripts/build.sh ${{ env.DEVICE_MODEL }}
           
           # 获取内核版本
-          MANIFEST_FILE=$(ls ./firmware/*.manifest 2>/dev/null | grep -v "nowifi" | head -1)
-          if [ -n "$MANIFEST_FILE" ]; then
-            KVER=$(grep "^kernel" "$MANIFEST_FILE" | awk '{print $2}' | grep -E "^[4-6]\.[0-9]+\.[0-9]+")
-            if [ -n "$KVER" ]; then
-              echo "KVER=$KVER" >> $GITHUB_ENV
-              echo "内核版本：$KVER"
-            else
-              echo "未找到内核版本，使用默认值"
-              echo "KVER=unknown" >> $GITHUB_ENV
-            fi
+          KVER=$(grep -oP "^kernel.*" ./firmware/*.manifest 2>/dev/null | grep -oP "[4-6]\.[0-9]{1,3}\.[0-9]{1,3}" | head -1)
+          if [ -n "$KVER" ]; then
+            echo "KVER=$KVER" >> $GITHUB_ENV
+            echo "内核版本：$KVER"
           else
-            echo "manifest 文件不存在"
             echo "KVER=unknown" >> $GITHUB_ENV
+            echo "未找到内核版本"
           fi
 
       - name: Delete Old Cache
