@@ -125,7 +125,8 @@ jobs:
       - name: Get Kernel Verion
         run: |
           # 获取内核版本
-          echo "KVER=$(grep -oP "^kernel.*" ./firmware/*.manifest | grep -oP "[4-6]\.[0-9]{1,3}\.[0-9]{1,3}")" >> $GITHUB_ENV
+          KVER=$(grep -oP "^kernel\s+\S+" ./firmware/*.manifest | head -1 | awk '{print $2}' | grep -oP "^[4-6]\.[0-9]{1,2}\.[0-9]{1,2}")
+          echo "KVER=$KVER" >> $GITHUB_ENV
 
       - name: Delete Old Cache
         run: |
