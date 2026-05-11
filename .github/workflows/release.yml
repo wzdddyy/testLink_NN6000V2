@@ -145,15 +145,13 @@ jobs:
 
       - name: Delete Old Cache
         run: |
-          # 获取缓存列表并删除
-          CURRENT_KEY="${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}"
-          echo "当前缓存 key: $CURRENT_KEY"
+          # 删除所有旧缓存
+          echo "清理所有旧缓存..."
           
-          # 列出所有缓存并删除不匹配的
-          gh cache list --json key,id --jq '.[] | "\(.key)|\(.id)"' 2>/dev/null | while IFS='|' read -r key id; do
-            if [ -n "$key" ] && [ "$key" != "$CURRENT_KEY" ]; then
-              echo "删除旧缓存：$key (ID: $id)"
-              gh cache delete "$id" 2>/dev/null || true
+          gh cache list --json id --jq '.[].id' 2>/dev/null | while read -r cache_id; do
+            if [ -n "$cache_id" ]; then
+              echo "删除缓存 ID: $cache_id"
+              gh cache delete "$cache_id" 2>/dev/null || true
             fi
           done
           
