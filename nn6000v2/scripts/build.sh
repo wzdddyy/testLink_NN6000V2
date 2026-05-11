@@ -180,7 +180,7 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     echo "重新编译无 WiFi 版本..."
     make -j$(($(nproc) + 1)) || make -j1 V=s
     
-    echo "复制无 WiFi 版本固件（添加 _nowifi 后缀）..."
+    echo "复制无 WiFi 版本固件..."
     find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) | while read -r file; do
         filename=$(basename "$file")
         new_filename=$(echo "$filename" | sed 's/\.\([^.]*\)$/_nowifi.\1/')
