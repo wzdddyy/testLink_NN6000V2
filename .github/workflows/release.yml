@@ -130,24 +130,9 @@ jobs:
       - name: Delete Old Cache
         run: |
           # 获取缓存列表并删除
-          echo "Fetching cache list..."
-          CACHE_KEYS=$(gh cache list --key ${{ matrix.os }}-${{ hashFiles('repo_flag') }}- --json key --jq '.[] | .key' 2>/dev/null || echo "")
-          
-          if [ -n "$CACHE_KEYS" ]; then
-            echo "Found caches to delete:"
-            echo "$CACHE_KEYS"
-            
-            # 删除旧缓存
-            echo "$CACHE_KEYS" | while read -r key; do
-              if [ -n "$key" ]; then
-                echo "Deleting cache: $key"
-                gh cache delete "$key" || echo "Failed to delete: $key"
-              fi
-            done
-          else
-            echo "No old caches found"
-          fi
-          
+          gh cache list --key ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}- --json key --jq '.[] | .key' | while read -r key; do
+            gh cache delete "$key"
+          done
           # 输出缓存状态
           echo "========cache status========"
           echo "ccache: $(du -sh ./action_build/.ccache | cut -f 1)"
