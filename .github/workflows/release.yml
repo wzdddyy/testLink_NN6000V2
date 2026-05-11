@@ -107,6 +107,7 @@ jobs:
             ./action_build/.ccache
             ./action_build/staging_dir/host*
             ./action_build/staging_dir/tool*
+            ./action_build/staging_dir/target*
           key: ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}
           restore-keys: |
             ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-
@@ -114,7 +115,7 @@ jobs:
       - name: Refresh the cache
         run: |
           if [ -d "./action_build/staging_dir" ]; then
-            find "./action_build/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r dir; do
+            find "./action_build/staging_dir" -type d -name "stamp" | while read -r dir; do
                 find "$dir" -type f -exec touch {} +
             done
             mkdir -p ./action_build/tmp && echo "1" > ./action_build/tmp/.build
