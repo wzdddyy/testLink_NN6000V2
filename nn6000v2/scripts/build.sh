@@ -133,23 +133,13 @@ if [[ $Build_Mod == "debug" ]]; then
 fi
 
 TARGET_DIR="$BASE_PATH/../$BUILD_DIR/bin/targets"
-if [[ -d $TARGET_DIR ]]; then
+if [[ -d $TARGET_DIR && "$Dev" != *"nowifi"* ]]; then
     find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec rm -f {} +
 fi
 
 if [[ "$Dev" != *"nowifi"* ]]; then
     make download -j$(($(nproc) * 2))
     make -j$(($(nproc) + 1)) || make -j1 V=s
-fi
-
-FIRMWARE_DIR="$BASE_PATH/../firmware"
-if [[ "$Dev" != *"nowifi"* ]]; then
-    \rm -rf "$FIRMWARE_DIR"
-fi
-mkdir -p "$FIRMWARE_DIR"
-if [[ "$Dev" != *"nowifi"* ]]; then
-    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
-    \rm -f "$BASE_PATH/../firmware/Packages.manifest" 2>/dev/null
 fi
 
 if [[ -d action_build ]]; then
@@ -165,10 +155,11 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     echo "=============================================="
     echo ""
     
-    # 保存带 WiFi 版本的固件
-    WIFI_FIRMWARE_DIR="$BASE_PATH/../firmware_wifi"
-    mkdir -p "$WIFI_FIRMWARE_DIR"
-    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$WIFI_FIRMWARE_DIR/" \;
+    # 先复制带 WiFi 版本到最终目录
+    FIRMWARE_DIR="$BASE_PATH/../firmware"
+    \rm -rf "$FIRMWARE_DIR"
+    mkdir -p "$FIRMWARE_DIR"
+    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
     
     # 直接修改当前配置文件（禁用 WiFi）
     cd "$BASE_PATH/../$BUILD_DIR"
@@ -189,24 +180,13 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     echo "重新编译无 WiFi 版本..."
     make -j$(($(nproc) + 1)) || make -j1 V=s
     
-    echo "复制固件到最终目录..."
-    FIRMWARE_DIR="$BASE_PATH/../firmware"
-    \rm -rf "$FIRMWARE_DIR"
-    mkdir -p "$FIRMWARE_DIR"
-    
-    # 复制带 WiFi 版本
-    find "$WIFI_FIRMWARE_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
-    
-    # 复制无 WiFi 版本
+    echo "复制无 WiFi 版本固件（添加 _nowifi 后缀）..."
     find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) | while read -r file; do
         filename=$(basename "$file")
         new_filename=$(echo "$filename" | sed 's/\.\([^.]*\)$/_nowifi.\1/')
         echo "Copying: $filename -> $new_filename"
         cp -f "$file" "$FIRMWARE_DIR/$new_filename"
     done
-    
-    # 清理临时目录
-    \rm -rf "$WIFI_FIRMWARE_DIR"
     
     # 恢复配置文件
     echo "恢复配置文件..."
