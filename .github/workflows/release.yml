@@ -149,10 +149,11 @@ jobs:
           CURRENT_KEY="${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}"
           echo "当前缓存 key: $CURRENT_KEY"
           
-          gh cache list --json key --jq '.[] | .key' 2>/dev/null | while read -r key; do
+          # 列出所有缓存并删除不匹配的
+          gh cache list --json key,id --jq '.[] | "\(.key)|\(.id)"' 2>/dev/null | while IFS='|' read -r key id; do
             if [ -n "$key" ] && [ "$key" != "$CURRENT_KEY" ]; then
-              echo "删除旧缓存：$key"
-              gh cache delete "$key" 2>/dev/null || true
+              echo "删除旧缓存：$key (ID: $id)"
+              gh cache delete "$id" 2>/dev/null || true
             fi
           done
           
@@ -183,66 +184,6 @@ jobs:
             echo "- no_wifi 后缀的版本未包含 WIFI 驱动程序"
           } > release_body.txt
 
-      - name: Clean Old Releases, Tags and Workflow Runs
-        continue-on-error: true
-        run: |
-          # 获取当前发布的 tag
-          CURRENT_TAG="${{ env.BUILD_DATE }}_${{ env.DEVICE_MODEL }}"
-          echo "当前编译版本：$CURRENT_TAG"
-          
-          # ========== 清理 Releases 和 Tags ==========
-          echo "开始清理旧的 releases..."
-          
-          # 获取所有 releases 并排序（按创建时间倒序）
-          ALL_TAGS=$(gh release list --limit 1000 --json tagName,createdAt --jq 'sort_by(.createdAt) | reverse | .[].tagName' 2>/dev/null || echo "")
-          
-          # 保留最近 2 个版本，删除其他所有
-          if [ -n "$ALL_TAGS" ]; then
-            echo "$ALL_TAGS" | tail -n +3 | while read -r old_tag; do
-              if [ -n "$old_tag" ]; then
-                echo "删除旧版本：$old_tag"
-                gh release delete "$old_tag" --cleanup-tag --yes 2>/dev/null || echo "删除失败：$old_tag"
-              fi
-            done
-          fi
-          
-          echo "清理孤立的 tags..."
-          git fetch --tags 2>/dev/null || true
-          git fetch --tags --prune 2>/dev/null || true
-          # 获取远程所有 tags 并排序
-          ALL_REMOTE_TAGS=$(git tag -l | sort -V | tac)
-          echo "$ALL_REMOTE_TAGS" | tail -n +3 | while read -r tag; do
-            if [ -n "$tag" ]; then
-              echo "删除孤立 tag: $tag"
-              git tag -d "$tag" 2>/dev/null || true
-            fi
-          done
-          git push origin --tags --force 2>/dev/null || true
-          
-          echo "Releases 和 Tags 清理完成！"
-          
-          # ========== 清理 Workflow 运行记录 ==========
-          echo "开始清理旧的 workflow 运行记录..."
-          
-          # 使用当前 workflow 的 ID
-          CURRENT_RUN_ID=${{ github.run_id }}
-          WORKFLOW_ID=${{ github.workflow }}
-          echo "Workflow: $WORKFLOW_ID, Run ID: $CURRENT_RUN_ID"
-          
-          # 删除旧的运行记录（保留最近 2 次）
-          if [ -n "$WORKFLOW_ID" ]; then
-            gh api /repos/${{ github.repository }}/actions/workflows/$WORKFLOW_ID/runs \
-              --paginate --jq '.workflow_runs[] | select(.id != '"$CURRENT_RUN_ID"') | .id' 2>/dev/null | \
-              tail -n +2 | while read -r run_id; do
-                if [ -n "$run_id" ]; then
-                  echo "删除 workflow 运行记录：$run_id"
-                  gh api -X DELETE /repos/${{ github.repository }}/actions/runs/$run_id 2>/dev/null || true
-                fi
-              done
-          fi
-          
-          echo "所有清理工作完成！"
-
       - name: Release Firmware
         uses: softprops/action-gh-release@v3
         with:
@@ -256,3 +197,25 @@ jobs:
             ./firmware/*.ubi
           body_path: ./release_body.txt
           make_latest: true
+
+      - name: Cleanup Old Versions
+        continue-on-error: true
+        run: |
+          # 保留最近 2 个版本，删除其他所有
+          echo "开始清理旧版本..."
+          
+          # 清理 Releases（自动清理关联的 tags）
+          gh release list --json tagName --jq '.[].tagName' 2>/dev/null | \
+            tail -n +3 | xargs -I {} gh release delete {} --cleanup-tag --yes 2>/dev/null
+          
+          # 清理孤立的 tags
+          git fetch --tags --prune 2>/dev/null || true
+          git tag -l | tail -n +3 | xargs -I {} git tag -d {} 2>/dev/null
+          git push origin --tags 2>/dev/null || true
+          
+          # 清理 Workflow 运行记录（保留最近 2 次）
+          gh api /repos/${{ github.repository }}/actions/workflows/release.yml/runs \
+            --paginate --jq '.workflow_runs | sort_by(.created_at) | reverse | .[2:].id' 2>/dev/null | \
+            xargs -I {} gh api -X DELETE /repos/${{ github.repository }}/actions/runs/{} 2>/dev/null
+          
+          echo "清理完成！"
