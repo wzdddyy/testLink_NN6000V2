@@ -150,8 +150,8 @@ fi
 if [[ "$Dev" != *"nowifi"* ]]; then
     echo ""
     echo "=============================================="
-    echo "  带 WiFi 版本编译完成！"
-    echo "  开始自动编译无 WiFi 版本..."
+    echo "  正常版本编译完成！"
+    echo "  开始编译无 WiFi 版本..."
     echo "=============================================="
     echo ""
     
@@ -164,7 +164,7 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     # 直接修改当前配置文件（禁用 WiFi）
     cd "$BASE_PATH/../$BUILD_DIR"
     
-    echo "应用无 WiFi 配置..."
+    echo "应用配置..."
     sed -i 's/^CONFIG_PACKAGE_kmod-ath=y$/CONFIG_PACKAGE_kmod-ath=n/' "$CONFIG_FILE"
     sed -i 's/^CONFIG_PACKAGE_kmod-ath11k=y$/CONFIG_PACKAGE_kmod-ath11k=n/' "$CONFIG_FILE"
     sed -i 's/^CONFIG_PACKAGE_kmod-ath11k-ahb=y$/CONFIG_PACKAGE_kmod-ath11k-ahb=n/' "$CONFIG_FILE"
@@ -177,10 +177,10 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     cp -f "$CONFIG_FILE" .config
     make defconfig
     
-    echo "重新编译无 WiFi 版本..."
+    echo "编译无 WiFi 版本..."
     make -j$(($(nproc) + 1)) || make -j1 V=s
     
-    echo "复制无 WiFi 版本固件..."
+    echo "复制固件..."
     find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) | while read -r file; do
         filename=$(basename "$file")
         new_filename=$(echo "$filename" | sed 's/\.\([^.]*\)$/_nowifi.\1/')
@@ -199,7 +199,7 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     
     echo ""
     echo "=============================================="
-    echo "  两个版本都已编译完成！"
+    echo "  双版本已编译完成！"
     echo "  输出目录：$FIRMWARE_DIR"
     echo "=============================================="
     echo ""
