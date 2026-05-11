@@ -124,7 +124,7 @@ jobs:
           ./nn6000v2/scripts/build.sh ${{ env.DEVICE_MODEL }}
           
           # 获取内核版本
-          FIRST_MANIFEST=$(ls ./firmware/*.manifest | head -1)
+          FIRST_MANIFEST=$(ls ./firmware/immortalwrt-*.manifest 2>/dev/null | head -1)
           if [ -n "$FIRST_MANIFEST" ]; then
             echo "Manifest 文件：$FIRST_MANIFEST"
             echo "查找内核版本..."
@@ -249,7 +249,7 @@ jobs:
           tag_name: ${{ env.BUILD_DATE }}_${{ env.DEVICE_MODEL }}
           files: |
             ./firmware/*.bin
-            ./firmware/*.manifest
+            ./firmware/immortalwrt-*.manifest
             ./firmware/*.img.gz
             ./firmware/*.itb
             ./firmware/*.fip
