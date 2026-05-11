@@ -179,19 +179,24 @@ jobs:
           
           # ========== 清理 Releases 和 Tags ==========
           echo "开始清理旧的 releases..."
-          gh release list --limit 100 --json tagName --jq '.[].tagName' | while read -r old_tag; do
+          gh release list --limit 1000 --json tagName --jq '.[].tagName' | while read -r old_tag; do
             if [ -n "$old_tag" ] && [ "$old_tag" != "$CURRENT_TAG" ]; then
               echo "删除旧版本：$old_tag"
-              gh release delete "$old_tag" --cleanup-tag --yes || true
+              gh release delete "$old_tag" --cleanup-tag --yes || echo "删除失败：$old_tag"
             fi
           done
           
           echo "清理孤立的 tags..."
           git fetch --tags
+          # 刷新本地 tags 列表
+          git fetch --tags --prune
+          # 再删除本地残留的 tags
           git tag -l | grep -v "$CURRENT_TAG" | while read -r tag; do
             echo "删除孤立 tag: $tag"
             git tag -d "$tag" || true
           done
+          # 强制推送 tags 到远程
+          git push origin --tags --force || true
           
           echo "Releases 和 Tags 清理完成！"
           
