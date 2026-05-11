@@ -204,7 +204,7 @@ jobs:
           # 保留最近 2 个版本，删除其他所有
           echo "开始清理旧版本..."
           
-          # 清理 Releases（自动清理关联的 tags）
+          # 清理 Releases
           gh release list --json tagName --jq '.[].tagName' 2>/dev/null | \
             tail -n +3 | xargs -I {} gh release delete {} --cleanup-tag --yes 2>/dev/null
           
@@ -213,7 +213,7 @@ jobs:
           git tag -l | tail -n +3 | xargs -I {} git tag -d {} 2>/dev/null
           git push origin --tags 2>/dev/null || true
           
-          # 清理 Workflow 运行记录（保留最近 2 次）
+          # 清理 Workflow 运行记录
           gh api /repos/${{ github.repository }}/actions/workflows/release.yml/runs \
             --paginate --jq '.workflow_runs | sort_by(.created_at) | reverse | .[2:].id' 2>/dev/null | \
             xargs -I {} gh api -X DELETE /repos/${{ github.repository }}/actions/runs/{} 2>/dev/null
