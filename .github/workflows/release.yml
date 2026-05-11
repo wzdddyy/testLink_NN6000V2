@@ -104,16 +104,18 @@ jobs:
           path: |
             ./action_build/.ccache
             ./action_build/staging_dir
-          key: ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}-${{ env.BUILD_DATE }}
+          key: ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}
           restore-keys: |
             ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}-
 
       - name: Refresh the cache
         run: |
           if [ -d "./action_build/staging_dir" ]; then
-            find "./action_build/staging_dir" -type d -name "stamp" | while read -r dir; do
-                find "$dir" -type f -exec touch {} +
-            done
+            # 更新所有 stamp 文件的时间戳
+            find "./action_build/staging_dir" -type d -name "stamp" -exec touch {} +
+            # 更新 staging_dir 下所有文件的时间戳
+            find "./action_build/staging_dir" -type f -exec touch {} +
+            # 创建构建完成标记
             mkdir -p ./action_build/tmp && echo "1" > ./action_build/tmp/.build
           fi
 
@@ -124,13 +126,17 @@ jobs:
           # 获取内核版本
           FIRST_MANIFEST=$(ls ./firmware/*.manifest | head -1)
           if [ -n "$FIRST_MANIFEST" ]; then
-            KVER=$(grep -oE "^kernel.*" "$FIRST_MANIFEST" | grep -oE "[4-6]\.[0-9]{1,3}\.[0-9]{1,3}" || echo "")
+            echo "Manifest 文件：$FIRST_MANIFEST"
+            echo "查找内核版本..."
+            KVER=$(grep "^kernel " "$FIRST_MANIFEST" | grep -oE "[4-6]\.[0-9]+\.[0-9]+" | head -1 || echo "")
             if [ -n "$KVER" ]; then
               echo "KVER=$KVER" >> $GITHUB_ENV
               echo "内核版本：$KVER"
             else
               echo "KVER=unknown" >> $GITHUB_ENV
               echo "未找到内核版本"
+              echo "Manifest 文件内容预览:"
+              head -20 "$FIRST_MANIFEST"
             fi
           else
             echo "KVER=unknown" >> $GITHUB_ENV
@@ -140,13 +146,20 @@ jobs:
       - name: Delete Old Cache
         run: |
           # 获取缓存列表并删除
-          gh cache list --key ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}- --json key --jq '.[] | .key' | while read -r key; do
-            gh cache delete "$key"
+          CURRENT_KEY="${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}"
+          echo "当前缓存 key: $CURRENT_KEY"
+          
+          gh cache list --json key --jq '.[] | .key' 2>/dev/null | while read -r key; do
+            if [ -n "$key" ] && [ "$key" != "$CURRENT_KEY" ]; then
+              echo "删除旧缓存：$key"
+              gh cache delete "$key" 2>/dev/null || true
+            fi
           done
+          
           # 输出缓存状态
           echo "========cache status========"
-          echo "ccache: $(du -sh ./action_build/.ccache | cut -f 1)"
-          echo "staging: $(du -sh ./action_build/staging_dir | cut -f 1)"
+          echo "ccache: $(du -sh ./action_build/.ccache 2>/dev/null | cut -f 1 || echo 'N/A')"
+          echo "staging: $(du -sh ./action_build/staging_dir 2>/dev/null | cut -f 1 || echo 'N/A')"
 
       - name: Machine Information
         run: |
