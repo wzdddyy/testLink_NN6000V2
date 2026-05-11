@@ -108,9 +108,9 @@ jobs:
             ./action_build/staging_dir/host*
             ./action_build/staging_dir/tool*
             ./action_build/staging_dir/target*
-          key: ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}
+          key: ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}-${{ env.BUILD_DATE }}
           restore-keys: |
-            ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-
+            ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}-
 
       - name: Refresh the cache
         run: |
