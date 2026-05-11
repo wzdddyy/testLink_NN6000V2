@@ -122,9 +122,9 @@ jobs:
           ./nn6000v2/scripts/build.sh ${{ env.DEVICE_MODEL }}
           
           # 获取内核版本
-          FIRST_MANIFEST=$(ls ./firmware/*.manifest 2>/dev/null | head -1)
+          FIRST_MANIFEST=$(ls ./firmware/*.manifest | head -1)
           if [ -n "$FIRST_MANIFEST" ]; then
-            KVER=$(grep -oE "^kernel.*" "$FIRST_MANIFEST" 2>/dev/null | grep -oE "[4-6]\.[0-9]{1,3}\.[0-9]{1,3}" || echo "")
+            KVER=$(grep -oE "^kernel.*" "$FIRST_MANIFEST" | grep -oE "[4-6]\.[0-9]{1,3}\.[0-9]{1,3}" || echo "")
             if [ -n "$KVER" ]; then
               echo "KVER=$KVER" >> $GITHUB_ENV
               echo "内核版本：$KVER"
