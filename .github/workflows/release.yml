@@ -105,7 +105,8 @@ jobs:
         with:
           path: |
             ./action_build/.ccache
-            ./action_build/staging_dir
+            ./action_build/staging_dir/host*
+            ./action_build/staging_dir/tool*
           key: ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-${{ env.BUILD_DATE }}
           restore-keys: |
             ${{ matrix.os }}-${{ hashFiles('repo_flag') }}-
@@ -113,7 +114,7 @@ jobs:
       - name: Refresh the cache
         run: |
           if [ -d "./action_build/staging_dir" ]; then
-            find "./action_build/staging_dir" -type d -name "stamp" | while read -r dir; do
+            find "./action_build/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r dir; do
                 find "$dir" -type f -exec touch {} +
             done
             mkdir -p ./action_build/tmp && echo "1" > ./action_build/tmp/.build
@@ -130,9 +131,24 @@ jobs:
       - name: Delete Old Cache
         run: |
           # 获取缓存列表并删除
-          gh cache list --key ${{ matrix.os }}-${{ hashFiles('repo_flag') }}- --json key --jq '.[] | .key' | while read -r key; do
-            gh cache delete "$key"
-          done
+          echo "Fetching cache list..."
+          CACHE_KEYS=$(gh cache list --key ${{ matrix.os }}-${{ hashFiles('repo_flag') }}- --json key --jq '.[] | .key' 2>/dev/null || echo "")
+          
+          if [ -n "$CACHE_KEYS" ]; then
+            echo "Found caches to delete:"
+            echo "$CACHE_KEYS"
+            
+            # 删除旧缓存
+            echo "$CACHE_KEYS" | while read -r key; do
+              if [ -n "$key" ]; then
+                echo "Deleting cache: $key"
+                gh cache delete "$key" || echo "Failed to delete: $key"
+              fi
+            done
+          else
+            echo "No old caches found"
+          fi
+          
           # 输出缓存状态
           echo "========cache status========"
           echo "ccache: $(du -sh ./action_build/.ccache | cut -f 1)"

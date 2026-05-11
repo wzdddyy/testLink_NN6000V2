@@ -137,15 +137,58 @@ if [[ -d $TARGET_DIR ]]; then
     find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec rm -f {} +
 fi
 
-make download -j$(($(nproc) * 2))
-make -j$(($(nproc) + 1)) || make -j1 V=s
+if [[ "$Dev" != *"nowifi"* ]]; then
+    make download -j$(($(nproc) * 2))
+    make -j$(($(nproc) + 1)) || make -j1 V=s
+fi
 
 FIRMWARE_DIR="$BASE_PATH/../firmware"
-\rm -rf "$FIRMWARE_DIR"
+if [[ "$Dev" != *"nowifi"* ]]; then
+    \rm -rf "$FIRMWARE_DIR"
+fi
 mkdir -p "$FIRMWARE_DIR"
-find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
-\rm -f "$BASE_PATH/../firmware/Packages.manifest" 2>/dev/null
+if [[ "$Dev" != *"nowifi"* ]]; then
+    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
+    \rm -f "$BASE_PATH/../firmware/Packages.manifest" 2>/dev/null
+fi
 
 if [[ -d action_build ]]; then
     make clean
+fi
+
+if [[ "$Dev" == *"nowifi"* ]]; then
+    echo "=== 开始打包无 WiFi 版本固件 ==="
+    NOWIFI_CONFIG="$BASE_PATH/configs/${Dev/_nowifi/}.config"
+    if [[ -f "$NOWIFI_CONFIG" ]]; then
+        cd "$BASE_PATH/../$BUILD_DIR"
+        
+        echo "应用无 WiFi 配置..."
+        sed -i 's/^CONFIG_PACKAGE_kmod-ath=y$/CONFIG_PACKAGE_kmod-ath=n/' "$NOWIFI_CONFIG"
+        sed -i 's/^CONFIG_PACKAGE_kmod-ath11k=y$/CONFIG_PACKAGE_kmod-ath11k=n/' "$NOWIFI_CONFIG"
+        sed -i 's/^CONFIG_PACKAGE_kmod-ath11k-ahb=y$/CONFIG_PACKAGE_kmod-ath11k-ahb=n/' "$NOWIFI_CONFIG"
+        sed -i 's/^CONFIG_PACKAGE_ath11k-firmware-ipq6018-ddwrt=y$/CONFIG_PACKAGE_ath11k-firmware-ipq6018-ddwrt=n/' "$NOWIFI_CONFIG"
+        sed -i 's/^CONFIG_PACKAGE_ath11k-firmware-qcn9074-ddwrt=y$/CONFIG_PACKAGE_ath11k-firmware-qcn9074-ddwrt=n/' "$NOWIFI_CONFIG"
+        
+        cp -f "$NOWIFI_CONFIG" .config
+        make defconfig
+        
+        echo "重新编译"
+        make -j$(($(nproc) + 1)) || make -j1 V=s
+        
+        echo "复制无 WiFi 版本固件..."
+        FIRMWARE_DIR="$BASE_PATH/../firmware"
+        mkdir -p "$FIRMWARE_DIR"
+        find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) | while read -r file; do
+            filename=$(basename "$file")
+            # 在扩展名前添加 _nowifi 后缀
+            new_filename=$(echo "$filename" | sed 's/\.\([^.]*\)$/_nowifi.\1/')
+            echo "Copying: $filename -> $new_filename"
+            cp -f "$file" "$FIRMWARE_DIR/$new_filename"
+        done
+        
+        echo "无 WiFi 版本固件已打包到：$FIRMWARE_DIR"
+    else
+        echo "错误：找不到基础配置文件 $NOWIFI_CONFIG"
+        exit 1
+    fi
 fi
