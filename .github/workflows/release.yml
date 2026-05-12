@@ -111,12 +111,9 @@ jobs:
       - name: Refresh the cache
         run: |
           if [ -d "./action_build/staging_dir" ]; then
-            # 更新所有 stamp 文件的时间戳
-            find "./action_build/staging_dir" -type d -name "stamp" -exec touch {} +
-            # 更新 staging_dir 下所有文件的时间戳
-            find "./action_build/staging_dir" -type f -exec touch {} +
-            # 创建构建完成标记
-            mkdir -p ./action_build/tmp && echo "1" > ./action_build/tmp/.build
+            find "./action_build/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r dir; do
+                find "$dir" -type f -exec touch {} +
+            done
           fi
 
       - name: Build Firmware
