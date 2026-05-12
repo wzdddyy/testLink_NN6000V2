@@ -115,7 +115,7 @@ jobs:
             ./action_build/staging_dir
           key: ${{ matrix.os }}-${{ steps.cache-key.outputs.hash }}
           restore-keys: |
-            ${{ matrix.os }}-${{ steps.cache-key.outputs.hash }}-
+            ${{ matrix.os }}-
 
       - name: Refresh the cache
         run: |
