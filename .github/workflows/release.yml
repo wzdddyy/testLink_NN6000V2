@@ -90,7 +90,8 @@ jobs:
           # 克隆仓库
           echo "克隆仓库: ${{ env.REPO_URL }} 分支: ${{ env.REPO_BRANCH }}"
           git clone --depth 1 -b ${{ env.REPO_BRANCH }} ${{ env.REPO_URL }} ./action_build
-          echo "${{ env.REPO_URL }}/${{ env.REPO_BRANCH }}" > ./repo_flag
+          cd ./action_build && git rev-parse HEAD > ../repo_flag
+          cd ..
           
           # 移除国内下载源
           PROJECT_MIRRORS_FILE="./action_build/scripts/projectsmirrors.json"
@@ -198,36 +199,54 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 保留最近 2 个版本，删除其他
-          echo "开始清理旧版本..."
+          echo "=========================================="
+          echo "开始清理旧版本（保留最近 2 个）..."
+          echo "=========================================="
           
-          # 清理 Releases 和关联的 tags
-          echo "清理旧版本的 Releases..."
-          gh release list --json tagName --jq '.[].tagName' 2>/dev/null | \
-            tail -n +3 | while read -r tag; do
-              echo "删除 release: $tag"
+          # ========== 1. 清理 Releases (自动清理关联的 Tags) ==========
+          echo ""
+          echo "[1/2] 清理旧的 Releases 和 Tags..."
+          
+          # 按创建时间排序，获取所有 release，跳过前 2 个最新的
+          gh release list --json tagName,createdAt \
+            --jq 'sort_by(.createdAt) | reverse | .[2:].[].tagName' 2>/dev/null | \
+          while read -r tag; do
+            if [ -n "$tag" ]; then
+              echo "  删除 release 和 tag: $tag"
               gh release delete "$tag" --cleanup-tag --yes 2>/dev/null || true
-            done
-          
-          # 清理孤立的 tags
-          echo "清理孤立的 tags..."
-          git fetch --tags 2>/dev/null || true
-          git tag -l | tail -n +3 | while read -r tag; do
-            echo "删除 tag: $tag"
-            git tag -d "$tag" 2>/dev/null || true
-            git push origin --delete "$tag" 2>/dev/null || true
+            fi
           done
-          git push origin --tags --prune 2>/dev/null || true
           
-          # 清理 Workflow 运行记录
-          echo "清理旧的 Workflow 运行记录..."
+          echo "  ✓ Releases 和 Tags 清理完成"
+          
+          # ========== 2. 清理 Workflow 运行记录 ==========
+          echo ""
+          echo "[2/2] 清理旧的 Workflow 运行记录..."
+          
+          # 获取当前 workflow 的所有运行记录，按创建时间排序，跳过前 2 个
           RUN_IDS=$(gh api /repos/${{ github.repository }}/actions/workflows/release.yml/runs \
-            --paginate --jq '.workflow_runs | sort_by(.created_at) | reverse | .[2:].id' 2>/dev/null)
+            --paginate \
+            --jq '[.workflow_runs[] | {id: .id, created_at: .created_at}] | sort_by(.created_at) | reverse | .[2:].[].id' 2>/dev/null)
+          
           if [ -n "$RUN_IDS" ]; then
             echo "$RUN_IDS" | while read -r run_id; do
-              echo "删除 workflow run: $run_id"
-              gh api -X DELETE /repos/${{ github.repository }}/actions/runs/"$run_id" 2>/dev/null || true
+              if [ -n "$run_id" ]; then
+                echo "  删除 workflow run: $run_id"
+                gh api -X DELETE /repos/${{ github.repository }}/actions/runs/"$run_id" 2>/dev/null || true
+              fi
             done
+          else
+            echo "  无需清理 Workflow 记录"
           fi
           
+          echo "  ✓ Workflow 记录清理完成"
+          
+          echo ""
+          echo "=========================================="
           echo "清理完成！"
+          echo "=========================================="
+          
+          # 显示当前状态
+          echo ""
+          echo "当前保留的 Releases:"
+          gh release list --limit 5 2>/dev/null || echo "  无 releases"
