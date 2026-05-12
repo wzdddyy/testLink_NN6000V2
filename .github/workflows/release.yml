@@ -198,22 +198,39 @@ jobs:
 
       - name: Cleanup Old Versions
         continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 保留最近 2 个版本，删除其他所有
+          # 保留最近 2 个版本，删除其他
           echo "开始清理旧版本..."
           
-          # 清理 Releases
+          # 清理 Releases 和关联的 tags
+          echo "清理旧版本的 Releases..."
           gh release list --json tagName --jq '.[].tagName' 2>/dev/null | \
-            tail -n +3 | xargs -I {} gh release delete {} --cleanup-tag --yes 2>/dev/null
+            tail -n +3 | while read -r tag; do
+              echo "删除 release: $tag"
+              gh release delete "$tag" --cleanup-tag --yes 2>/dev/null || true
+            done
           
           # 清理孤立的 tags
-          git fetch --tags --prune 2>/dev/null || true
-          git tag -l | tail -n +3 | xargs -I {} git tag -d {} 2>/dev/null
-          git push origin --tags 2>/dev/null || true
+          echo "清理孤立的 tags..."
+          git fetch --tags 2>/dev/null || true
+          git tag -l | tail -n +3 | while read -r tag; do
+            echo "删除 tag: $tag"
+            git tag -d "$tag" 2>/dev/null || true
+            git push origin --delete "$tag" 2>/dev/null || true
+          done
+          git push origin --tags --prune 2>/dev/null || true
           
           # 清理 Workflow 运行记录
-          gh api /repos/${{ github.repository }}/actions/workflows/release.yml/runs \
-            --paginate --jq '.workflow_runs | sort_by(.created_at) | reverse | .[2:].id' 2>/dev/null | \
-            xargs -I {} gh api -X DELETE /repos/${{ github.repository }}/actions/runs/{} 2>/dev/null
+          echo "清理旧的 Workflow 运行记录..."
+          RUN_IDS=$(gh api /repos/${{ github.repository }}/actions/workflows/release.yml/runs \
+            --paginate --jq '.workflow_runs | sort_by(.created_at) | reverse | .[2:].id' 2>/dev/null)
+          if [ -n "$RUN_IDS" ]; then
+            echo "$RUN_IDS" | while read -r run_id; do
+              echo "删除 workflow run: $run_id"
+              gh api -X DELETE /repos/${{ github.repository }}/actions/runs/"$run_id" 2>/dev/null || true
+            done
+          fi
           
           echo "清理完成！"
