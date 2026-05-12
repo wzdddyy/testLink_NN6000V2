@@ -80,6 +80,8 @@ main() {
         if [ -n "$CURRENT_VERSION" ] && [ "$CURRENT_VERSION" != "no-git-dir" ] && [ "$CURRENT_VERSION" != "no-makefile" ]; then
             echo "=== 首次编译，记录版本: $PACKAGE_NAME (${CURRENT_VERSION:0:8}) ==="
             echo "$CURRENT_VERSION" > "$VERSION_FILE"
+        else
+            echo "=== 首次编译，跳过版本记录: $PACKAGE_NAME ($CURRENT_VERSION) ==="
         fi
         return 0
     fi
@@ -88,7 +90,7 @@ main() {
     
     # 检查包路径是否存在
     if [ ! -d "$PACKAGE_PATH" ]; then
-        echo "  ⚠️ 包路径不存在: $PACKAGE_PATH"
+        echo " 包路径不存在: $PACKAGE_PATH"
         return 0
     fi
     
@@ -96,9 +98,7 @@ main() {
     CURRENT_VERSION=$(get_current_version "$PACKAGE_PATH" "$VERSION_SOURCE")
     
     if [ -z "$CURRENT_VERSION" ] || [ "$CURRENT_VERSION" = "no-git-dir" ] || [ "$CURRENT_VERSION" = "no-makefile" ]; then
-        echo "  ⚠️ 无法获取版本信息 ($CURRENT_VERSION)"
-        # 首次运行，记录版本但不清理
-        echo "$CURRENT_VERSION" > "$VERSION_FILE"
+        echo " 无法获取版本信息 ($CURRENT_VERSION)，将在克隆后记录"
         return 0
     fi
     
@@ -107,19 +107,19 @@ main() {
         LAST_VERSION=$(cat "$VERSION_FILE")
         
         if [ "$LAST_VERSION" != "$CURRENT_VERSION" ]; then
-            echo "  🔄 检测到更新!"
-            echo "    上次版本: ${LAST_VERSION:0:8}"
-            echo "    当前版本: ${CURRENT_VERSION:0:8}"
+            echo "  检测到更新!"
+            echo "  上次版本: ${LAST_VERSION:0:8}"
+            echo "  当前版本: ${CURRENT_VERSION:0:8}"
             
             # 清理编译产物
             clean_package "$PACKAGE_NAME"
             
-            echo "  ✓ 清理完成，将重新编译"
+            echo "  清理完成，将重新编译"
         else
-            echo "  ✅ 无更新 (${CURRENT_VERSION:0:8})"
+            echo "  无更新 (${CURRENT_VERSION:0:8})"
         fi
     else
-        echo "  📝 首次记录版本: ${CURRENT_VERSION:0:8}"
+        echo "  首次记录版本: ${CURRENT_VERSION:0:8}"
     fi
     
     # 更新版本记录
