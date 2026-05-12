@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+
+# 加载检测和清理脚本
+SCRIPT_DIR=$(cd $(dirname $0) && pwd)
+BASE_PATH=${BASE_PATH:-$(dirname "$SCRIPT_DIR")}
+CHECK_CLEAN_SCRIPT="$BASE_PATH/scripts/check_and_clean.sh"
+
 update_feeds() {
     local FEEDS_PATH="$BUILD_DIR/$FEEDS_CONF"
     if [[ -f "$BUILD_DIR/feeds.conf" ]]; then
@@ -17,7 +23,23 @@ update_feeds() {
     fi
 
     echo "=== 开始执行 feeds update ==="
+    
+    # 动态检测所有已存在的 feeds
+    echo "检测 feeds 仓库更新..."
+    for feed_dir in "$BUILD_DIR"/feeds/*/; do
+        if [ -d "$feed_dir/.git" ]; then
+            feed_name=$(basename "$feed_dir")
+            feed_rel_path="./feeds/$feed_name"
+            
+            if [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+                (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "$feed_name" "$feed_rel_path" "git")
+            fi
+        fi
+    done
+    
+    # 执行 feeds update
     (cd "$BUILD_DIR" && ./scripts/feeds clean && ./scripts/feeds update -a)
+    
     echo "=== feeds update 完成 ==="
 }
 

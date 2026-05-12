@@ -3,8 +3,18 @@
 GITHUB_BASE="https://github.com/"
 OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
 
+# 加载检测和清理脚本
+SCRIPT_DIR=$(cd $(dirname $0) && pwd)
+BASE_PATH=${BASE_PATH:-$(dirname "$SCRIPT_DIR")}
+CHECK_CLEAN_SCRIPT="$BASE_PATH/scripts/check_and_clean.sh"
+
 update_golang() {
     if [[ -d ./feeds/packages/lang/golang ]]; then
+        # 检测 golang 是否更新
+        if [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+            (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "golang" "./feeds/packages/lang/golang" "git")
+        fi
+        
         \rm -rf ./feeds/packages/lang/golang
         if ! git clone --depth 1 -b $GOLANG_BRANCH $GOLANG_REPO ./feeds/packages/lang/golang; then
             echo "错误：克隆 golang 仓库 $GOLANG_REPO 失败" >&2
@@ -26,6 +36,11 @@ clone_packages() {
     
     if [ -n "$pre_cmd" ]; then
         (cd "$BUILD_DIR" && eval "$pre_cmd") || return 1
+    fi
+    
+    # 检测旧版本（如果存在）
+    if [ -d "$target_dir" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "$name" "$target_dir" "git")
     fi
     
     rm -rf "$target_dir" 2>/dev/null || true
@@ -82,12 +97,22 @@ clone_passwall() {
     local TEMP_DIR="$OPENWRT_PACKAGES_DIR/openwrt-passwall-temp"
     local PASSWALL_PKGS_TEMP="$OPENWRT_PACKAGES_DIR/passwall-packages-temp"
     
+    # 检测 passwall 是否更新
+    if [ -d "$PASSWALL_LUCI_DIR" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "luci-app-passwall" "$PASSWALL_LUCI_DIR" "git")
+    fi
+    
     clone_packages "luci-app-passwall" \
         "${GITHUB_BASE}Openwrt-Passwall/openwrt-passwall.git" \
         "$TEMP_DIR" \
         "" \
         "" \
         "rm -rf \"$PASSWALL_LUCI_DIR\" 2>/dev/null || true; mv \"$TEMP_DIR/luci-app-passwall\" \"$PASSWALL_LUCI_DIR\"; rm -rf \"$TEMP_DIR\""
+    
+    # 检测 passwall-packages 是否更新
+    if [ -d "$PASSWALL_PACKAGES_DIR" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "passwall-packages" "$PASSWALL_PACKAGES_DIR" "git")
+    fi
     
     rm -rf "$PASSWALL_PACKAGES_DIR" 2>/dev/null || true
     
@@ -106,6 +131,11 @@ clone_lucky() {
     local LUCKY_TEMP="$OPENWRT_PACKAGES_DIR/lucky-temp"
     local LUCKI_APP_TEMP="$OPENWRT_PACKAGES_DIR/luci-app-lucky-temp"
 
+    # 检测 lucky 是否更新
+    if [ -d "$LUCKY_DIR" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "lucky" "$LUCKY_DIR" "git")
+    fi
+
     clone_packages "lucky" \
         "$LUCKY_REPO" \
         "$LUCKY_TEMP" \
@@ -116,6 +146,11 @@ clone_lucky() {
         "$LUCKY_DIR"
 
     rm -rf "$LUCKY_TEMP"
+
+    # 检测 luci-app-lucky 是否更新
+    if [ -d "$LUCI_APP_LUCKY_DIR" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "luci-app-lucky" "$LUCI_APP_LUCKY_DIR" "git")
+    fi
 
     clone_packages "luci-app-lucky" \
         "$LUCKY_REPO" \
@@ -158,6 +193,12 @@ clone_lucky() {
 }
 
 clone_adguardhome() {
+    # 检测 adguardhome 是否更新
+    local ADGUARDHOME_DIR="$OPENWRT_PACKAGES_DIR/luci-app-adguardhome"
+    if [ -d "$ADGUARDHOME_DIR" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "luci-app-adguardhome" "$ADGUARDHOME_DIR" "git")
+    fi
+    
     clone_packages "luci-app-adguardhome" \
         "${GITHUB_BASE}wzdddyy/luci-app-adguardhome.git" \
         "$OPENWRT_PACKAGES_DIR/luci-app-adguardhome"
@@ -166,6 +207,11 @@ clone_adguardhome() {
 clone_easytier() {
     local EASYTIER_DIR="$OPENWRT_PACKAGES_DIR/luci-app-easytier"
     local TEMP_DIR="$OPENWRT_PACKAGES_DIR/easytier-temp"
+
+    # 检测 easytier 是否更新
+    if [ -d "$EASYTIER_DIR" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "luci-app-easytier" "$EASYTIER_DIR" "git")
+    fi
 
     (cd "$BUILD_DIR" && ./scripts/feeds install -f luci-lib-jsonc)
 
@@ -185,6 +231,11 @@ clone_oaf() {
     local OAF_REPO="${GITHUB_BASE}destan19/OpenAppFilter.git"
     local OAF_DIR="$OPENWRT_PACKAGES_DIR/OpenAppFilter"
     local TEMP_DIR="$OPENWRT_PACKAGES_DIR/oaf-temp"
+
+    # 检测 OpenAppFilter 是否更新
+    if [ -d "$OAF_DIR" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "OpenAppFilter" "$OAF_DIR" "git")
+    fi
 
     (cd "$BUILD_DIR" && ./scripts/feeds install -f kmod-ipt-conntrack kmod-ipt-nat)
     
@@ -224,6 +275,11 @@ clone_diskman() {
     local repo_url="${GITHUB_BASE}lisaac/luci-app-diskman.git"
     local temp_dir="$OPENWRT_PACKAGES_DIR/diskman"
     
+    # 检测 diskman 是否更新
+    if [ -d "$path" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "luci-app-diskman" "$path" "git")
+    fi
+    
     clone_packages "luci-app-diskman" \
         "$repo_url" \
         "$temp_dir" \
@@ -240,6 +296,11 @@ clone_diskman() {
 _sync_luci_lib_docker() {
     local repo_url="${GITHUB_BASE}lisaac/luci-lib-docker.git"
     local luci_lib_docker_dir="$OPENWRT_PACKAGES_DIR/luci-lib-docker"
+    
+    # 检测 luci-lib-docker 是否更新
+    if [ -d "$luci_lib_docker_dir" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "luci-lib-docker" "$luci_lib_docker_dir" "git")
+    fi
     
     mkdir -p "$OPENWRT_PACKAGES_DIR" || return
     
@@ -259,6 +320,11 @@ clone_dockerman() {
     
     _sync_luci_lib_docker || return
     
+    # 检测 dockerman 是否更新
+    if [ -d "$path" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "luci-app-dockerman" "$path" "git")
+    fi
+    
     clone_packages "luci-app-dockerman" \
         "$repo_url" \
         "$temp_dir" \
@@ -272,6 +338,11 @@ clone_dockerman() {
 clone_quickfile() {
     local QUICKFILE_DIR="$OPENWRT_PACKAGES_DIR/luci-app-quickfile"
     local TEMP_DIR="$OPENWRT_PACKAGES_DIR/quickfile-temp"
+
+    # 检测 quickfile 是否更新
+    if [ -d "$QUICKFILE_DIR" ] && [ -f "$CHECK_CLEAN_SCRIPT" ]; then
+        (cd "$BUILD_DIR" && bash "$CHECK_CLEAN_SCRIPT" "luci-app-quickfile" "$QUICKFILE_DIR" "git")
+    fi
 
     clone_packages "luci-app-quickfile" \
         "${GITHUB_BASE}sbwml/luci-app-quickfile.git" \
@@ -291,5 +362,3 @@ remove_attendedsysupgrade() {
         fi
     done
 }
-
-
