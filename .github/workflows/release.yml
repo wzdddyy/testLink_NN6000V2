@@ -99,15 +99,23 @@ jobs:
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
           fi
 
+      - name: Generate Cache Key
+        id: cache-key
+        run: |
+          # 基于 repo_flag 生成缓存键
+          CACHE_HASH=$(sha256sum ./repo_flag | cut -d' ' -f1)
+          echo "hash=${CACHE_HASH}" >> $GITHUB_OUTPUT
+          echo "完整缓存键: ${{ matrix.os }}-${CACHE_HASH}"
+
       - name: Cache Build Dependencies
         uses: actions/cache@v5.0.4
         with:
           path: |
             ./action_build/.ccache
             ./action_build/staging_dir
-          key: ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}
+          key: ${{ matrix.os }}-${{ steps.cache-key.outputs.hash }}
           restore-keys: |
-            ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}-
+            ${{ matrix.os }}-${{ steps.cache-key.outputs.hash }}-
 
       - name: Refresh the cache
         run: |
@@ -133,8 +141,6 @@ jobs:
             else
               echo "KVER=unknown" >> $GITHUB_ENV
               echo "未找到内核版本"
-              echo "Manifest 文件内容预览:"
-              head -20 "$FIRST_MANIFEST"
             fi
           else
             echo "KVER=unknown" >> $GITHUB_ENV
@@ -146,22 +152,30 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 获取当前缓存键
-          CURRENT_KEY="${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}"
+          # 使用之前生成的缓存键
+          CURRENT_KEY="${{ matrix.os }}-${{ steps.cache-key.outputs.hash }}"
           echo "当前缓存键: $CURRENT_KEY"
           echo ""
           
+          # 获取所有缓存
+          CACHE_LIST=$(gh cache list --json id,key,sizeInBytes,createdAt 2>/dev/null)
+          
+          if [ -z "$CACHE_LIST" ] || [ "$CACHE_LIST" = "[]" ]; then
+            echo "✓ 无现有缓存，跳过清理"
+            exit 0
+          fi
+          
           # 列出所有缓存
           echo "检查现有缓存..."
-          gh cache list --json id,key,sizeInBytes,createdAt 2>/dev/null | \
+          echo "$CACHE_LIST" | \
             jq -r '.[] | "\(.key)\t\(.id)\t\(.sizeInBytes / 1024 / 1024 | floor)MB\t\(.createdAt)"' | \
-            sort -t$'\t' -k4 -r || echo "无现有缓存"
+            sort -t$'\t' -k4 -r
           
           echo ""
-          echo "清理旧缓存..."
+          echo "清理与当前 key 不同的旧缓存..."
           
           # 删除与当前 key 不同的所有缓存
-          gh cache list --json id,key 2>/dev/null | \
+          echo "$CACHE_LIST" | \
             jq -r ".[] | select(.key != \"$CURRENT_KEY\") | .id" | \
           while read -r cache_id; do
             if [ -n "$cache_id" ]; then
@@ -180,8 +194,6 @@ jobs:
           echo "=============================================="
           df -h
           echo "=============================================="
-
-
 
       - name: Prepare Release Body
         run: |
