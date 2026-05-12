@@ -141,22 +141,37 @@ jobs:
             echo "manifest 文件不存在"
           fi
 
-      - name: Delete Old Cache
+      - name: Cleanup Old Cache
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 删除所有旧缓存
-          echo "清理所有旧缓存..."
+          # 获取当前缓存键
+          CURRENT_KEY="${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}"
+          echo "当前缓存键: $CURRENT_KEY"
+          echo ""
           
-          gh cache list --json id --jq '.[].id' 2>/dev/null | while read -r cache_id; do
+          # 列出所有缓存
+          echo "检查现有缓存..."
+          gh cache list --json id,key,sizeInBytes,createdAt 2>/dev/null | \
+            jq -r '.[] | "\(.key)\t\(.id)\t\(.sizeInBytes / 1024 / 1024 | floor)MB\t\(.createdAt)"' | \
+            sort -t$'\t' -k4 -r || echo "无现有缓存"
+          
+          echo ""
+          echo "清理旧缓存..."
+          
+          # 删除与当前 key 不同的所有缓存
+          gh cache list --json id,key 2>/dev/null | \
+            jq -r ".[] | select(.key != \"$CURRENT_KEY\") | .id" | \
+          while read -r cache_id; do
             if [ -n "$cache_id" ]; then
-              echo "删除缓存 ID: $cache_id"
+              echo "  删除旧缓存 ID: $cache_id"
               gh cache delete "$cache_id" 2>/dev/null || true
             fi
           done
           
-          # 输出缓存状态
-          echo "========cache status========"
-          echo "ccache: $(du -sh ./action_build/.ccache 2>/dev/null | cut -f 1 || echo 'N/A')"
-          echo "staging: $(du -sh ./action_build/staging_dir 2>/dev/null | cut -f 1 || echo 'N/A')"
+          echo ""
+          echo "✓ 旧缓存清理完成"
 
       - name: Machine Information
         run: |
@@ -165,6 +180,7 @@ jobs:
           echo "=============================================="
           df -h
           echo "=============================================="
+
 
 
       - name: Prepare Release Body
