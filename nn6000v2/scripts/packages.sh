@@ -128,7 +128,7 @@ clone_lucky() {
 
     rm -rf "$LUCKI_APP_TEMP"
     
-    local lucky_conf="$LUCKY_DIR/lucky/files/luckyuci"
+    local lucky_conf="$LUCKY_DIR/files/luckyuci"
     if [ -f "$lucky_conf" ]; then
         sed -i "s/option enabled '1'/option enabled '0'/g" "$lucky_conf"
         sed -i "s/option logger '1'/option logger '0'/g" "$lucky_conf"
@@ -141,7 +141,7 @@ clone_lucky() {
         return 0
     fi
     
-    local makefile_path="$LUCKY_DIR/lucky/Makefile"
+    local makefile_path="$LUCKY_DIR/Makefile"
     if [ ! -f "$makefile_path" ]; then
         echo "Warning: lucky Makefile not found. Skipping." >&2
         return 0
