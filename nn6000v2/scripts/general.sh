@@ -51,7 +51,6 @@ reset_feeds_conf() {
     # 安全地清理 Git 未跟踪文件
     git reset --hard origin/$REPO_BRANCH
     git clean -f -d
-    git pull
     
     if [[ $COMMIT_HASH != "none" ]]; then
         git checkout $COMMIT_HASH

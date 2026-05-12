@@ -120,9 +120,25 @@ jobs:
       - name: Refresh the cache
         run: |
           if [ -d "./action_build/staging_dir" ]; then
-            find "./action_build/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r dir; do
+            echo "=== 刷新缓存时间戳 ==="
+            echo ""
+            
+            # 统计 stamp 目录数量
+            STAMP_DIRS=$(find "./action_build/staging_dir" -type d -name "stamp" | wc -l)
+            echo "找到 ${STAMP_DIRS} 个 stamp 目录"
+            
+            # 刷新所有 stamp 文件
+            find "./action_build/staging_dir" -type d -name "stamp" | while read -r dir; do
+                STAMP_FILES=$(find "$dir" -type f | wc -l)
+                echo "  刷新: $dir (${STAMP_FILES} 个文件)"
                 find "$dir" -type f -exec touch {} +
             done
+            
+            echo ""
+            echo "✓ 所有 stamp 文件已刷新"
+            echo "======================"
+          else
+            echo "staging_dir 不存在，跳过刷新"
           fi
 
       - name: Build Firmware
