@@ -143,7 +143,7 @@ jobs:
         continue-on-error: true
         run: |
           # 获取缓存列表并删除
-          gh cache list --key ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}- --json key --jq '.[] | .key' | while read -r key; do
+          gh cache list --key ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }} --json key --jq '.[] | .key' | while read -r key; do
             gh cache delete "$key"
           done
           # 输出缓存状态
@@ -192,7 +192,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "=========================================="
-          echo "开始清理旧版本（保留最近 2 个）..."
+          echo "开始清理旧版本..."
           echo "=========================================="
           
           # ========== 1. 清理 Releases ==========
@@ -210,16 +210,17 @@ jobs:
             done
           fi
           
-          # ========== 2. 清理孤立的 Tags ==========
           echo ""
-          echo "清理孤立的 Tags..."
-          git fetch --tags
-          git tag -l | while read -r tag; do
-            if ! gh release view "$tag" >/dev/null 2>&1; then
-              echo "  删除孤立 Tag: $tag"
-              git tag -d "$tag" 2>/dev/null || true
+          echo "✓ 旧版本清理完成"
+          
+          # ========== 2. 清理旧的工作流运行记录 ==========
+          echo ""
+          echo "清理旧的工作流运行记录..."
+          gh run list --workflow release.yml --json databaseId,status,conclusion --jq 'sort_by(.databaseId) | reverse | .[2:] | .[].databaseId' | while read -r run_id; do
+            if [ -n "$run_id" ]; then
+              echo "  删除工作流运行记录：$run_id"
+              gh run delete "$run_id" 2>/dev/null || true
             fi
           done
           
-          echo ""
-          echo "✓ 旧版本清理完成"
+          echo "✓ 工作流运行记录清理完成"
