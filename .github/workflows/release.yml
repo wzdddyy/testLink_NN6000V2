@@ -88,7 +88,7 @@ jobs:
           chmod +x ./nn6000v2/scripts/build.sh
           
           # 克隆仓库
-          echo "克隆仓库: ${{ env.REPO_URL }} 分支: ${{ env.REPO_BRANCH }}"
+          echo "克隆仓库：${{ env.REPO_URL }} 分支：${{ env.REPO_BRANCH }}"
           git clone --depth 1 -b ${{ env.REPO_BRANCH }} ${{ env.REPO_URL }} ./action_build
           cd ./action_build && git rev-parse HEAD > ../repo_flag
           cd ..
@@ -99,46 +99,22 @@ jobs:
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
           fi
 
-      - name: Generate Cache Key
-        id: cache-key
-        run: |
-          # 基于 repo_flag 生成缓存键
-          CACHE_HASH=$(sha256sum ./repo_flag | cut -d' ' -f1)
-          echo "hash=${CACHE_HASH}" >> $GITHUB_OUTPUT
-          echo "完整缓存键: ${{ matrix.os }}-${CACHE_HASH}"
-
       - name: Cache Build Dependencies
         uses: actions/cache@v5.0.4
         with:
           path: |
             ./action_build/.ccache
             ./action_build/staging_dir
-          key: ${{ matrix.os }}-${{ steps.cache-key.outputs.hash }}
+          key: ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}-${{ env.BUILD_DATE }}
           restore-keys: |
-            ${{ matrix.os }}-
+            ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}-
 
       - name: Refresh the cache
         run: |
           if [ -d "./action_build/staging_dir" ]; then
-            echo "=== 刷新缓存时间戳 ==="
-            echo ""
-            
-            # 统计 stamp 目录数量
-            STAMP_DIRS=$(find "./action_build/staging_dir" -type d -name "stamp" | wc -l)
-            echo "找到 ${STAMP_DIRS} 个 stamp 目录"
-            
-            # 刷新所有 stamp 文件
-            find "./action_build/staging_dir" -type d -name "stamp" | while read -r dir; do
-                STAMP_FILES=$(find "$dir" -type f | wc -l)
-                echo "  刷新: $dir (${STAMP_FILES} 个文件)"
+            find "./action_build/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r dir; do
                 find "$dir" -type f -exec touch {} +
             done
-            
-            echo ""
-            echo "✓ 所有 stamp 文件已刷新"
-            echo "======================"
-          else
-            echo "staging_dir 不存在，跳过刷新"
           fi
 
       - name: Build Firmware
@@ -165,43 +141,15 @@ jobs:
 
       - name: Cleanup Old Cache
         continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 使用之前生成的缓存键
-          CURRENT_KEY="${{ matrix.os }}-${{ steps.cache-key.outputs.hash }}"
-          echo "当前缓存键: $CURRENT_KEY"
-          echo ""
-          
-          # 获取所有缓存
-          CACHE_LIST=$(gh cache list --json id,key,sizeInBytes,createdAt 2>/dev/null)
-          
-          if [ -z "$CACHE_LIST" ] || [ "$CACHE_LIST" = "[]" ]; then
-            echo "✓ 无现有缓存，跳过清理"
-            exit 0
-          fi
-          
-          # 列出所有缓存
-          echo "检查现有缓存..."
-          echo "$CACHE_LIST" | \
-            jq -r '.[] | "\(.key)\t\(.id)\t\(.sizeInBytes / 1024 / 1024 | floor)MB\t\(.createdAt)"' | \
-            sort -t$'\t' -k4 -r
-          
-          echo ""
-          echo "清理与当前 key 不同的旧缓存..."
-          
-          # 删除与当前 key 不同的所有缓存
-          echo "$CACHE_LIST" | \
-            jq -r ".[] | select(.key != \"$CURRENT_KEY\") | .id" | \
-          while read -r cache_id; do
-            if [ -n "$cache_id" ]; then
-              echo "  删除旧缓存 ID: $cache_id"
-              gh cache delete "$cache_id" 2>/dev/null || true
-            fi
+          # 获取缓存列表并删除
+          gh cache list --key ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}- --json key --jq '.[] | .key' | while read -r key; do
+            gh cache delete "$key"
           done
-          
-          echo ""
-          echo "✓ 旧缓存清理完成"
+          # 输出缓存状态
+          echo "========cache status========"
+          echo "ccache: $(du -sh ./action_build/.ccache | cut -f 1)"
+          echo "staging: $(du -sh ./action_build/staging_dir | cut -f 1)"
 
       - name: Machine Information
         run: |
@@ -247,50 +195,31 @@ jobs:
           echo "开始清理旧版本（保留最近 2 个）..."
           echo "=========================================="
           
-          # ========== 1. 清理 Releases (自动清理关联的 Tags) ==========
-          echo ""
-          echo "[1/2] 清理旧的 Releases 和 Tags..."
+          # ========== 1. 清理 Releases ==========
+          RELEASES=$(gh release list --json tagName,createdAt --jq 'sort_by(.createdAt) | reverse | .[2:] | .[].tagName')
           
-          # 按创建时间排序，获取所有 release，跳过前 2 个最新的
-          gh release list --json tagName,createdAt \
-            --jq 'sort_by(.createdAt) | reverse | .[2:].[].tagName' 2>/dev/null | \
-          while read -r tag; do
-            if [ -n "$tag" ]; then
-              echo "  删除 release 和 tag: $tag"
-              gh release delete "$tag" --cleanup-tag --yes 2>/dev/null || true
+          if [ -z "$RELEASES" ]; then
+            echo "无需清理 Release"
+          else
+            echo "删除旧 Release:"
+            echo "$RELEASES" | while read -r tag; do
+              if [ -n "$tag" ]; then
+                echo "  删除：$tag"
+                gh release delete "$tag" --cleanup-tag --yes 2>/dev/null || true
+              fi
+            done
+          fi
+          
+          # ========== 2. 清理孤立的 Tags ==========
+          echo ""
+          echo "清理孤立的 Tags..."
+          git fetch --tags
+          git tag -l | while read -r tag; do
+            if ! gh release view "$tag" >/dev/null 2>&1; then
+              echo "  删除孤立 Tag: $tag"
+              git tag -d "$tag" 2>/dev/null || true
             fi
           done
           
-          echo "  ✓ Releases 和 Tags 清理完成"
-          
-          # ========== 2. 清理 Workflow 运行记录 ==========
           echo ""
-          echo "[2/2] 清理旧的 Workflow 运行记录..."
-          
-          # 获取当前 workflow 的所有运行记录，按创建时间排序，跳过前 2 个
-          RUN_IDS=$(gh api /repos/${{ github.repository }}/actions/workflows/release.yml/runs \
-            --paginate \
-            --jq '[.workflow_runs[] | {id: .id, created_at: .created_at}] | sort_by(.created_at) | reverse | .[2:].[].id' 2>/dev/null)
-          
-          if [ -n "$RUN_IDS" ]; then
-            echo "$RUN_IDS" | while read -r run_id; do
-              if [ -n "$run_id" ]; then
-                echo "  删除 workflow run: $run_id"
-                gh api -X DELETE /repos/${{ github.repository }}/actions/runs/"$run_id" 2>/dev/null || true
-              fi
-            done
-          else
-            echo "  无需清理 Workflow 记录"
-          fi
-          
-          echo "  ✓ Workflow 记录清理完成"
-          
-          echo ""
-          echo "=========================================="
-          echo "清理完成！"
-          echo "=========================================="
-          
-          # 显示当前状态
-          echo ""
-          echo "当前保留的 Releases:"
-          gh release list --limit 5 2>/dev/null || echo "  无 releases"
+          echo "✓ 旧版本清理完成"
