@@ -108,8 +108,8 @@ jobs:
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
           fi
 
-      - name: Cache Build Dependencies
-        uses: actions/cache@v5.0.4
+      - name: Restore Build Dependencies Cache
+        uses: actions/cache/restore@v5.0.4
         with:
           path: |
             ./action_build/.ccache
@@ -195,6 +195,14 @@ jobs:
           echo "========cache status========"
           echo "ccache: $(du -sh ./action_build/.ccache 2>/dev/null | cut -f 1 || echo 'N/A')"
           echo "staging: $(du -sh ./action_build/staging_dir 2>/dev/null | cut -f 1 || echo 'N/A')"
+
+      - name: Save Build Dependencies Cache
+        uses: actions/cache/save@v5.0.4
+        with:
+          path: |
+            ./action_build/.ccache
+            ./action_build/staging_dir
+          key: ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}
 
       - name: Machine Information
         run: |
