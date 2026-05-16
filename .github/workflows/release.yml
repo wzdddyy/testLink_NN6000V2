@@ -128,11 +128,20 @@ jobs:
 
       - name: Build Firmware
         run: |
-          # 设置 PPPoE 环境变量
-          export PPPOE_USERNAME="${{ github.event.inputs.pppoe_username || '-' }}"
-          export PPPOE_PASSWORD="${{ github.event.inputs.pppoe_password || '-' }}"
-          echo "PPPoE Username: $PPPOE_USERNAME"
-          echo "PPPoE Password: [HIDDEN]"
+          # 设置 PPPoE 配置
+          PPPOE_USER="${{ github.event.inputs.pppoe_username || '-' }}"
+          PPPOE_PASS="${{ github.event.inputs.pppoe_password || '-' }}"
+          
+          if [ "$PPPOE_USER" != "-" ] || [ "$PPPOE_PASS" != "-" ]; then
+            echo "正在配置 PPPoE 账号密码..."
+            # 替换脚本中的 PPPoE 配置
+            sed -i "s/^PPPOE_USERNAME=.*/PPPOE_USERNAME=\"$PPPOE_USER\"/" ./nn6000v2/patches/992_network_config.sh
+            sed -i "s/^PPPOE_PASSWORD=.*/PPPOE_PASSWORD=\"$PPPOE_PASS\"/" ./nn6000v2/patches/992_network_config.sh
+            echo "PPPoE Username: $PPPOE_USER"
+            echo "PPPoE Password: [HIDDEN]"
+          else
+            echo "未输入 PPPoE 账号密码，使用默认值 '-'"
+          fi
           
           ./nn6000v2/scripts/build.sh ${{ env.DEVICE_MODEL }}
           
