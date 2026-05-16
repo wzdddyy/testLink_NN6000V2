@@ -166,14 +166,35 @@ jobs:
       - name: Cleanup Old Cache
         continue-on-error: true
         run: |
-          # 获取缓存列表并删除
-          gh cache list --key ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }} --json key --jq '.[] | .key' | while read -r key; do
-            gh cache delete "$key"
-          done
-          # 输出缓存状态
+          echo "=== Cleaning up old caches ==="
+          
+          # List all caches first
+          echo "Current caches:"
+          gh cache list || true
+          
+          # Delete all caches with the current matrix.os prefix
+          CACHE_PREFIX="${{ matrix.os }}-"
+          echo "Searching caches with prefix: ${CACHE_PREFIX}*"
+          
+          # Get matching cache keys
+          MATCHING_CACHES=$(gh cache list --json key --jq '.[].key' 2>/dev/null | grep "^${CACHE_PREFIX}" || true)
+          
+          if [ -n "$MATCHING_CACHES" ]; then
+            echo "Found caches to delete:"
+            echo "$MATCHING_CACHES" | while IFS= read -r key; do
+              if [ -n "$key" ]; then
+                echo "  → Deleting: $key"
+                gh cache delete "$key" || true
+              fi
+            done
+            echo "Cache cleanup completed"
+          else
+            echo "No matching caches found, skipping cleanup"
+          fi
+          
           echo "========cache status========"
-          echo "ccache: $(du -sh ./action_build/.ccache | cut -f 1)"
-          echo "staging: $(du -sh ./action_build/staging_dir | cut -f 1)"
+          echo "ccache: $(du -sh ./action_build/.ccache 2>/dev/null | cut -f 1 || echo 'N/A')"
+          echo "staging: $(du -sh ./action_build/staging_dir 2>/dev/null | cut -f 1 || echo 'N/A')"
 
       - name: Machine Information
         run: |
