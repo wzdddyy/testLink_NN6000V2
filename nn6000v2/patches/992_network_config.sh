@@ -19,8 +19,9 @@ WIFI_2G_TXPOWER=22
 
 # ==================== PPPoE 宽带配置 ====================
 # 填写你的宽带账号密码，使用 "-" 表示跳过配置
-PPPOE_USERNAME="-"
-PPPOE_PASSWORD="-"
+# 优先使用环境变量 PPPOE_USERNAME 和 PPPOE_PASSWORD，如果没有则使用默认值 "-"
+PPPOE_USERNAME="${PPPOE_USERNAME:--}"
+PPPOE_PASSWORD="${PPPOE_PASSWORD:--}"
 
 # ============================================================
 
