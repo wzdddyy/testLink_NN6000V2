@@ -249,6 +249,11 @@ jobs:
           echo "=========================================="
           
           # ========== 1. 清理 Releases ==========
+          echo "所有 Releases 列表 (按创建时间排序):"
+          gh release list --json tagName,createdAt --jq 'sort_by(.createdAt) | reverse | .[] | {tagName: .tagName, createdAt: .createdAt}'
+          echo ""
+          
+          # 获取所有发布，按创建时间排序，保留最新的2个
           RELEASES=$(gh release list --json tagName,createdAt --jq 'sort_by(.createdAt) | reverse | .[2:] | .[].tagName')
           
           if [ -z "$RELEASES" ]; then
@@ -269,7 +274,13 @@ jobs:
           # ========== 2. 清理旧的工作流运行记录 ==========
           echo ""
           echo "清理旧的工作流运行记录..."
-          gh run list --workflow release.yml --json databaseId,status,conclusion --jq 'sort_by(.databaseId) | reverse | .[2:] | .[].databaseId' | while read -r run_id; do
+          # 显示所有工作流运行记录以供调试
+          echo "所有工作流运行记录 (按创建时间排序):"
+          gh run list --workflow release.yml --json name,databaseId,createdAt --jq 'sort_by(.createdAt) | reverse | .[] | {name: .name, databaseId: .databaseId, createdAt: .createdAt}'
+          echo ""
+          
+          # 获取工作流运行记录，按创建时间排序，保留最新的2个
+          gh run list --workflow release.yml --json databaseId,createdAt --jq 'sort_by(.createdAt) | reverse | .[2:] | .[].databaseId' | while read -r run_id; do
             if [ -n "$run_id" ]; then
               echo "  删除工作流运行记录：$run_id"
               gh run delete "$run_id" 2>/dev/null || true
