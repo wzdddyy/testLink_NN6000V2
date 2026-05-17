@@ -1,0 +1,34 @@
+#!/bin/sh
+# Enable hardware flow offloading for IPQ6000 devices by default
+
+[ "${FIRMWARE_TYPE}" = "unknown" -o "${FIRMWARE_TYPE}" = "rom" ] || exit 0
+
+. /lib/functions.sh
+
+board_config_update
+
+# Check if device is IPQ6000 based
+if cat /proc/cpuinfo | grep -q "ARMv8 Processor rev 4"; then
+    # Check if NSS modules are loaded
+    if lsmod | grep -q "qca_nss_drv"; then
+        # Enable hardware flow offloading
+        uci -q set network.globals.flow_offloading=1
+        uci -q set network.globals.flow_offloading_hw=1
+        
+        # Apply to lan and wan interfaces
+        if uci -q get network.lan; then
+            uci -q set network.lan.flow_offloading=1
+        fi
+        if uci -q get network.wan; then
+            uci -q set network.wan.flow_offloading=1
+        fi
+        
+        # Commit changes
+        uci commit network
+        
+        # Log the action
+        echo "Hardware flow offloading enabled by default for IPQ6000 device"
+    fi
+fi
+
+board_config_flush
