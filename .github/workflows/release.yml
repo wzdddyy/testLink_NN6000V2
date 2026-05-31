@@ -249,11 +249,11 @@ jobs:
           echo "=========================================="
           
           # ========== 1. 清理 Releases ==========
-          echo "所有 Releases 列表 (按 tagName 中的日期时间排序):"
+          echo "所有 Releases 列表:"
           gh release list --json tagName,createdAt --jq 'sort_by(.tagName) | reverse | .[] | {tagName: .tagName, createdAt: .createdAt}'
           echo ""
           
-          # 获取所有发布，按 tagName 排序（tagName 包含日期时间，格式如 26.05.29_05.55.18），保留最新的2个
+          # 获取所有发布
           RELEASES=$(gh release list --json tagName --jq 'sort_by(.tagName) | reverse | .[2:] | .[].tagName')
           
           if [ -z "$RELEASES" ]; then
@@ -275,7 +275,7 @@ jobs:
           echo ""
           echo "清理旧的工作流运行记录..."
           # 显示所有工作流运行记录以供调试
-          echo "所有工作流运行记录 (按创建时间排序):"
+          echo "所有工作流运行记录:"
           gh run list --workflow release.yml --json name,databaseId,createdAt --jq 'sort_by(.createdAt) | reverse | .[] | {name: .name, databaseId: .databaseId, createdAt: .createdAt}'
           echo ""
           
