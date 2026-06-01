@@ -14,7 +14,6 @@ fix_default_set() {
     install -Dm544 "$BASE_PATH/patches/991_custom_settings" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/991_custom_settings"
     install -Dm544 "$BASE_PATH/patches/992_network_config.sh" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/992_network_config.sh"
     install -Dm544 "$BASE_PATH/patches/994_set_opkg_repos" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/994_set_opkg_repos"
-    install -Dm755 "$BASE_PATH/patches/999-enable-hardware-offload.patch" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/999-custom-hardware-offload"
     
     if [ -f "$BUILD_DIR/package/emortal/autocore/files/tempinfo" ]; then
         if [ -f "$BASE_PATH/patches/tempinfo" ]; then
