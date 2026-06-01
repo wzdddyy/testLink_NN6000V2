@@ -82,8 +82,11 @@ setup_pppoe() {
 	fi
 
 	local wan_proto=$(uci -q get network.wan.proto)
-	if [ "$wan_proto" = "pppoe" ]; then
-		echo "PPPoE: 已配置，跳过"
+	local wan_username=$(uci -q get network.wan.username)
+	local wan_password=$(uci -q get network.wan.password)
+
+	if [ "$wan_proto" = "pppoe" ] && [ "$wan_username" != "-" ] && [ "$wan_password" != "-" ]; then
+		echo "PPPoE: 已配置有效账号，跳过"
 		return 0
 	fi
 

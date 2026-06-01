@@ -73,8 +73,7 @@ install_openwrt_packages() {
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf oaf open-app-filter \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall \
-        luci-app-zerotier
+        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall
 }
 
 clone_passwall() {
@@ -291,10 +290,4 @@ remove_attendedsysupgrade() {
             echo "Removed luci-app-attendedsysupgrade from $makefile"
         fi
     done
-}
-
-clone_luci_zerotier() {
-    clone_packages "luci-app-zerotier" \
-        "${GITHUB_BASE}zhengmz/luci-app-zerotier.git" \
-        "$OPENWRT_PACKAGES_DIR/luci-app-zerotier"
 }

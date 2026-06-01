@@ -135,8 +135,8 @@ jobs:
           if [ "$PPPOE_USER" != "-" ] || [ "$PPPOE_PASS" != "-" ]; then
             echo "正在配置 PPPoE 账号密码..."
             # 替换脚本中的 PPPoE 配置
-            sed -i "s/^PPPOE_USERNAME=.*/PPPOE_USERNAME=\"$PPPOE_USER\"/" ./nn6000v2/patches/992_network_config.sh
-            sed -i "s/^PPPOE_PASSWORD=.*/PPPOE_PASSWORD=\"$PPPOE_PASS\"/" ./nn6000v2/patches/992_network_config.sh
+            sed -i "s#^PPPOE_USERNAME=.*#PPPOE_USERNAME=\"$PPPOE_USER\"#" ./nn6000v2/patches/992_network_config.sh
+            sed -i "s#^PPPOE_PASSWORD=.*#PPPOE_PASSWORD=\"$PPPOE_PASS\"#" ./nn6000v2/patches/992_network_config.sh
             echo "PPPoE Username: $PPPOE_USER"
             echo "PPPoE Password: [HIDDEN]"
           else
