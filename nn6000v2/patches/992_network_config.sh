@@ -22,11 +22,6 @@ WIFI_2G_TXPOWER=22
 # 在 GitHub Actions 构建时可以通过输入参数自动替换此处的值
 PPPOE_USERNAME="-"
 PPPOE_PASSWORD="-"
-
-# ==================== 硬件加速配置 ====================
-# 启用硬件流量卸载（如果支持）
-ENABLE_HARDWARE_OFFLOAD=1
-
 # ============================================================
 
 board_name=$(cat /tmp/sysinfo/board_name 2>/dev/null)
@@ -102,41 +97,12 @@ EOF
 	echo "PPPoE: 配置完成 - 用户名: ${PPPOE_USERNAME}"
 }
 
-setup_hardware_offloading() {
-	if [ "$ENABLE_HARDWARE_OFFLOAD" -eq 1 ]; then
-		echo "配置硬件流量卸载..."
-		
-		# 检查是否有硬件加速支持
-		if lsmod | grep -q -i nss || [ -d "/sys/kernel/debug/qca-nss-drv" ]; then
-			uci batch << EOF
-set network.globals.flow_offloading='1'
-set network.globals.flow_offloading_hw='1'
-set network.lan.flow_offloading='1'
-set network.wan.flow_offloading='1'
-EOF
-			uci commit network
-			echo "硬件流量卸载已配置"
-		else
-			# 即使没有NSS，也可以启用软件加速
-			uci batch << EOF
-set network.globals.flow_offloading='1'
-set network.globals.flow_offloading_hw='0'
-set network.lan.flow_offloading='1'
-set network.wan.flow_offloading='1'
-EOF
-			uci commit network
-			echo "软件流量卸载已配置"
-		fi
-	fi
-}
-
 need_restart=0
 
 case "${board_name}" in
 link,nn6000-v2)
 	link_nn6000v2_wifi_cfg
 	uci commit wireless
-	setup_hardware_offloading
 	need_restart=1
 	;;
 esac
