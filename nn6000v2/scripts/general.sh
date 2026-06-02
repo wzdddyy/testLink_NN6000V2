@@ -38,6 +38,6 @@ reset_feeds_conf() {
     git clean -f -d
     git pull
     if [[ $COMMIT_HASH != "none" ]]; then
-        git checkout -f $COMMIT_HASH
+        git checkout $COMMIT_HASH
     fi
 }

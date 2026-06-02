@@ -49,5 +49,5 @@ install_feeds() {
     done
     
     echo "=== feeds 包安装完成 ==="
-    cd "$OLDPWD" >/dev/null 2>&1 || true
+    cd - >/dev/null || exit 1
 }

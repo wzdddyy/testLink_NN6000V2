@@ -30,29 +30,6 @@ REPO_BRANCH=${REPO_BRANCH:-main}
 BUILD_DIR=${BUILD_DIR:-imm-nss}
 COMMIT_HASH=${COMMIT_HASH:-none}
 
-# Shared firmware patterns used by find commands (avoid 4x duplication)
-read -r -d '' FIRMWARE_PATTERNS <<'EOF'
-\( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \)
-EOF
-
-# WiFi package names for dual-version (nowifi) builds
-WIFI_PACKAGES=(
-    CONFIG_PACKAGE_kmod-ath
-    CONFIG_PACKAGE_kmod-ath11k
-    CONFIG_PACKAGE_kmod-ath11k-ahb
-    CONFIG_PACKAGE_kmod-ath11k-pci
-    CONFIG_PACKAGE_ath11k-firmware-ipq6018-ddwrt
-    CONFIG_PACKAGE_ath11k-firmware-qcn9074-ddwrt
-)
-
-# Toggle WiFi packages in config: on->off or off->on
-toggle_wifi_packages() {
-    local from_val="$1" to_val="$2"
-    for pkg in "${WIFI_PACKAGES[@]}"; do
-        sed -i "s/^${pkg}=${from_val}\$/${pkg}=${to_val}/" "$CONFIG_FILE"
-    done
-}
-
 remove_uhttpd_dependency() {
     local config_path="$BASE_PATH/../$BUILD_DIR/.config"
     local luci_makefile_path="$BASE_PATH/../$BUILD_DIR/feeds/luci/collections/luci/Makefile"
@@ -157,11 +134,11 @@ fi
 
 TARGET_DIR="$BASE_PATH/../$BUILD_DIR/bin/targets"
 if [[ -d $TARGET_DIR && "$Dev" != *"nowifi"* ]]; then
-    find "$TARGET_DIR" -type f $FIRMWARE_PATTERNS -exec rm -f {} +
+    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec rm -f {} +
 fi
 
 if [[ "$Dev" != *"nowifi"* ]]; then
-    make download -j$(nproc)
+    make download -j$(($(nproc) * 2))
     make -j$(($(nproc) + 1)) || make -j1 V=s
 fi
 
@@ -182,13 +159,20 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     FIRMWARE_DIR="$BASE_PATH/../firmware"
     \rm -rf "$FIRMWARE_DIR"
     mkdir -p "$FIRMWARE_DIR"
-    find "$TARGET_DIR" -type f $FIRMWARE_PATTERNS -exec cp -f {} "$FIRMWARE_DIR/" \;
+    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
     
     # 直接修改当前配置文件（禁用 WiFi）
     cd "$BASE_PATH/../$BUILD_DIR"
     
     echo "应用配置..."
-    toggle_wifi_packages "y" "n"
+    sed -i 's/^CONFIG_PACKAGE_kmod-ath=y$/CONFIG_PACKAGE_kmod-ath=n/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_kmod-ath11k=y$/CONFIG_PACKAGE_kmod-ath11k=n/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_kmod-ath11k-ahb=y$/CONFIG_PACKAGE_kmod-ath11k-ahb=n/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_kmod-ath11k-pci=y$/CONFIG_PACKAGE_kmod-ath11k-pci=n/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_ath11k-firmware-ipq6018=y$/CONFIG_PACKAGE_ath11k-firmware-ipq6018=n/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_ath11k-firmware-ipq6018-ddwrt=y$/CONFIG_PACKAGE_ath11k-firmware-ipq6018-ddwrt=n/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_ath11k-firmware-qcn9074=y$/CONFIG_PACKAGE_ath11k-firmware-qcn9074=n/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_ath11k-firmware-qcn9074-ddwrt=y$/CONFIG_PACKAGE_ath11k-firmware-qcn9074-ddwrt=n/' "$CONFIG_FILE"
     
     cp -f "$CONFIG_FILE" .config
     make defconfig
@@ -197,7 +181,7 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     make -j$(($(nproc) + 1)) || make -j1 V=s
     
     echo "复制固件..."
-    find "$TARGET_DIR" -type f $FIRMWARE_PATTERNS | while read -r file; do
+    find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) | while read -r file; do
         filename=$(basename "$file")
         new_filename=$(echo "$filename" | sed 's/\.\([^.]*\)$/_nowifi.\1/')
         echo "Copying: $filename -> $new_filename"
@@ -206,7 +190,12 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     
     # 恢复配置文件
     echo "恢复配置文件..."
-    toggle_wifi_packages "n" "y"
+    sed -i 's/^CONFIG_PACKAGE_kmod-ath=n$/CONFIG_PACKAGE_kmod-ath=y/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_kmod-ath11k=n$/CONFIG_PACKAGE_kmod-ath11k=y/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_kmod-ath11k-ahb=n$/CONFIG_PACKAGE_kmod-ath11k-ahb=y/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_kmod-ath11k-pci=n$/CONFIG_PACKAGE_kmod-ath11k-pci=y/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_ath11k-firmware-ipq6018-ddwrt=n$/CONFIG_PACKAGE_ath11k-firmware-ipq6018-ddwrt=y/' "$CONFIG_FILE"
+    sed -i 's/^CONFIG_PACKAGE_ath11k-firmware-qcn9074-ddwrt=n$/CONFIG_PACKAGE_ath11k-firmware-qcn9074-ddwrt=y/' "$CONFIG_FILE"
     
     echo ""
     echo "=============================================="
