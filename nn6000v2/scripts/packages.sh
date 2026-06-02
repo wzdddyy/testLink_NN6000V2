@@ -4,9 +4,10 @@ GITHUB_BASE="https://github.com/"
 OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
 
 update_golang() {
-    if [[ -d ./feeds/packages/lang/golang ]]; then
-        \rm -rf ./feeds/packages/lang/golang
-        if ! git clone --depth 1 -b $GOLANG_BRANCH $GOLANG_REPO ./feeds/packages/lang/golang; then
+    local golang_dir="$BUILD_DIR/feeds/packages/lang/golang"
+    if [[ -d "$golang_dir" ]]; then
+        \rm -rf "$golang_dir"
+        if ! git clone --depth 1 -b "$GOLANG_BRANCH" "$GOLANG_REPO" "$golang_dir"; then
             echo "错误：克隆 golang 仓库 $GOLANG_REPO 失败" >&2
             exit 1
         fi
@@ -36,15 +37,14 @@ clone_packages() {
             exit 1
         fi
         
-        pushd "$target_dir" >/dev/null
-        git sparse-checkout init --cone
-        if ! git sparse-checkout set $sparse_pattern; then
-            echo "错误：稀疏检出 $sparse_pattern 失败" >&2
-            popd >/dev/null
-            return 1
-        fi
-        git checkout --quiet
-        popd >/dev/null
+        (cd "$target_dir" && {
+            git sparse-checkout init --cone
+            if ! git sparse-checkout set $sparse_pattern; then
+                echo "错误：稀疏检出 $sparse_pattern 失败" >&2
+                exit 1
+            fi
+            git checkout --quiet
+        }) || return 1
         
         if [ -n "$move_from" ] && [ -n "$move_to" ]; then
             rm -rf "$move_to" 2>/dev/null || true
@@ -136,7 +136,7 @@ clone_lucky() {
     fi
     
     local version
-    version=$(find "$BASE_PATH/patches" -name "lucky_*.tar.gz" -printf "%f\n" | head -n 1 | sed -n 's/^lucky_\(.*\)_Linux.*$/\1/p')
+    version=$(find "$BASE_PATH/patches" -name "lucky_*.tar.gz" -exec basename {} \; | head -n 1 | sed -n 's/^lucky_\(.*\)_Linux.*$/\1/p')
     if [ -z "$version" ]; then
         echo "Warning: 未找到 lucky 补丁文件，跳过更新。" >&2
         return 0

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2086,SC2164,SC2069,SC2155
+# shellcheck disable=SC2164
 #===============================================================================
 # Docker Stack Update Script for OpenWrt
 # 
@@ -12,7 +12,6 @@
 # 全局配置
 #-------------------------------------------------------------------------------
 DOCKER_STACK_MODULE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-DOCKER_STACK_REPO_ROOT=$(cd "$DOCKER_STACK_MODULE_DIR/../.." && pwd)
 
 # 组件列表
 DOCKER_STACK_COMPONENTS=("runc" "containerd" "docker" "dockerd")

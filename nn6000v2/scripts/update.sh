@@ -36,11 +36,16 @@ source "$SCRIPT_DIR/docker.sh"
 
 
 main() {
+    # ── 阶段 1: 仓库准备 ──
     clone_repo
     clean_up
     reset_feeds_conf
+
+    # ── 阶段 2: Feeds 更新 ──
     update_feeds
     update_golang
+
+    # ── 阶段 3: 第三方包克隆 ──
     clone_quickfile
     clone_lucky
     clone_diskman
@@ -50,8 +55,12 @@ main() {
     clone_oaf
     clone_luci_zerotier
     clone_passwall
+
+    # ── 阶段 4: Feeds 安装 ──
     install_feeds
     update_docker_stack
+
+    # ── 阶段 5: 系统级定制 ──
     remove_tweaked_packages
     change_dnsmasq2full
     fix_default_set
@@ -69,10 +78,14 @@ main() {
     add_backup_info_to_sysupgrade
     remove_attendedsysupgrade
     fix_kconfig_recursive_dependency
+
+    # ── 阶段 6: Web 服务定制 (Nginx) ──
     set_nginx_default_config
     update_nginx_ubus_module
     fix_nginx_configure
     update_uwsgi_limit_as
+
+    # ── 阶段 7: 杂项修复 ──
     update_script_priority
     fix_openssl_ktls
     fix_opkg_check

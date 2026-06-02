@@ -1,10 +1,14 @@
-firmware/
-.pc/
-test/
-action_build/
+# Build outputs
+/imm-nss/
+/firmware/
+/action_build/
+
+# IDE / editor
 *.swp
-.vscode/settings.json
-.clineignore
-.env
-.taskmaster/
-.sisyphus/
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.log
+*.tmp
