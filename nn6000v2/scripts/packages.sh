@@ -74,7 +74,7 @@ install_openwrt_packages() {
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf oaf open-app-filter \
         luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall \
-        luci-app-zerotier
+        luci-app-tailscale-community
 }
 
 clone_passwall() {
@@ -293,8 +293,14 @@ remove_attendedsysupgrade() {
     done
 }
 
-clone_luci_zerotier() {
-    clone_packages "luci-app-zerotier" \
-        "${GITHUB_BASE}wzdddyy/luci-app-zerotier.git" \
-        "$OPENWRT_PACKAGES_DIR/luci-app-zerotier"
+clone_luci_tailscale() {
+    local TEMP_DIR="$OPENWRT_PACKAGES_DIR/luci-app-tailscale-community-temp"
+    local TARGET_DIR="$OPENWRT_PACKAGES_DIR/luci-app-tailscale-community"
+    
+    clone_packages "luci-app-tailscale-community" \
+        "${GITHUB_BASE}Tokisaki-Galaxy/luci-app-tailscale-community.git" \
+        "$TEMP_DIR" \
+        "" \
+        "" \
+        "rm -rf \"$TARGET_DIR\" 2>/dev/null || true; mv \"$TEMP_DIR/luci-app-tailscale-community\" \"$TARGET_DIR\"; rm -rf \"$TEMP_DIR\""
 }
