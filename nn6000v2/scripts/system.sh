@@ -195,6 +195,45 @@ fix_rust_compile_error() {
     fi
 }
 
+fix_smartdns_makefile() {
+    local makefile="$BUILD_DIR/feeds/openwrt_packages/smartdns/Makefile"
+    if [ ! -f "$makefile" ]; then
+        makefile="$BUILD_DIR/feeds/packages/net/smartdns/Makefile"
+    fi
+    if [ ! -f "$makefile" ]; then
+        echo "smartdns Makefile not found, skip fix"
+        return 0
+    fi
+
+    echo "正在修复 smartdns Makefile，移除 Rust UI 依赖..."
+    
+    # 删除 Rust package include
+    sed -i '/rust-package.mk/d' "$makefile"
+    # 删除 Rust 相关变量
+    sed -i '/^RUST_PKG/d' "$makefile"
+    sed -i '/^PKG_BUILD_DEPENDS.*smartdns-ui/d' "$makefile"
+    sed -i '/^PKG_CONFIG_DEPENDS.*smartdns-ui/d' "$makefile"
+    # 删除 smartdns-ui 包定义
+    sed -i '/^define Package\/smartdns-ui/,/^endef/d' "$makefile"
+    # 删除 Build/Prepare 中的 smartdns-webui 下载
+    sed -i '/^define Download\/smartdns-webui/,/^endef/d' "$makefile"
+    sed -i '/smartdns-webui/d' "$makefile"
+    # 删除 Build/Prepare 和 Build/Compile 中的 ifneq 块
+    sed -i '/ifneq.*CONFIG_PACKAGE_smartdns-ui/,/endif/d' "$makefile"
+    # 删除 smartdns-ui 安装规则
+    sed -i '/^define Package\/smartdns-ui\/install/,/^endef/d' "$makefile"
+    # 删除 smartdns-ui 的 eval
+    sed -i '/smartdns-ui)/d' "$makefile"
+    # 补充缺失的 zlib 依赖
+    if grep -q 'DEPENDS:=.*+i386:libatomic +libopenssl' "$makefile"; then
+        if ! grep -q '+zlib' "$makefile"; then
+            sed -i 's/DEPENDS:=+i386:libatomic +libopenssl/DEPENDS:=+i386:libatomic +libopenssl +zlib/' "$makefile"
+        fi
+    fi
+    
+    echo "smartdns Makefile 修复完成"
+}
+
 update_nginx_ubus_module() {
     local makefile_path="$BUILD_DIR/feeds/packages/net/nginx/Makefile"
     local source_date="2024-03-02"
