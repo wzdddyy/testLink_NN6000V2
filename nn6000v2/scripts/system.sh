@@ -443,13 +443,10 @@ remove_tweaked_packages() {
 
 fix_quickstart() {
     local file_path="$BUILD_DIR/feeds/openwrt_packages/luci-app-quickstart/luasrc/controller/istore_backend.lua"
-    local url="https://gist.githubusercontent.com/puteulanus/1c180fae6bccd25e57eb6d30b7aa28aa/raw/istore_backend.lua"
     if [ -f "$file_path" ]; then
-        echo "正在修复 quickstart..."
-        if ! curl -fsSL -o "$file_path" "$url"; then
-            echo "错误：从 $url 下载 istore_backend.lua 失败" >&2
-            exit 1
-        fi
+        echo "正在安装 istore_backend.lua..."
+        cp -f "$BASE_PATH/patches/istore_backend.lua" "$file_path"
+        echo "✓ istore_backend.lua 已从本地安装"
     fi
 }
 
