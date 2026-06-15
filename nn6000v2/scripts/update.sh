@@ -78,7 +78,7 @@ main() {
     update_script_priority
     fix_openssl_ktls
     fix_opkg_check
-    fix_quectel_cm
+
     install_pbr_isp
     fix_pbr_ip_forward
     fix_quickstart

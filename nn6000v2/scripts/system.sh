@@ -371,35 +371,6 @@ fix_pbr_ip_forward() {
     fi
 }
 
-fix_quectel_cm() {
-    local makefile_path="$BUILD_DIR/package/feeds/packages/quectel-cm/Makefile"
-    local cmake_patch_path="$BUILD_DIR/package/feeds/packages/quectel-cm/patches/020-cmake.patch"
-
-    if [ -f "$makefile_path" ]; then
-        echo "正在修复 quectel-cm Makefile..."
-
-        sed -i '/^PKG_SOURCE:=/d' "$makefile_path"
-        sed -i '/^PKG_SOURCE_URL:=@IMMORTALWRT/d' "$makefile_path"
-        sed -i '/^PKG_HASH:=/d' "$makefile_path"
-
-        sed -i '/^PKG_RELEASE:=/a\
-\
-PKG_SOURCE_PROTO:=git\
-PKG_SOURCE_URL:=https://github.com/Carton32/quectel-CM.git\
-PKG_SOURCE_VERSION:=$(PKG_VERSION)\
-PKG_MIRROR_HASH:=skip' "$makefile_path"
-
-        sed -i 's/^PKG_RELEASE:=2$/PKG_RELEASE:=3/' "$makefile_path"
-
-        echo "quectel-cm Makefile 修复完成。"
-    fi
-
-    if [ -f "$cmake_patch_path" ]; then
-        sed -i 's/-cmake_minimum_required(VERSION 2\.4)$/-cmake_minimum_required(VERSION 2.4) /' "$cmake_patch_path"
-        sed -i 's/project(quectel-CM)$/project(quectel-CM) /' "$cmake_patch_path"
-    fi
-}
-
 set_nginx_default_config() {
     local nginx_config_path="$BUILD_DIR/feeds/packages/net/nginx-util/files/nginx.config"
     if [ -f "$nginx_config_path" ]; then
