@@ -119,20 +119,46 @@ jobs:
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
           fi
 
-      - name: Restore Build Toolchain Cache
+      - name: Restore Build Cache
         uses: actions/cache/restore@v5.0.4
         with:
           path: |
             ./action_build/staging_dir
+            ./action_build/dl
+            ./action_build/build_dir/host
+            ./action_build/build_dir/toolchain-*
+            ./action_build/build_dir/target-*/linux-*
           key: ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}
           restore-keys: |
             ${{ matrix.os }}-
 
       - name: Refresh the cache
         run: |
-          if [ -d "./action_build/staging_dir" ]; then
-            find "./action_build/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r dir; do
-                find "$dir" -type f -exec touch {} +
+          # 刷新 stamp 时间戳，避免缓存恢复后误触发重新编译
+          for dir in "./action_build/staging_dir" "./action_build/build_dir"; do
+            if [ -d "$dir" ]; then
+              find "$dir" -type d -name "stamp" | while read -r stamp_dir; do
+                find "$stamp_dir" -type f -exec touch {} +
+              done
+            fi
+          done
+          # 清理旧内核编译目录（内核版本升级后自动清理旧版）
+          for target_dir in ./action_build/build_dir/target-*/; do
+            [ -d "$target_dir" ] || continue
+            OLD_KERNEL=$(ls -1dt "$target_dir"linux-* 2>/dev/null | tail -n +2)
+            if [ -n "$OLD_KERNEL" ]; then
+              echo "$OLD_KERNEL" | while IFS= read -r dir; do
+                echo "删除旧内核目录: $dir"
+                rm -rf "$dir"
+              done
+            fi
+          done
+          # 清理旧工具链编译目录
+          OLD_TC=$(ls -1dt ./action_build/build_dir/toolchain-* 2>/dev/null | tail -n +2)
+          if [ -n "$OLD_TC" ]; then
+            echo "$OLD_TC" | while IFS= read -r dir; do
+              echo "删除旧工具链目录: $dir"
+              rm -rf "$dir"
             done
           fi
 
@@ -204,12 +230,20 @@ jobs:
           
           echo "========cache status========"
           echo "staging: $(du -sh ./action_build/staging_dir 2>/dev/null | cut -f 1 || echo 'N/A')"
+          echo "dl:      $(du -sh ./action_build/dl 2>/dev/null | cut -f 1 || echo 'N/A')"
+          echo "host:    $(du -sh ./action_build/build_dir/host 2>/dev/null | cut -f 1 || echo 'N/A')"
+          echo "kernel:  $(du -sh ./action_build/build_dir/target-*/linux-* 2>/dev/null | cut -f 1 || echo 'N/A')"
+          echo "tc:      $(du -sh ./action_build/build_dir/toolchain-* 2>/dev/null | cut -f 1 || echo 'N/A')"
 
-      - name: Save Build Toolchain Cache
+      - name: Save Build Cache
         uses: actions/cache/save@v5.0.4
         with:
           path: |
             ./action_build/staging_dir
+            ./action_build/dl
+            ./action_build/build_dir/host
+            ./action_build/build_dir/toolchain-*
+            ./action_build/build_dir/target-*/linux-*
           key: ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}
 
       - name: Machine Information
