@@ -128,6 +128,7 @@ jobs:
             ./action_build/build_dir/host
             ./action_build/build_dir/toolchain-*
             ./action_build/build_dir/target-*/linux-*
+            ~/.cache/go-build
           key: ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}
           restore-keys: |
             ${{ matrix.os }}-
@@ -142,7 +143,7 @@ jobs:
               done
             fi
           done
-          # 清理旧内核编译目录（内核版本升级后自动清理旧版）
+          # 清理旧内核编译目录
           for target_dir in ./action_build/build_dir/target-*/; do
             [ -d "$target_dir" ] || continue
             OLD_KERNEL=$(ls -1dt "$target_dir"linux-* 2>/dev/null | tail -n +2)
@@ -161,6 +162,16 @@ jobs:
               rm -rf "$dir"
             done
           fi
+          # 清理 dl/ 中旧的源码包
+          for pattern in "linux-6." "gcc-" "musl-" "binutils-"; do
+            OLD_PKG=$(ls -1t ./action_build/dl/$pattern*.tar.* 2>/dev/null | tail -n +2)
+            if [ -n "$OLD_PKG" ]; then
+              echo "$OLD_PKG" | while IFS= read -r pkg; do
+                echo "删除旧源码包: $(basename "$pkg")"
+                rm -f "$pkg"
+              done
+            fi
+          done
 
       - name: Build Firmware
         run: |
@@ -234,6 +245,7 @@ jobs:
           echo "host:    $(du -sh ./action_build/build_dir/host 2>/dev/null | cut -f 1 || echo 'N/A')"
           echo "kernel:  $(du -sh ./action_build/build_dir/target-*/linux-* 2>/dev/null | cut -f 1 || echo 'N/A')"
           echo "tc:      $(du -sh ./action_build/build_dir/toolchain-* 2>/dev/null | cut -f 1 || echo 'N/A')"
+          echo "go:      $(du -sh ~/.cache/go-build 2>/dev/null | cut -f 1 || echo 'N/A')"
 
       - name: Save Build Cache
         uses: actions/cache/save@v5.0.4
@@ -244,6 +256,7 @@ jobs:
             ./action_build/build_dir/host
             ./action_build/build_dir/toolchain-*
             ./action_build/build_dir/target-*/linux-*
+            ~/.cache/go-build
           key: ${{ matrix.os }}-${{ hashFiles('**/repo_flag') }}
 
       - name: Machine Information
